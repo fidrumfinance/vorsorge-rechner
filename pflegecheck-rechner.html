@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dein-pflegecheck.de – Eigenanteil-Rechner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #EEF2F5;
+    --card: #FFFFFF;
+    --card-border: #E4E9ED;
+    --ink: #142335;
+    --ink-dim: #5C6B7C;
+    --ink-faint: #93A1AF;
+    --teal-deep: #0B3A49;
+    --teal-mid: #157089;
+    --coral: #F05A3C;
+    --coral-dark: #D6472C;
+    --coral-soft: rgba(240,90,60,0.10);
+    --green: #1FAE5D;
+    --green-soft: rgba(31,174,93,0.12);
+    --shadow: 0 12px 32px rgba(20,45,65,0.08);
+    --shadow-sm: 0 4px 14px rgba(20,45,65,0.06);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
+
+  .wrap{ max-width: 640px; margin:0 auto; padding: 28px 18px 70px; }
+
+  .brand{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 20px;
+  }
+  .brand-name{ font-family:'Poppins',sans-serif; font-weight:700; font-size:17px; }
+  .brand-name .dein{ color: var(--ink); }
+  .brand-name .check{ color: var(--coral); }
+  .brand-link{ font-size:13px; color:var(--ink-faint); font-weight:600; }
+
+  /* HERO */
+  .hero{
+    background: linear-gradient(150deg, var(--teal-deep), var(--teal-mid));
+    border-radius: 26px;
+    padding: 40px 28px 34px;
+    text-align:center;
+    color:#fff;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+  }
+  .hero-icon{
+    width:64px; height:64px;
+    background: rgba(255,255,255,0.12);
+    border-radius:18px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:30px;
+    margin: 0 auto 18px;
+  }
+  .hero h1{
+    font-family:'Poppins',sans-serif;
+    font-weight:700;
+    font-size: clamp(24px, 6vw, 30px);
+    line-height:1.25;
+    margin: 0 0 12px;
+  }
+  .hero h1 .hl{ color: #FF9478; }
+  .hero p{
+    font-size:14.5px;
+    line-height:1.6;
+    color: rgba(255,255,255,0.82);
+    margin:0;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  /* CARD */
+  .card{
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 22px;
+    padding: 26px 24px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+  }
+  .card h2{
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    font-size:19px;
+    margin: 0 0 4px;
+  }
+  .card .sub{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin: 0 0 20px;
+  }
+
+  .field{ margin-bottom:22px; }
+  .field:last-child{ margin-bottom:0; }
+  .field label{
+    display:flex; align-items:center; gap:7px;
+    font-size:13px; font-weight:700; color:var(--ink);
+    margin-bottom:10px;
+  }
+
+  select{
+    width:100%;
+    background:#fff;
+    border:1.5px solid var(--card-border);
+    color:var(--ink);
+    padding:14px 16px;
+    border-radius:14px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%23F1F4F6'/%3E%3Cpath d='M8 10l4 4 4-4' stroke='%235C6B7C' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position: right 10px center;
+    background-size: 26px;
+    cursor:pointer;
+  }
+  select:focus{ outline:2px solid var(--coral); outline-offset:1px; }
+
+  .pg-grid{ display:flex; gap:8px; }
+  .pg-btn{
+    flex:1; text-align:center; padding:13px 0;
+    border:1.5px solid var(--card-border);
+    background:#fff; color:var(--ink-dim);
+    border-radius:13px; font-weight:700; font-size:15px;
+    cursor:pointer; transition: all .15s ease;
+  }
+  .pg-btn:hover{ border-color: var(--coral); }
+  .pg-btn.active{
+    background: var(--coral); border-color: var(--coral);
+    color:#fff; box-shadow: 0 6px 16px rgba(240,90,60,0.28);
+  }
+  .hint{ font-size:12.5px; color:var(--ink-faint); margin-top:9px; line-height:1.5; }
+
+  .slider-row{ display:flex; align-items:center; gap:14px; }
+  input[type="range"]{
+    flex:1; -webkit-appearance:none; height:6px; border-radius:3px;
+    background: var(--card-border); outline:none;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:22px; height:22px; border-radius:50%;
+    background: var(--coral); cursor:pointer; border:4px solid #fff;
+    box-shadow: 0 2px 8px rgba(240,90,60,0.45);
+  }
+  .slider-val{
+    font-weight:700; font-size:13.5px; color:var(--coral);
+    min-width:84px; text-align:right;
+  }
+
+  /* RESULT */
+  .result-card{
+    background: linear-gradient(160deg, #fff, #FAFBFC);
+  }
+  .result-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:18px; }
+  .result-label{ font-size:13px; font-weight:700; color:var(--ink-dim); }
+  .badge{
+    font-size:11.5px; font-weight:700; color:var(--teal-mid);
+    background: rgba(21,112,137,0.08);
+    padding: 5px 10px; border-radius:20px;
+    white-space:nowrap;
+  }
+  .big-number{
+    font-family:'Poppins',sans-serif;
+    font-weight:800; font-size:44px; line-height:1;
+    color: var(--coral); margin-bottom:4px;
+  }
+  .big-number span{ font-size:17px; font-weight:600; color:var(--ink-faint); font-family:'Inter',sans-serif; }
+  .big-sub{ font-size:13px; color:var(--ink-dim); margin-bottom:24px; }
+
+  .tower-bar{
+    display:flex; width:100%; height:30px; border-radius:9px; overflow:hidden;
+    border:1px solid var(--card-border);
+  }
+  .seg{ height:100%; transition: width .3s ease; }
+  .seg-kasse{ background: var(--green); }
+  .seg-pflege{ background: var(--coral); }
+  .seg-hotel{ background: var(--teal-mid); }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:12.5px; color:var(--ink-dim); margin-top:12px; font-weight:600; }
+  .legend-item{ display:flex; align-items:center; gap:7px; }
+  .dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .dot-kasse{ background:var(--green); }
+  .dot-pflege{ background:var(--coral); }
+  .dot-hotel{ background:var(--teal-mid); }
+
+  .divider{ height:1px; background:var(--card-border); margin:22px 0; }
+
+  /* STAIRCASE */
+  .steps{ display:flex; align-items:flex-end; gap:12px; height:120px; margin-top:20px; }
+  .step{ flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; justify-content:flex-end; height:100%; }
+  .step-bar{ width:100%; background: linear-gradient(180deg, var(--teal-mid), rgba(21,112,137,0.25)); border-radius:8px 8px 0 0; transition: height .3s ease; }
+  .step.current .step-bar{ background: linear-gradient(180deg, var(--coral), rgba(240,90,60,0.3)); }
+  .step-label{ font-size:11px; font-weight:700; color:var(--ink-faint); text-align:center; }
+  .step.current .step-label{ color:var(--coral); }
+
+  /* FACTS */
+  .facts-grid{ display:flex; flex-direction:column; gap:12px; }
+  .fact-card{
+    display:flex; align-items:flex-start; gap:14px;
+    background:var(--card); border:1px solid var(--card-border);
+    border-radius:18px; padding:18px 18px;
+    box-shadow: var(--shadow-sm);
+  }
+  .fact-icon{
+    flex-shrink:0; width:44px; height:44px; border-radius:13px;
+    background: var(--green-soft);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px;
+  }
+  .fact-card h4{ font-size:14.5px; margin:0 0 5px; font-weight:700; }
+  .fact-card p{ font-size:13px; line-height:1.55; color:var(--ink-dim); margin:0; }
+
+  .pg-info-list{ display:flex; flex-direction:column; gap:10px; }
+  .pg-info-item{
+    background:var(--card); border:1px solid var(--card-border);
+    border-radius:18px; overflow:hidden; box-shadow: var(--shadow-sm);
+  }
+  .pg-info-q{
+    width:100%; display:flex; align-items:center; gap:13px;
+    padding:16px 18px; background:transparent; border:none; cursor:pointer;
+    text-align:left; font-family:'Inter',sans-serif;
+  }
+  .pg-info-tag{
+    flex-shrink:0; width:34px; height:34px; border-radius:11px;
+    background: rgba(21,112,137,0.10); color:var(--teal-mid);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Poppins',sans-serif; font-size:15px; font-weight:700;
+  }
+  .pg-info-q-text{ flex:1; }
+  .pg-info-q-text .lbl{ display:block; font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--teal-mid); margin-bottom:3px; }
+  .pg-info-q-text .ttl{ font-size:14.5px; color:var(--ink); font-weight:600; line-height:1.4; }
+  .pg-info-chevron{ flex-shrink:0; width:20px; height:20px; color:var(--ink-faint); transition: transform .2s ease; }
+  .pg-info-item.open .pg-info-chevron{ transform: rotate(45deg); }
+  .pg-info-a{ max-height:0; overflow:hidden; transition: max-height .25s ease; }
+  .pg-info-item.open .pg-info-a{ max-height:260px; }
+  .pg-info-a-inner{ padding:0 18px 18px; }
+  .pg-info-desc{ font-size:13.5px; line-height:1.6; color:var(--ink-dim); margin:0 0 14px; }
+  .pg-stats{ display:flex; gap:8px; flex-wrap:wrap; }
+  .pg-stat{
+    flex:1; min-width:104px;
+    background:#F7F9FA; border:1px solid var(--card-border);
+    border-radius:11px; padding:9px 11px;
+  }
+  .pg-stat .k{ font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); margin-bottom:3px; }
+  .pg-stat .v{ font-family:'Poppins',sans-serif; font-size:14.5px; font-weight:700; color:var(--ink); }
+
+  .section-head{ margin: 30px 4px 14px; }
+  .section-head h2{ font-family:'Poppins',sans-serif; font-weight:700; font-size:21px; margin:0 0 6px; }
+  .section-head p{ font-size:13.5px; color:var(--ink-dim); margin:0; line-height:1.5; }
+
+  /* MYTHEN ACCORDION */
+  .myth-list{ display:flex; flex-direction:column; gap:10px; }
+  .myth-item{
+    background:var(--card); border:1px solid var(--card-border);
+    border-radius:18px; overflow:hidden; box-shadow: var(--shadow-sm);
+  }
+  .myth-q{
+    width:100%; display:flex; align-items:center; gap:13px;
+    padding:16px 18px; background:transparent; border:none; cursor:pointer;
+    text-align:left; font-family:'Inter',sans-serif;
+  }
+  .myth-tag{
+    flex-shrink:0; width:30px; height:30px; border-radius:10px;
+    background: var(--coral-soft); color:var(--coral);
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:800;
+  }
+  .myth-q-text{ flex:1; font-size:14.5px; color:var(--ink); font-weight:600; line-height:1.4; }
+  .myth-q-text .lbl{ display:block; font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--coral); margin-bottom:3px; }
+  .myth-chevron{ flex-shrink:0; width:20px; height:20px; color:var(--ink-faint); transition: transform .2s ease; }
+  .myth-item.open .myth-chevron{ transform: rotate(45deg); }
+  .myth-a{ max-height:0; overflow:hidden; transition: max-height .25s ease; }
+  .myth-item.open .myth-a{ max-height:240px; }
+  .myth-a-inner{ padding:0 18px 18px; display:flex; gap:13px; }
+  .myth-tag-fakt{
+    flex-shrink:0; width:30px; height:30px; border-radius:10px;
+    background: var(--green-soft); color:var(--green);
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:800;
+  }
+  .myth-a-text{ font-size:13.5px; line-height:1.6; color:var(--ink-dim); }
+  .myth-a-text .lbl{ display:block; font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--green); margin-bottom:3px; }
+
+  /* CTA */
+  .cta{
+    margin-top: 28px;
+    background: linear-gradient(150deg, var(--teal-deep), var(--teal-mid));
+    border-radius: 22px;
+    padding: 30px 26px;
+    text-align:center;
+    color:#fff;
+    box-shadow: var(--shadow);
+  }
+  .cta-icon{
+    width:52px; height:52px; border-radius:15px;
+    background: rgba(255,255,255,0.14);
+    display:flex; align-items:center; justify-content:center;
+    font-size:24px; margin: 0 auto 14px;
+  }
+  .cta h3{ font-family:'Poppins',sans-serif; font-weight:700; font-size:20px; margin:0 0 8px; }
+  .cta p{ font-size:13.5px; color: rgba(255,255,255,0.8); margin:0 0 20px; max-width:380px; margin-left:auto; margin-right:auto; line-height:1.5; }
+  .cta-btn{
+    background: var(--coral); color:#fff; border:none;
+    padding:15px 28px; border-radius:14px;
+    font-family:'Inter',sans-serif; font-weight:700; font-size:14.5px;
+    cursor:pointer; transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .cta-btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(240,90,60,0.35); }
+
+  .icon-btn{
+    background:#F1F4F6; border:1px solid var(--card-border);
+    width:34px; height:34px; border-radius:10px; cursor:pointer;
+    font-size:15px; display:flex; align-items:center; justify-content:center;
+    transition: all .15s ease; flex-shrink:0;
+  }
+  .icon-btn:hover{ background:var(--coral-soft); border-color:var(--coral); }
+
+  .compare-row{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .compare-row:last-child{ margin-bottom:0; }
+  .compare-label{ width:118px; flex-shrink:0; font-size:12px; font-weight:700; color:var(--ink-dim); line-height:1.3; }
+  .compare-bar{ flex:1; height:18px; border-radius:9px; overflow:hidden; background:var(--card-border); display:flex; }
+  .compare-fill{ height:100%; transition: width .3s ease; }
+  .compare-value{ width:82px; flex-shrink:0; text-align:right; font-size:12px; font-weight:700; color:var(--ink); }
+
+  .sticky-cta{
+    position:fixed; left:0; right:0; bottom:0;
+    background:#fff; border-top:1px solid var(--card-border);
+    box-shadow: 0 -10px 28px rgba(20,45,65,0.12);
+    padding: 14px 20px; display:flex; align-items:center; justify-content:space-between; gap:14px;
+    transform: translateY(120%); transition: transform .3s ease;
+    z-index: 999;
+  }
+  .sticky-cta.visible{ transform: translateY(0); }
+  .sticky-cta-text{ font-size:13px; color:var(--ink-dim); font-weight:600; }
+  .sticky-cta-text strong{ color:var(--coral); font-family:'Poppins',sans-serif; font-size:15px; }
+  .sticky-cta-btn{
+    background:var(--coral); color:#fff; text-decoration:none;
+    padding:12px 20px; border-radius:12px; font-weight:700; font-size:13.5px;
+    white-space:nowrap; flex-shrink:0;
+  }
+  @media (max-width:420px){ .sticky-cta-text{ display:none; } }
+
+  @media print{
+    .sticky-cta, .icon-btn, .cta, .brand-link{ display:none !important; }
+    .myth-a, .pg-info-a, .faq-a{ max-height:none !important; }
+    body{ background:#fff; }
+  }
+
+  .footnote{
+    margin-top:26px; font-size:11.5px; color:var(--ink-faint);
+    line-height:1.6; padding: 0 4px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="brand-name"><span class="dein">dein-</span><span class="check">pflegecheck</span>.de</div>
+    <div class="brand-link">Alle Themen ›</div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-icon">🛡️</div>
+    <h1>Was bleibt wirklich <span class="hl">bei Ihnen hängen?</span></h1>
+    <p>Die gesetzliche Pflegeversicherung übernimmt nur einen Teil der Heimkosten. Finden Sie in 20 Sekunden Ihren voraussichtlichen Eigenanteil.</p>
+  </div>
+
+  <div class="card">
+    <h2>Ihre Angaben</h2>
+    <p class="sub">Alle Angaben bleiben bei Ihnen — nichts wird gespeichert.</p>
+
+    <div class="field">
+      <label>📍 Bundesland</label>
+      <select id="bundesland"></select>
+    </div>
+
+    <div class="field">
+      <label>🧾 Pflegegrad</label>
+      <div class="pg-grid" id="pgGrid"></div>
+      <div class="hint" id="pgHint"></div>
+    </div>
+
+    <div class="field">
+      <label>⏳ Aufenthaltsdauer im Heim</label>
+      <div class="slider-row">
+        <input type="range" id="dauer" min="1" max="60" value="6" step="1">
+        <div class="slider-val" id="dauerVal">6 Monate</div>
+      </div>
+      <div class="hint">Der Leistungszuschlag (§43c SGB XI) senkt Ihren pflegebedingten Eigenanteil, je länger Sie im Heim sind.</div>
+    </div>
+  </div>
+
+  <div class="card result-card">
+    <div class="result-top">
+      <div class="result-label">Ihr geschätzter Eigenanteil</div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="icon-btn" id="shareBtn" title="Ergebnis teilen" aria-label="Ergebnis teilen" type="button">📤</button>
+        <button class="icon-btn" id="printBtn" title="Ergebnis drucken" aria-label="Ergebnis drucken" type="button">🖨️</button>
+        <div class="badge" id="badge">NRW · PG 3</div>
+      </div>
+    </div>
+    <div class="big-number" id="bigNumber">0 <span>€ / Monat</span></div>
+    <div class="big-sub" id="bigSub">&nbsp;</div>
+
+    <div class="tower-bar">
+      <div class="seg seg-kasse" id="segKasse"></div>
+      <div class="seg seg-pflege" id="segPflege"></div>
+      <div class="seg seg-hotel" id="segHotel"></div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="dot dot-kasse"></span>Kassenleistung <span id="legKasse"></span></div>
+      <div class="legend-item"><span class="dot dot-pflege"></span>Eigenanteil Pflege <span id="legPflege"></span></div>
+      <div class="legend-item"><span class="dot dot-hotel"></span>Unterkunft &amp; Invest. <span id="legHotel"></span></div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="hint">Gesamtkosten des Heimplatzes: <strong id="gesamtHint" style="color:var(--ink);"></strong> monatlich, bevor die Pflegekasse ihren Anteil übernimmt.</div>
+  </div>
+
+  <div class="card">
+    <h2>💰 Reicht Ihr Vermögen?</h2>
+    <p class="sub">Zeigt, was gesetzlich geschützt ist und wie lange der Rest bei Ihrer oben berechneten Lücke reichen würde.</p>
+
+    <div class="field">
+      <label>👥 Familienstand</label>
+      <div class="pg-grid" id="famGrid"></div>
+    </div>
+
+    <div class="field">
+      <label>🏦 Vorhandenes Vermögen (Ersparnisse)</label>
+      <div class="slider-row">
+        <input type="range" id="vermoegenSlider" min="0" max="300000" step="5000" value="50000">
+        <div class="slider-val" id="vermoegenVal">50.000 €</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>💵 Monatliche Rente / Einkommen</label>
+      <div class="slider-row">
+        <input type="range" id="renteSlider" min="0" max="4000" step="50" value="1500">
+        <div class="slider-val" id="renteVal">1.500 €</div>
+      </div>
+      <div class="hint">Wird auf Ihre oben berechnete Eigenanteil-Lücke angerechnet.</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="result-label" style="margin-bottom:8px;">Schonvermögen-Check</div>
+    <div class="hint" id="schonHint" style="margin-top:0;"></div>
+
+    <div class="tower-bar" style="margin-top:14px;">
+      <div class="seg" id="segSchon" style="background:var(--teal-mid);"></div>
+      <div class="seg" id="segEinsetzbar" style="background:var(--coral);"></div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="dot" style="background:var(--teal-mid);"></span>Geschützt <span id="legSchon"></span></div>
+      <div class="legend-item"><span class="dot" style="background:var(--coral);"></span>Müsste eingesetzt werden <span id="legEinsetzbar"></span></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="result-label" style="margin-bottom:8px;">Wie lange reicht es?</div>
+    <div class="big-number" id="runwayNumber">– <span></span></div>
+    <div class="big-sub" id="runwaySub">&nbsp;</div>
+  </div>
+
+  <div class="card">
+    <h2>💳 Pflegetagegeld-Rechner</h2>
+    <p class="sub">Allgemeine Marktschätzung auf Basis durchschnittlicher Tarife 2026 — kein Angebot eines bestimmten Anbieters.</p>
+
+    <div class="field">
+      <label>🎂 Ihr heutiges Alter</label>
+      <div class="slider-row">
+        <input type="range" id="alterSlider" min="18" max="75" value="45" step="1">
+        <div class="slider-val" id="alterVal">45 Jahre</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>💶 Gewünschtes Pflegetagegeld (bei Pflegegrad 5)</label>
+      <div class="slider-row">
+        <input type="range" id="tagegeldSlider" min="10" max="150" value="50" step="5">
+        <div class="slider-val" id="tagegeldVal">50 € / Tag</div>
+      </div>
+      <div class="hint">Entspricht einer Auszahlung von <strong id="auszahlungHint" style="color:var(--ink);"></strong> € / Monat bei voller Pflegebedürftigkeit.</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="result-label" style="margin-bottom:8px;">Geschätzter Beitrag</div>
+    <div class="big-number" id="beitragNumber">0 <span>€ / Monat</span></div>
+    <div class="big-sub" id="beitragSub">&nbsp;</div>
+
+    <div class="tower-bar">
+      <div class="seg" id="segDeckung" style="background:var(--green);"></div>
+      <div class="seg" id="segLuecke" style="background:var(--card-border);"></div>
+    </div>
+    <div class="hint" id="deckungHint" style="margin-top:12px;"></div>
+
+    <div class="divider"></div>
+
+    <div class="result-label" style="margin-bottom:14px;">Vorher / Nachher</div>
+    <div class="compare-row">
+      <div class="compare-label">Ohne Tagegeld</div>
+      <div class="compare-bar"><div class="compare-fill" id="cmpOhneFill" style="background:var(--coral); width:100%;"></div></div>
+      <div class="compare-value" id="cmpOhneVal">–</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label" id="cmpMitLabel">Mit Tagegeld</div>
+      <div class="compare-bar">
+        <div class="compare-fill" id="cmpGedecktFill" style="background:var(--green); width:0%;"></div>
+        <div class="compare-fill" id="cmpRestFill" style="background:var(--coral); width:0%;"></div>
+      </div>
+      <div class="compare-value" id="cmpMitVal">–</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Warum sich Bleiben "auszahlt"</h2>
+    <p class="sub">Der Leistungszuschlag steigt gestaffelt mit der Verweildauer — er wirkt nur auf den pflegebedingten Eigenanteil, nicht auf Unterkunft & Investitionskosten.</p>
+    <div class="steps" id="steps"></div>
+  </div>
+
+  <div class="section-head">
+    <h2>Was bedeutet mein Pflegegrad?</h2>
+    <p>Der Medizinische Dienst bewertet 6 Lebensbereiche (u. a. Mobilität, kognitive Fähigkeiten, Selbstversorgung) und errechnet daraus eine Punktzahl, die den Pflegegrad bestimmt. Tippen Sie einen Grad an.</p>
+  </div>
+  <div class="pg-info-list" id="pgInfoList"></div>
+
+  <div class="section-head">
+    <h2>Was die wenigsten wissen</h2>
+  </div>
+  <div class="facts-grid">
+    <div class="fact-card">
+      <div class="fact-icon">💶</div>
+      <div><h4>10.000 € Schonvermögen</h4><p>Springt das Sozialamt ein, dürfen 10.000 € pro Person (20.000 € bei Ehepaaren) nicht angetastet werden.</p></div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-icon">🏠</div>
+      <div><h4>Die Immobilie bleibt oft geschützt</h4><p>Solange Ehepartner oder ein minderjähriges Kind weiter darin wohnen, gilt sie als geschütztes Schonvermögen.</p></div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-icon">👪</div>
+      <div><h4>100.000-€-Grenze beim Elternunterhalt</h4><p>Kinder zahlen erst, wenn ihr eigenes Bruttojahreseinkommen über 100.000 € liegt — pro Kind einzeln geprüft.</p></div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <h2>Mythen-Check: Was stimmt wirklich?</h2>
+    <p>Beim Thema Pflegekosten kursieren viele Halbwahrheiten. Tippen Sie einen Punkt an.</p>
+  </div>
+  <div class="myth-list" id="mythList"></div>
+
+  <div class="section-head">
+    <h2>Häufige Fragen</h2>
+    <p>Kurz und knapp beantwortet — für alles Weitere sind wir im persönlichen Gespräch für Sie da.</p>
+  </div>
+  <div class="pg-info-list" id="faqList"></div>
+
+  <div class="cta">
+    <div class="cta-icon">📞</div>
+    <h3>Nicht raten – planen.</h3>
+    <p>In einem kostenlosen Erstgespräch klären wir Ihre persönliche Versorgungslücke und zeigen konkrete Möglichkeiten zur Absicherung.</p>
+    <a class="cta-btn" href="https://calendly.com/fidrumfinance" target="_blank" rel="noopener noreferrer" style="display:inline-block; text-decoration:none;">Kostenlose Beratung anfragen →</a>
+  </div>
+
+  <div class="footnote">
+    Alle Angaben sind Schätzwerte auf Basis bundesweiter Durchschnittsdaten (vdek, Stand 2026) und der gesetzlichen Leistungsbeträge nach § 43 / § 43c SGB XI. Regionale Werte sind Näherungen und ersetzen keine individuelle Auskunft Ihrer Pflegekasse, Ihres Sozialamts oder eines Fachanwalts. Keine Rechts- oder Finanzberatung.
+  </div>
+
+</div>
+
+<div class="sticky-cta" id="stickyCta">
+  <div class="sticky-cta-text">Ihre Lücke: <strong id="stickyAmount">– € / Monat</strong></div>
+  <a class="sticky-cta-btn" href="https://calendly.com/fidrumfinance" target="_blank" rel="noopener noreferrer">Beratung anfragen →</a>
+</div>
+
+<script>
+  const AVG_EEE = 1747;
+  const AVG_HOTEL = 1617;
+
+  const laender = [
+    { name: "Baden-Württemberg", kuerzel:"BW", f: 1.06 },
+    { name: "Bayern", kuerzel:"BY", f: 1.05 },
+    { name: "Berlin", kuerzel:"BE", f: 0.99 },
+    { name: "Brandenburg", kuerzel:"BB", f: 0.88 },
+    { name: "Bremen", kuerzel:"HB", f: 1.04 },
+    { name: "Hamburg", kuerzel:"HH", f: 1.02 },
+    { name: "Hessen", kuerzel:"HE", f: 1.05 },
+    { name: "Mecklenburg-Vorpommern", kuerzel:"MV", f: 0.86 },
+    { name: "Niedersachsen", kuerzel:"NI", f: 0.97 },
+    { name: "Nordrhein-Westfalen", kuerzel:"NRW", f: 1.12 },
+    { name: "Rheinland-Pfalz", kuerzel:"RLP", f: 1.00 },
+    { name: "Saarland", kuerzel:"SL", f: 1.07 },
+    { name: "Sachsen", kuerzel:"SN", f: 0.90 },
+    { name: "Sachsen-Anhalt", kuerzel:"ST", f: 0.86 },
+    { name: "Schleswig-Holstein", kuerzel:"SH", f: 0.98 },
+    { name: "Thüringen", kuerzel:"TH", f: 0.88 },
+  ];
+
+  const kassenleistung = { 1: 131, 2: 805, 3: 1319, 4: 1855, 5: 2096 };
+
+  const bundeslandSel = document.getElementById('bundesland');
+  laender.forEach((l, i) => {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = l.name;
+    if (l.name === "Nordrhein-Westfalen") opt.selected = true;
+    bundeslandSel.appendChild(opt);
+  });
+
+  let pflegegrad = 3;
+  const pgGrid = document.getElementById('pgGrid');
+  [1,2,3,4,5].forEach(pg => {
+    const btn = document.createElement('div');
+    btn.className = 'pg-btn' + (pg === pflegegrad ? ' active' : '');
+    btn.textContent = pg;
+    btn.onclick = () => { pflegegrad = pg; updateActivePG(); render(); };
+    btn.dataset.pg = pg;
+    pgGrid.appendChild(btn);
+  });
+  function updateActivePG(){
+    document.querySelectorAll('.pg-btn').forEach(b => {
+      b.classList.toggle('active', Number(b.dataset.pg) === pflegegrad);
+    });
+  }
+
+  const dauerSlider = document.getElementById('dauer');
+  const dauerVal = document.getElementById('dauerVal');
+  const alterSlider = document.getElementById('alterSlider');
+  const alterVal = document.getElementById('alterVal');
+  const tagegeldSlider = document.getElementById('tagegeldSlider');
+  const tagegeldVal = document.getElementById('tagegeldVal');
+  const auszahlungHint = document.getElementById('auszahlungHint');
+  const beitragNumber = document.getElementById('beitragNumber');
+  const beitragSub = document.getElementById('beitragSub');
+  const segDeckung = document.getElementById('segDeckung');
+  const segLuecke = document.getElementById('segLuecke');
+  const deckungHint = document.getElementById('deckungHint');
+  const cmpOhneFill = document.getElementById('cmpOhneFill');
+  const cmpOhneVal = document.getElementById('cmpOhneVal');
+  const cmpMitLabel = document.getElementById('cmpMitLabel');
+  const cmpGedecktFill = document.getElementById('cmpGedecktFill');
+  const cmpRestFill = document.getElementById('cmpRestFill');
+  const cmpMitVal = document.getElementById('cmpMitVal');
+  let lastGesamtEigenanteil = 0;
+
+  // Vermögens-Runway-Rechner
+  const vermoegenSlider = document.getElementById('vermoegenSlider');
+  const vermoegenVal = document.getElementById('vermoegenVal');
+  const renteSlider = document.getElementById('renteSlider');
+  const renteVal = document.getElementById('renteVal');
+  const schonHint = document.getElementById('schonHint');
+  const segSchon = document.getElementById('segSchon');
+  const segEinsetzbar = document.getElementById('segEinsetzbar');
+  const legSchon = document.getElementById('legSchon');
+  const legEinsetzbar = document.getElementById('legEinsetzbar');
+  const runwayNumber = document.getElementById('runwayNumber');
+  const runwaySub = document.getElementById('runwaySub');
+
+  let familienstand = 'ledig';
+  const famGrid = document.getElementById('famGrid');
+  [{key:'ledig', label:'Ledig'}, {key:'verheiratet', label:'Verheiratet'}].forEach(f => {
+    const btn = document.createElement('div');
+    btn.className = 'pg-btn' + (f.key === familienstand ? ' active' : '');
+    btn.textContent = f.label;
+    btn.dataset.key = f.key;
+    btn.onclick = () => {
+      familienstand = f.key;
+      document.querySelectorAll('#famGrid .pg-btn').forEach(b => b.classList.toggle('active', b.dataset.key === familienstand));
+      renderVermoegen();
+    };
+    famGrid.appendChild(btn);
+  });
+
+  function renderVermoegen(){
+    const vermoegen = Number(vermoegenSlider.value);
+    const rente = Number(renteSlider.value);
+    vermoegenVal.textContent = fmt(vermoegen) + ' €';
+    renteVal.textContent = fmt(rente) + ' €';
+
+    const schonvermoegenBetrag = familienstand === 'verheiratet' ? 20000 : 10000;
+    const geschuetzt = Math.min(vermoegen, schonvermoegenBetrag);
+    const einsetzbar = Math.max(0, vermoegen - schonvermoegenBetrag);
+
+    schonHint.innerHTML = 'Bei Hilfe zur Pflege durch das Sozialamt sind <strong style="color:var(--ink);">' + fmt(schonvermoegenBetrag) + ' €</strong> als Schonvermögen geschützt' + (familienstand === 'verheiratet' ? ' (Ehepaar).' : '.');
+
+    const totalV = (geschuetzt + einsetzbar) || 1;
+    segSchon.style.width = (geschuetzt / totalV * 100) + '%';
+    segEinsetzbar.style.width = (einsetzbar / totalV * 100) + '%';
+    legSchon.textContent = fmt(geschuetzt) + ' €';
+    legEinsetzbar.textContent = fmt(einsetzbar) + ' €';
+
+    const luecke = lastGesamtEigenanteil || 0;
+    const monatlicheLuecke = Math.max(0, luecke - rente);
+
+    if (luecke <= 0){
+      runwayNumber.innerHTML = '– <span style="font-size:16px;"></span>';
+      runwaySub.textContent = 'Stellen Sie oben Bundesland und Pflegegrad ein, um Ihre Lücke zu berechnen.';
+    } else if (monatlicheLuecke <= 0){
+      runwayNumber.innerHTML = '∞ <span style="font-size:16px;color:var(--ink-faint);">gedeckt</span>';
+      runwaySub.textContent = 'Ihre monatliche Rente reicht bereits aus, um den errechneten Eigenanteil vollständig zu decken.';
+    } else if (einsetzbar <= 0){
+      runwayNumber.innerHTML = '0 <span style="font-size:16px;">Monate</span>';
+      runwaySub.textContent = 'Ihr Vermögen liegt bereits im geschützten Bereich — ab sofort würde in der Regel Hilfe zur Pflege greifen.';
+    } else {
+      const monate = einsetzbar / monatlicheLuecke;
+      const jahre = (monate / 12).toFixed(1).replace('.', ',');
+      runwayNumber.innerHTML = fmt(monate) + ' <span style="font-size:16px;color:var(--ink-faint);">Monate</span>';
+      runwaySub.textContent = '≈ ' + jahre + ' Jahre bei einer monatlichen Lücke von ' + fmt(monatlicheLuecke) + ' € · danach würde in der Regel Hilfe zur Pflege greifen.';
+    }
+  }
+  vermoegenSlider.addEventListener('input', renderVermoegen);
+  renteSlider.addEventListener('input', renderVermoegen);
+
+  // Marktschätzung: monatlicher Beitrag je 50 € Tagegeld nach Alter (Stützpunkte, linear interpoliert)
+  // Basis: Marktbeobachtung Pflegetagegeldversicherungen 2026 (u.a. Verbraucherzentrale, Vergleichsportale)
+  const ageAnchors = [
+    [18, 27], [25, 32], [30, 34], [35, 36], [40, 38], [45, 50],
+    [50, 75], [55, 115], [60, 160], [65, 230], [70, 320], [75, 430]
+  ];
+  function beitragPro50(age){
+    if (age <= ageAnchors[0][0]) return ageAnchors[0][1];
+    for (let i = 0; i < ageAnchors.length - 1; i++){
+      const a1 = ageAnchors[i][0], p1 = ageAnchors[i][1];
+      const a2 = ageAnchors[i+1][0], p2 = ageAnchors[i+1][1];
+      if (age >= a1 && age <= a2){
+        const t = (age - a1) / (a2 - a1);
+        return p1 + t * (p2 - p1);
+      }
+    }
+    return ageAnchors[ageAnchors.length - 1][1];
+  }
+
+  function renderTagegeld(){
+    const age = Number(alterSlider.value);
+    const tagegeld = Number(tagegeldSlider.value);
+    alterVal.textContent = age + ' Jahre';
+    tagegeldVal.textContent = tagegeld + ' € / Tag';
+
+    const auszahlung = tagegeld * 30;
+    auszahlungHint.textContent = fmt(auszahlung);
+
+    const beitrag = beitragPro50(age) * (tagegeld / 50);
+    beitragNumber.innerHTML = fmt(beitrag) + ' <span>€ / Monat</span>';
+    beitragSub.textContent = 'Modellrechnung für ' + age + '-Jährige · Tagegeld ' + tagegeld + ' € bei Pflegegrad 5';
+
+    const luecke = lastGesamtEigenanteil || 0;
+    let deckungPct = 0;
+    if (luecke > 0){ deckungPct = Math.min(100, (auszahlung / luecke) * 100); }
+    segDeckung.style.width = deckungPct + '%';
+    segLuecke.style.width = (100 - deckungPct) + '%';
+    deckungHint.innerHTML = luecke > 0
+      ? 'Deckt ca. <strong style="color:var(--ink);">' + Math.round(deckungPct) + ' %</strong> Ihrer oben berechneten Eigenanteil-Lücke von ' + fmt(luecke) + ' €.'
+      : 'Wählen Sie oben Bundesland und Pflegegrad, um die Deckung Ihrer Lücke zu sehen.';
+
+    // Vorher/Nachher-Vergleich
+    cmpMitLabel.textContent = 'Mit ' + tagegeld + ' €/Tag';
+    if (luecke <= 0){
+      cmpOhneVal.textContent = '–';
+      cmpOhneFill.style.width = '0%';
+      cmpGedecktFill.style.width = '0%';
+      cmpRestFill.style.width = '0%';
+      cmpMitVal.textContent = '–';
+    } else {
+      cmpOhneVal.textContent = fmt(luecke) + ' €';
+      cmpOhneFill.style.width = '100%';
+      const gedeckt = Math.min(auszahlung, luecke);
+      const rest = Math.max(0, luecke - auszahlung);
+      const gedecktPct = Math.min(100, (gedeckt / luecke) * 100);
+      cmpGedecktFill.style.width = gedecktPct + '%';
+      cmpRestFill.style.width = (100 - gedecktPct) + '%';
+      cmpMitVal.textContent = (auszahlung >= luecke) ? 'voll gedeckt' : fmt(rest) + ' € Rest';
+    }
+  }
+
+  alterSlider.addEventListener('input', renderTagegeld);
+  tagegeldSlider.addEventListener('input', renderTagegeld);
+
+  function zuschlagQuote(monate){
+    if (monate <= 12) return 0.15;
+    if (monate <= 24) return 0.30;
+    if (monate <= 36) return 0.50;
+    return 0.75;
+  }
+  function fmt(n){ return Math.round(n).toLocaleString('de-DE'); }
+
+  function render(){
+    const monate = Number(dauerSlider.value);
+    dauerVal.textContent = monate + (monate === 1 ? ' Monat' : ' Monate');
+
+    const land = laender[Number(bundeslandSel.value)];
+    // EEE ist bereits der pflegebedingte NETTO-Eigenanteil (nach Kassenleistung),
+    // einrichtungseinheitlich – also für alle Pflegegrade 2–5 gleich hoch.
+    const eee = AVG_EEE * land.f;
+    const hotel = AVG_HOTEL * land.f;
+    const kasse = kassenleistung[pflegegrad];
+
+    const pgHint = document.getElementById('pgHint');
+    pgHint.textContent = (pflegegrad === 1)
+      ? 'Bei Pflegegrad 1 ist vollstationäre Pflege unüblich — es gibt nur einen Zuschuss von 131 €, keinen Leistungszuschlag.'
+      : '';
+
+    const quote = (pflegegrad === 1) ? 0 : zuschlagQuote(monate);
+    // Der Leistungszuschlag wird zusätzlich von der Pflegekasse übernommen – er verschiebt
+    // also nur, WER den EEE zahlt (Kasse vs. Bewohner), nicht die Höhe des EEE selbst.
+    const zuschlagsbetrag = eee * quote;
+    const eigenanteilPflege = eee - zuschlagsbetrag;
+    const kasseGesamtPflege = kasse + zuschlagsbetrag;
+
+    const gesamtEigenanteil = eigenanteilPflege + hotel;
+    const gesamtkosten = eee + kasse + hotel; // Bruttokosten der Einrichtung (unabhängig von der Aufenthaltsdauer)
+
+    document.getElementById('bigNumber').innerHTML = fmt(gesamtEigenanteil) + ' <span>€ / Monat</span>';
+    document.getElementById('bigSub').textContent = land.name + ' · Leistungszuschlag ' + Math.round(quote*100) + ' %';
+    document.getElementById('badge').textContent = land.kuerzel + ' · PG ' + pflegegrad;
+    document.getElementById('gesamtHint').textContent = fmt(gesamtkosten) + ' €';
+
+    const total = kasseGesamtPflege + eigenanteilPflege + hotel;
+    document.getElementById('segKasse').style.width = (kasseGesamtPflege/total*100) + '%';
+    document.getElementById('segPflege').style.width = (eigenanteilPflege/total*100) + '%';
+    document.getElementById('segHotel').style.width = (hotel/total*100) + '%';
+
+    document.getElementById('legKasse').textContent = fmt(kasseGesamtPflege) + ' €';
+    document.getElementById('legPflege').textContent = fmt(eigenanteilPflege) + ' €';
+    document.getElementById('legHotel').textContent = fmt(hotel) + ' €';
+
+    lastGesamtEigenanteil = gesamtEigenanteil;
+    renderTagegeld();
+    renderVermoegen();
+    renderSteps(monate);
+    updateStickyCta();
+  }
+
+  function renderSteps(currentMonate){
+    const stepsEl = document.getElementById('steps');
+    stepsEl.innerHTML = '';
+    const defs = [
+      { label: '≤ 12 Mon.', pct: 15, range: [1,12] },
+      { label: '13–24 Mon.', pct: 30, range: [13,24] },
+      { label: '25–36 Mon.', pct: 50, range: [25,36] },
+      { label: '> 36 Mon.', pct: 75, range: [37,60] },
+    ];
+    defs.forEach(d => {
+      const isCurrent = currentMonate >= d.range[0] && currentMonate <= d.range[1];
+      const step = document.createElement('div');
+      step.className = 'step' + (isCurrent ? ' current' : '');
+      step.innerHTML = `
+        <div class="step-label">${d.pct}%</div>
+        <div class="step-bar" style="height:${d.pct}%;"></div>
+        <div class="step-label">${d.label}</div>
+      `;
+      stepsEl.appendChild(step);
+    });
+  }
+
+  bundeslandSel.addEventListener('change', render);
+  dauerSlider.addEventListener('input', render);
+
+  const mythen = [
+    { mythos: "Verheiratete Kinder sind automatisch von der 100.000-€-Grenze befreit.",
+      fakt: "Die Grenze gilt pro Kind – unabhängig vom Familienstand. Nur das eigene Einkommen des Kindes zählt, das des Ehepartners nicht. Verheiratete profitieren erst danach von einem höheren Familien-Selbstbehalt (ca. 4.550 € statt 2.500 €)." },
+    { mythos: "Das Sozialamt nimmt mir mein gesamtes Erspartes weg.",
+      fakt: "10.000 € pro Person (20.000 € bei Ehepaaren) sind als Schonvermögen gesetzlich geschützt und dürfen für Hilfe zur Pflege nicht angetastet werden." },
+    { mythos: "Ich muss mein Haus verkaufen, sobald ich ins Pflegeheim ziehe.",
+      fakt: "Solange Ehepartner oder ein minderjähriges Kind weiter darin wohnen, bleibt die Immobilie geschützt. Selbst danach wird meist ein Darlehen mit Grundschuld vereinbart statt eines Zwangsverkaufs." },
+    { mythos: "Sobald ich Sozialhilfe beantrage, schreibt das Amt automatisch alle meine Kinder an.",
+      fakt: "Ein pauschales Anschreiben ist unzulässig (§ 117 SGB XII). Das Sozialamt darf Kinder nur kontaktieren, wenn konkrete Anhaltspunkte für ein Einkommen über 100.000 € vorliegen." },
+    { mythos: "Schenkungen an Kinder oder Enkel von vor Jahren sind vor dem Sozialamt sicher.",
+      fakt: "Innerhalb von 10 Jahren vor Eintritt der Bedürftigkeit können Schenkungen zurückgefordert werden (§ 528 BGB) – ausgenommen sind nur übliche Anstandsgeschenke." },
+    { mythos: "Schwiegerkinder müssen auch für die Pflege der Schwiegereltern zahlen.",
+      fakt: "Schwiegerkinder sind mit ihren Schwiegereltern nicht verwandt und daher grundsätzlich nicht unterhaltspflichtig – nur leibliche und adoptierte Kinder in gerader Linie sind es." },
+    { mythos: "Die gesetzliche Pflegeversicherung übernimmt die vollen Heimkosten.",
+      fakt: "Sie funktioniert nach dem Teilkaskoprinzip. Selbst bei Pflegegrad 5 deckt die Kassenleistung oft nur einen Teil der tatsächlichen Kosten – der Rest bleibt Eigenanteil." },
+    { mythos: "Wer keinen Antrag stellt, bekommt die Sozialhilfe später trotzdem rückwirkend.",
+      fakt: "Hilfe zur Pflege wirkt nicht rückwirkend. Jeder Monat ohne gestellten Antrag bedeutet endgültig verlorenes Geld." },
+  ];
+
+  const pflegegradeInfo = [
+    { grad:1, punkte:'12,5 – < 27', titel:'Geringe Beeinträchtigung', desc:'Kommt im Alltag meist noch zurecht, braucht aber z. B. beim Putzen, Einkaufen oder bei Behördengängen leichte Unterstützung.', geld:'—', sach:'—', stationaer:'131 €' },
+    { grad:2, punkte:'27 – < 47,5', titel:'Erhebliche Beeinträchtigung', desc:'Braucht mehrmals täglich Hilfe bei Körperpflege, Anziehen oder Mobilität, ist im Kern aber noch recht selbstständig.', geld:'347 €', sach:'796 €', stationaer:'805 €' },
+    { grad:3, punkte:'47,5 – < 70', titel:'Schwere Beeinträchtigung', desc:'Deutlich eingeschränkte Mobilität und Selbstversorgung — regelmäßige Unterstützung bei fast allen Alltagsverrichtungen nötig.', geld:'599 €', sach:'1.497 €', stationaer:'1.319 €' },
+    { grad:4, punkte:'70 – < 90', titel:'Schwerste Beeinträchtigung', desc:'Weitgehend bettlägerig oder stark pflegebedürftig — eine Rund-um-die-Uhr-Betreuung ist in der Regel erforderlich.', geld:'800 €', sach:'1.859 €', stationaer:'1.855 €' },
+    { grad:5, punkte:'90 – 100', titel:'Besondere Anforderungen an die Versorgung', desc:'Zusätzlich zur schwersten Beeinträchtigung bestehen besondere medizinisch-pflegerische Bedarfe, etwa bei fortgeschrittener Demenz mit Verhaltensauffälligkeiten.', geld:'990 €', sach:'2.299 €', stationaer:'2.096 €' },
+  ];
+
+  const pgInfoList = document.getElementById('pgInfoList');
+  pflegegradeInfo.forEach((p) => {
+    const item = document.createElement('div');
+    item.className = 'pg-info-item';
+    item.innerHTML = `
+      <button class="pg-info-q" aria-expanded="false">
+        <div class="pg-info-tag">${p.grad}</div>
+        <div class="pg-info-q-text"><span class="lbl">Pflegegrad ${p.grad} · ${p.punkte} Punkte</span><span class="ttl">${p.titel}</span></div>
+        <svg class="pg-info-chevron" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <div class="pg-info-a">
+        <div class="pg-info-a-inner">
+          <p class="pg-info-desc">${p.desc}</p>
+          <div class="pg-stats">
+            <div class="pg-stat"><div class="k">Pflegegeld</div><div class="v">${p.geld}</div></div>
+            <div class="pg-stat"><div class="k">Sachleistung</div><div class="v">${p.sach}</div></div>
+            <div class="pg-stat"><div class="k">Stationär (Kasse)</div><div class="v">${p.stationaer}</div></div>
+          </div>
+        </div>
+      </div>
+    `;
+    item.querySelector('.pg-info-q').addEventListener('click', () => item.classList.toggle('open'));
+    pgInfoList.appendChild(item);
+  });
+
+  const mythList = document.getElementById('mythList');
+  mythen.forEach((m) => {
+    const item = document.createElement('div');
+    item.className = 'myth-item';
+    item.innerHTML = `
+      <button class="myth-q" aria-expanded="false">
+        <div class="myth-tag">✕</div>
+        <div class="myth-q-text"><span class="lbl">Mythos</span>${m.mythos}</div>
+        <svg class="myth-chevron" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <div class="myth-a">
+        <div class="myth-a-inner">
+          <div class="myth-tag-fakt">✓</div>
+          <div class="myth-a-text"><span class="lbl">Fakt</span>${m.fakt}</div>
+        </div>
+      </div>
+    `;
+    item.querySelector('.myth-q').addEventListener('click', () => item.classList.toggle('open'));
+    mythList.appendChild(item);
+  });
+
+  const faqItems = [
+    { frage: 'Wie beantrage ich einen Pflegegrad?', antwort: 'Formlos bei Ihrer Pflegekasse beantragen (telefonisch oder schriftlich reicht). Anschließend erfolgt eine Begutachtung durch den Medizinischen Dienst (gesetzlich Versicherte) bzw. MEDICPROOF (privat Versicherte).' },
+    { frage: 'Was ist der Unterschied zwischen Pflegegrad und der alten Pflegestufe?', antwort: 'Seit 2017 wurden die früheren 3 Pflegestufen durch 5 Pflegegrade ersetzt. Dabei werden nicht mehr nur körperliche, sondern auch kognitive und psychische Einschränkungen berücksichtigt.' },
+    { frage: 'Kann ich gegen einen abgelehnten oder zu niedrigen Pflegegrad Widerspruch einlegen?', antwort: 'Ja. Ab Erhalt des Bescheids haben Sie einen Monat Zeit für einen schriftlichen Widerspruch — am besten mit ärztlichen Unterlagen als Begründung.' },
+    { frage: 'Was passiert, wenn ich mit dem Eigenanteil finanziell nicht zurechtkomme?', antwort: 'Sie können beim Sozialamt „Hilfe zur Pflege" beantragen. Der Antrag wirkt nicht rückwirkend — je früher gestellt, desto besser.' },
+    { frage: 'Muss ich mich sofort für ein Pflegeheim entscheiden?', antwort: 'Nein. Ambulante Pflege, Pflege-Wohngemeinschaften und Tagespflege sind für die meisten Menschen die bevorzugte und oft auch günstigere Alternative.' },
+  ];
+
+  const faqList = document.getElementById('faqList');
+  faqItems.forEach((f) => {
+    const item = document.createElement('div');
+    item.className = 'pg-info-item faq-item';
+    item.innerHTML = `
+      <button class="pg-info-q" aria-expanded="false">
+        <div class="pg-info-tag">?</div>
+        <div class="pg-info-q-text"><span class="ttl">${f.frage}</span></div>
+        <svg class="pg-info-chevron" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <div class="pg-info-a faq-a">
+        <div class="pg-info-a-inner">
+          <p class="pg-info-desc" style="margin-bottom:0;">${f.antwort}</p>
+        </div>
+      </div>
+    `;
+    item.querySelector('.pg-info-q').addEventListener('click', () => item.classList.toggle('open'));
+    faqList.appendChild(item);
+  });
+
+  // Teilen / Drucken
+  const shareBtn = document.getElementById('shareBtn');
+  const printBtn = document.getElementById('printBtn');
+  shareBtn.addEventListener('click', async () => {
+    const text = 'Mein geschätzter Pflegeheim-Eigenanteil: ' + fmt(lastGesamtEigenanteil) + ' € / Monat. Rechnen Sie Ihren eigenen aus:';
+    if (navigator.share){
+      try { await navigator.share({ title: 'Pflegecheck Eigenanteil-Rechner', text: text, url: window.location.href }); } catch(e){ /* Nutzer hat abgebrochen */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(text + ' ' + window.location.href);
+        alert('Link wurde in die Zwischenablage kopiert!');
+      } catch(e){
+        window.prompt('Link kopieren:', window.location.href);
+      }
+    }
+  });
+  printBtn.addEventListener('click', () => window.print());
+
+  // Sticky-CTA
+  const stickyCta = document.getElementById('stickyCta');
+  const stickyAmount = document.getElementById('stickyAmount');
+  const mainCtaEl = document.querySelector('.cta');
+  const heroEl = document.querySelector('.hero');
+  function updateStickyCta(){
+    stickyAmount.textContent = fmt(lastGesamtEigenanteil) + ' € / Monat';
+  }
+  window.addEventListener('scroll', () => {
+    const showThreshold = heroEl.offsetHeight + 80;
+    const ctaRect = mainCtaEl.getBoundingClientRect();
+    const ctaInView = ctaRect.top < window.innerHeight && ctaRect.bottom > 0;
+    if (window.scrollY > showThreshold && !ctaInView){
+      stickyCta.classList.add('visible');
+    } else {
+      stickyCta.classList.remove('visible');
+    }
+  });
+
+  render();
+</script>
+</body>
+</html>
