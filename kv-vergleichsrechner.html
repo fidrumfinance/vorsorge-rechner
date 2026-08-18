@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GKV oder PKV — Entscheidungsrechner</title>
+<style>
+  :root{
+    --ink:#12161F;
+    --ink-2:#4A5563;
+    --ink-3:#7C8794;
+    --paper:#E7EBEE;
+    --panel:#FFFFFF;
+    --line:#CFD6DC;
+    --line-soft:#E4E9ED;
+    --gkv:#0F6E78;
+    --gkv-soft:#D6E8E9;
+    --pkv:#8E2A5F;
+    --pkv-soft:#F0DCE6;
+    --warn:#A05A00;
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+    --body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px}
+
+  /* ---------- Kopf ---------- */
+  .eyebrow{
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);display:flex;align-items:center;gap:10px;margin-bottom:14px;
+  }
+  .eyebrow::after{content:"";flex:1;height:1px;background:var(--line)}
+  h1{
+    font-family:var(--serif);font-weight:400;font-size:clamp(30px,5vw,50px);
+    line-height:1.04;letter-spacing:-.015em;margin:0 0 14px;
+  }
+  h1 em{font-style:normal;color:var(--pkv)}
+  .lede{max-width:62ch;color:var(--ink-2);font-size:16px;margin:0 0 24px}
+  .facts{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:32px}
+  .fact{flex:1 1 190px;padding:14px 18px 14px 0;border-right:1px solid var(--line-soft)}
+  .fact:last-child{border-right:0}
+  .fact b{display:block;font-family:var(--mono);font-size:22px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--ink)}
+  .fact span b{display:inline;font-size:inherit;font-family:inherit;color:var(--ink-2)}
+  .fact span{display:block;font-size:12px;color:var(--ink-3);line-height:1.35;margin-top:3px}
+
+  /* ---------- Grid ---------- */
+  .cols{display:grid;grid-template-columns:322px 1fr;gap:22px;align-items:start}
+  @media (max-width:900px){.cols{grid-template-columns:1fr}}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:3px}
+  .panel-pad{padding:18px}
+
+  /* ---------- Eingaben ---------- */
+  .inputs{position:sticky;top:16px}
+  @media (max-width:900px){.inputs{position:static}}
+  fieldset{border:0;border-top:1px solid var(--line-soft);margin:0;padding:16px 0 4px}
+  fieldset:first-of-type{border-top:0;padding-top:0}
+  legend{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-3);padding:0 0 8px;
+  }
+  .f{display:grid;grid-template-columns:1fr 96px;gap:8px;align-items:center;margin-bottom:9px}
+  .f > label{font-size:13px;color:var(--ink-2);line-height:1.25}
+  .f .hint{display:block;font-size:11px;color:var(--ink-3)}
+  input[type=number],select{
+    width:100%;padding:6px 7px;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;
+    border:1px solid var(--line);border-radius:2px;background:#FBFCFD;color:var(--ink);text-align:right;
+  }
+  select{text-align:left;font-family:var(--body)}
+  .actions{
+    position:sticky;bottom:0;margin:16px -18px -18px;padding:14px 18px;
+    background:var(--panel);border-top:1px solid var(--line);display:flex;gap:9px;align-items:center;
+  }
+  .btn{
+    flex:1;padding:11px 12px;border:1px solid var(--ink);border-radius:2px;background:var(--ink);color:#fff;
+    font-family:var(--body);font-size:13.5px;font-weight:600;cursor:pointer;letter-spacing:.01em;
+  }
+  .btn[data-dirty=true]{background:var(--pkv);border-color:var(--pkv)}
+  .btn[data-dirty=false]{background:#FBFCFD;color:var(--ink-3);border-color:var(--line);font-weight:400;cursor:default}
+  .btn-ghost{
+    flex:0 0 auto;padding:11px 12px;border:1px solid var(--line);border-radius:2px;background:#FBFCFD;
+    color:var(--ink-2);font-family:var(--body);font-size:13px;cursor:pointer;
+  }
+  .btn-ghost:hover{border-color:var(--ink-3)}
+  .dirty-hint{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--pkv);margin-bottom:8px;display:none;
+  }
+  .results > .kpis, .results > .panel{opacity:1}
+  .results[data-stale=true] > .kpis, .results[data-stale=true] > .panel{opacity:.4}
+  @media (prefers-reduced-motion:no-preference){
+    .results > .kpis, .results > .panel{transition:opacity .15s ease}
+  }
+  .kid-head{
+    display:grid;grid-template-columns:1fr 1fr 24px;gap:6px;margin-bottom:5px;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);
+  }
+  .kid{display:grid;grid-template-columns:1fr 1fr 24px;gap:6px;margin-bottom:6px;align-items:center}
+  .kid-del{
+    border:1px solid var(--line);border-radius:2px;background:#FBFCFD;color:var(--ink-3);
+    font-size:15px;line-height:1;padding:5px 0;cursor:pointer;font-family:var(--body);
+  }
+  .kid-del:hover{border-color:#A3323C;color:#A3323C}
+  .add{width:100%;margin:2px 0 12px;padding:7px;font-size:12.5px}
+  .kid-empty{font-size:12.5px;color:var(--ink-3);padding:4px 0 8px}
+  .pot-stats{display:none;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);margin-top:16px;border:1px solid var(--line)}
+  .pot-stats.on{display:grid}
+  .pot-stats div{background:var(--panel);padding:13px 14px}
+  .pot-stats .k{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+  .pot-stats .v{font-family:var(--mono);font-size:23px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1.05}
+  .pot-stats .s{font-size:11.5px;color:var(--ink-3);margin-top:4px}
+  .pot-stats .hi .v{color:var(--pkv)}
+  @media (max-width:640px){.pot-stats.on{grid-template-columns:1fr}}
+  input[type=number]{appearance:textfield;-moz-appearance:textfield}
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;appearance:none;margin:0}
+  input::placeholder{color:var(--ink-3);opacity:.7}
+  input.changed{border-color:var(--pkv);background:#FDF7FA}
+  input[type=number]:focus,select:focus,button:focus-visible,summary:focus-visible{
+    outline:2px solid var(--pkv);outline-offset:1px;
+  }
+  .row-check{display:flex;gap:8px;align-items:flex-start;margin-bottom:9px;font-size:13px;color:var(--ink-2)}
+  .row-check input{margin-top:3px;accent-color:var(--pkv)}
+  .seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden;margin-bottom:12px}
+  .seg button{
+    flex:1;padding:7px 4px;border:0;background:#FBFCFD;font-family:var(--body);font-size:12.5px;
+    color:var(--ink-2);cursor:pointer;border-right:1px solid var(--line);
+  }
+  .seg button:last-child{border-right:0}
+  .seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+
+  /* ---------- KPI ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+  @media (max-width:700px){.kpis{grid-template-columns:1fr}}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px 15px}
+  .kpi .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
+  .kpi .v{font-family:var(--mono);font-size:25px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1.05}
+  .kpi .s{font-size:12px;color:var(--ink-2);margin-top:5px;line-height:1.35}
+  .kpi.win-pkv{border-left:3px solid var(--pkv)}
+  .kpi.win-gkv{border-left:3px solid var(--gkv)}
+
+  /* ---------- Chart ---------- */
+  .chart-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .legend{display:flex;gap:16px;font-size:12.5px;color:var(--ink-2);align-items:center}
+  .swatch{display:inline-block;width:22px;height:3px;vertical-align:middle;margin-right:6px}
+  .toggle{display:flex;gap:0;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+  .toggle button{padding:5px 11px;border:0;border-right:1px solid var(--line);background:#FBFCFD;font-size:12px;cursor:pointer;color:var(--ink-2);font-family:var(--body)}
+  .toggle button:last-child{border-right:0}
+  .toggle button[aria-pressed=true]{background:var(--ink);color:#fff}
+  #chart{position:relative;touch-action:pan-y}
+  .tip-rule{
+    position:absolute;top:0;width:1px;background:var(--ink);opacity:0;pointer-events:none;
+  }
+  .tip{
+    position:absolute;top:4px;z-index:2;pointer-events:none;opacity:0;
+    background:var(--ink);color:#fff;border-radius:3px;padding:9px 11px;min-width:132px;
+    font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;line-height:1.5;
+    box-shadow:0 6px 18px rgba(18,22,31,.22);
+  }
+  .tip .h{font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.65;margin-bottom:5px}
+  .tip .r{display:flex;justify-content:space-between;gap:14px}
+  .tip .r span:first-child{opacity:.75}
+  .tip .d{margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.22);font-weight:600}
+  @media (prefers-reduced-motion:no-preference){
+    .tip,.tip-rule{transition:opacity .12s ease}
+  }
+  svg{display:block;width:100%;height:auto}
+  .chart-note{font-size:12px;color:var(--ink-3);margin-top:10px;line-height:1.45}
+
+  /* ---------- Tabelle ---------- */
+  details{margin-top:14px;border-top:1px solid var(--line-soft);padding-top:12px}
+  summary{cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}
+  th{text-align:right;font-weight:500;color:var(--ink-3);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  td{padding:5px 8px;border-bottom:1px solid var(--line-soft)}
+  tr.mark td{background:#FAF6EE}
+  .tbl-scroll{max-height:330px;overflow:auto}
+
+  /* ---------- Gegenüberstellung ---------- */
+  .compare{margin-top:44px}
+  h2{font-family:var(--serif);font-weight:400;font-size:27px;letter-spacing:-.01em;margin:0 0 6px}
+  .sub{color:var(--ink-2);max-width:66ch;margin:0 0 20px;font-size:14.5px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:800px){.two{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:18px}
+  .card h3{
+    font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;margin:0 0 14px;
+    padding-bottom:9px;border-bottom:1px solid var(--line);
+  }
+  .card.g h3{color:var(--gkv);border-color:var(--gkv-soft)}
+  .card.p h3{color:var(--pkv);border-color:var(--pkv-soft)}
+  .item{margin-bottom:15px}
+  .item:last-child{margin-bottom:0}
+  .item .t{font-size:13.5px;font-weight:600;display:flex;gap:8px;align-items:baseline}
+  .sign{font-family:var(--mono);font-size:13px;flex:0 0 auto;width:12px}
+  .plus{color:var(--gkv)} .minus{color:#A3323C} .neut{color:var(--ink-3)}
+  .item p{margin:3px 0 0 20px;font-size:13px;color:var(--ink-2);line-height:1.5}
+
+  .checklist{margin-top:26px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:3px;padding:18px}
+  .checklist h3{font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--warn);margin:0 0 12px}
+  .checklist ol{margin:0;padding-left:20px}
+  .checklist li{font-size:13.5px;color:var(--ink-2);margin-bottom:9px;line-height:1.5}
+  .checklist li b{color:var(--ink)}
+
+  .foot{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);line-height:1.55;max-width:78ch}
+  @media (prefers-reduced-motion:no-preference){
+    .kpi .v{transition:color .18s ease}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Entscheidungsrechner &nbsp;·&nbsp; Stand August 2026</div>
+  <h1>Gesetzlich bleiben<br>oder <em>privat wechseln</em>.</h1>
+  <p class="lede">Die Frage entscheidet sich nicht am heutigen Beitrag, sondern an dem, was in dreißig Jahren daraus geworden ist. Der Rechner stellt beide Systeme über die gesamte Laufzeit gegenüber — inklusive Rentenphase, Kindern, Arbeitgeberzuschuss und der Frage, wovon im Alter überhaupt Beitrag verlangt wird.</p>
+
+  <div class="facts">
+    <div class="fact"><b id="fPkv">—</b><span>Ihre Annahme für die PKV, pro Jahr.<br>Historisch: <b>3,4 %</b> (2006–2026, WIP)</span></div>
+    <div class="fact"><b id="fGkv">—</b><span id="fGkvSub">Ihre Annahme für die GKV, pro Jahr.<br>Historisch: <b>3,9 %</b> (gleicher Zeitraum)</span></div>
+    <div class="fact"><b id="fZb">—</b><span id="fZbSub">Zusatzbeitrag am Ende der Laufzeit.<br>Heute: <b>2,9 %</b> Rechengröße, tatsächlich 3,13 %</span></div>
+    <div class="fact"><b id="fBbg">—</b><span id="fBbgSub">Bemessungsgrenze bei Renteneintritt.<br>Heute: <b>5.812,50 €</b> im Monat</span></div>
+  </div>
+
+  <div class="cols">
+
+    <!-- ============ EINGABEN ============ -->
+    <div class="panel panel-pad inputs">
+
+      <fieldset>
+        <legend>Person</legend>
+        <div class="seg" role="group" aria-label="Erwerbsstatus">
+          <button type="button" id="btnAng" aria-pressed="true">Angestellt</button>
+          <button type="button" id="btnSelb" aria-pressed="false">Selbstständig</button>
+        </div>
+        <div class="f"><label for="age">Alter heute</label><input type="number" id="age" value="34" min="18" max="64"></div>
+        <div class="f"><label for="income">Bruttoeinkommen <span class="hint">€ / Monat</span></label><input type="number" id="income" value="7000" step="100"></div>
+        <div class="f"><label for="growth">Einkommenswachstum <span class="hint">% / Jahr</span></label><input type="number" id="growth" value="2.5" step="0.1"></div>
+        <div class="row-check"><input type="checkbox" id="spouse"><label for="spouse">Partner mitversichern <span class="hint">nicht erwerbstätig, in der GKV beitragsfrei</span></label></div>
+        <div class="f" id="rowSpouse"><label for="pkvSpouse">PKV-Beitrag Partner <span class="hint">€ / Monat</span></label><input type="number" id="pkvSpouse" value="" step="10" min="0" placeholder="—"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Kinder</legend>
+        <div class="kid-head"><span>Alter heute</span><span>PKV-Beitrag € / Mon.</span><span></span></div>
+        <div id="kidList"></div>
+        <button type="button" class="btn-ghost add" id="addKid">+ Kind hinzufügen</button>
+        <div class="f"><label for="kidEnd">Beitrag entfällt ab Alter <span class="hint">Ende Ausbildung</span></label><input type="number" id="kidEnd" value="25" min="18" max="30"></div>
+        <div class="f"><label for="kidJug">Aufschlag ab 21 <span class="hint">% — Wechsel in den Jugendtarif</span></label><input type="number" id="kidJug" value="35" step="5" min="0" max="150"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>GKV — Beitragsentwicklung</legend>
+        <div class="seg" role="group" aria-label="Art der GKV-Prognose">
+          <button type="button" id="btnGkvP" aria-pressed="true">Eine Rate</button>
+          <button type="button" id="btnGkvD" aria-pressed="false">Aufgeschlüsselt</button>
+        </div>
+        <div class="f"><label for="zusatz">Zusatzbeitrag Ihrer Kasse <span class="hint">%</span></label><input type="number" id="zusatz" value="3.1" step="0.01"></div>
+        <div class="f" id="rowGkvG"><label for="gkvG">Beitragsanstieg GKV <span class="hint">% / Jahr — Satz, Grenze und Einkommen zusammen</span></label><input type="number" id="gkvG" value="4.5" step="0.1"></div>
+        <div class="f" id="rowZbStep"><label for="zbStep">Anstieg Zusatzbeitrag <span class="hint">%-Punkte / Jahr</span></label><input type="number" id="zbStep" value="0.25" step="0.05"></div>
+        <div class="f" id="rowZbCap"><label for="zbCap">Obergrenze Zusatzbeitrag <span class="hint">%</span></label><input type="number" id="zbCap" value="6" step="0.5"></div>
+        <div class="f"><label for="bbg">Beitragsbemessungsgrenze <span class="hint">€ / Monat</span></label><input type="number" id="bbg" value="5812.5" step="12.5"></div>
+        <div class="f" id="rowBbgG"><label for="bbgG">Anstieg der Bemessungsgrenze <span class="hint">% / Jahr</span></label><input type="number" id="bbgG" value="4" step="0.25"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>PKV-Angebot</legend>
+        <div class="f"><label for="pkvBase">Beitrag für Sie <span class="hint">€ / Monat, Kranken</span></label><input type="number" id="pkvBase" value="620" step="10"></div>
+        <div class="f"><label for="pkvPflege">Pflegepflichtvers. gesamt <span class="hint">€ / Monat</span></label><input type="number" id="pkvPflege" value="95" step="5"></div>
+        <div class="f"><label for="pkvG">Beitragsanstieg PKV <span class="hint">% / Jahr</span></label><input type="number" id="pkvG" value="3.6" step="0.1"></div>        <div class="row-check"><input type="checkbox" id="jumps" checked><label for="jumps">Sprunghaft anpassen (alle 3 Jahre statt jährlich glatt)</label></div>
+        <div class="f"><label for="entlast">Beitragsentlastung ab Rente <span class="hint">€ / Monat</span></label><input type="number" id="entlast" value="150" step="25"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Beitragsrückerstattung</legend>
+        <div class="row-check"><input type="checkbox" id="breOn" checked><label for="breOn">Rückerstattung einrechnen</label></div>
+        <div class="seg" role="group" aria-label="Art der Berücksichtigung">
+          <button type="button" id="btnBreE" aria-pressed="true">Alle paar Jahre</button>
+          <button type="button" id="btnBreS" aria-pressed="false">Geglättet</button>
+        </div>
+        <div class="f"><label for="breMonths">Erstattung <span class="hint">Monatsbeiträge</span></label><input type="number" id="breMonths" value="3" step="0.5" min="0" max="6"></div>
+        <div class="f" id="rowI1"><label for="breI1">Im Erwerbsleben <span class="hint">alle … Jahre</span></label><input type="number" id="breI1" value="2" step="1" min="1" max="20"></div>
+        <div class="f" id="rowI2"><label for="breI2">Im Rentenalter <span class="hint">alle … Jahre</span></label><input type="number" id="breI2" value="6" step="1" min="1" max="30"></div>
+        <div class="f" id="rowQ1"><label for="breQ1">Leistungsfrei im Erwerbsleben <span class="hint">% der Jahre</span></label><input type="number" id="breQ1" value="60" step="5" min="0" max="100"></div>
+        <div class="f" id="rowQ2"><label for="breQ2">Leistungsfrei im Rentenalter <span class="hint">% der Jahre</span></label><input type="number" id="breQ2" value="15" step="5" min="0" max="100"></div>
+        <div class="f"><label for="breSelbst">Selbst getragene Rechnungen <span class="hint">€ je leistungsfreiem Jahr</span></label><input type="number" id="breSelbst" value="700" step="50"></div>
+        <div class="row-check"><input type="checkbox" id="breStop"><label for="breStop">Ab einem bestimmten Alter gar nicht mehr</label></div>
+        <div class="f" id="rowStop"><label for="breStopAge">Letztes Jahr mit Erstattung <span class="hint">Alter</span></label><input type="number" id="breStopAge" value="75" min="50" max="95"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Rentenphase</legend>
+        <div class="f"><label for="retire">Renteneintritt <span class="hint">Alter</span></label><input type="number" id="retire" value="67" min="60" max="75"></div>
+        <div class="f"><label for="rente">Gesetzliche Rente <span class="hint">€ / Monat, heutig</span></label><input type="number" id="rente" value="2400" step="100"></div>
+        <div class="f"><label for="betrieb">Betriebsrente / Versorgung <span class="hint">€ / Monat, heutig</span></label><input type="number" id="betrieb" value="600" step="50"></div>
+        <div class="f"><label for="passiv">Mieten &amp; Kapitalerträge <span class="hint">€ / Monat, heutig</span></label><input type="number" id="passiv" value="1200" step="100"></div>
+        <div class="row-check"><input type="checkbox" id="kvdr" checked><label for="kvdr"><b>KVdR</b> erfüllt — 9/10-Regel geschafft, Mieten und Kapital bleiben beitragsfrei</label></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Differenz &amp; Notausgang</legend>
+        <div class="row-check"><input type="checkbox" id="investOn" checked><label for="investOn">Monatliche Differenz anlegen <span class="hint">was die eine Seite spart, wandert ins Depot</span></label></div>
+        <div class="f" id="rowRendite"><label for="rendite">Rendite <span class="hint">% / Jahr, vor Steuer</span></label><input type="number" id="rendite" value="8" step="0.25"></div>
+        <div class="row-check" id="rowSteuer"><input type="checkbox" id="steuerOn" checked><label for="steuerOn">Abgeltungsteuer auf Erträge <span class="hint">26,375 % inkl. Soli</span></label></div>
+        <div class="row-check"><input type="checkbox" id="basisOn"><label for="basisOn">Auf Basistarif ausweichen <span class="hint">deckelt den PKV-Beitrag auf den GKV-Höchstbeitrag</span></label></div>
+        <div class="f" id="rowBasisAge"><label for="basisAge">Wechsel in den Basistarif <span class="hint">ab Alter</span></label><input type="number" id="basisAge" value="70" min="21" max="95"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Darstellung</legend>
+        <div class="f"><label for="maxAge">Betrachtung bis Alter</label><input type="number" id="maxAge" value="88" min="70" max="100"></div>
+        <div class="f"><label for="infl">Inflation <span class="hint">% / Jahr</span></label><input type="number" id="infl" value="2" step="0.1"></div>
+        <div class="row-check"><input type="checkbox" id="real"><label for="real">In heutiger Kaufkraft rechnen</label></div>
+      </fieldset>
+
+      <div class="actions">
+        <button type="button" class="btn" id="calc" data-dirty="false">Berechnet</button>
+        <button type="button" class="btn-ghost" id="reset" title="Alle Eingaben auf die Ausgangswerte zurücksetzen">Zurücksetzen</button>
+      </div>
+
+    </div>
+    <div class="results" id="results" data-stale="false">
+      <div class="kpis">
+        <div class="kpi" id="kpi1"><div class="k">Eigenanteil heute</div><div class="v" id="v1">—</div><div class="s" id="s1"></div></div>
+        <div class="kpi" id="kpi2"><div class="k">Eigenanteil bei Renteneintritt</div><div class="v" id="v2">—</div><div class="s" id="s2"></div></div>
+        <div class="kpi" id="kpi3"><div class="k">Summe über die Laufzeit</div><div class="v" id="v3">—</div><div class="s" id="s3"></div></div>
+      </div>
+
+      <div class="panel panel-pad">
+        <div class="chart-head">
+          <div class="legend">
+            <span><i class="swatch" style="background:var(--gkv)"></i>GKV</span>
+            <span><i class="swatch" style="background:var(--pkv)"></i>PKV nach Rückerstattung</span>
+            <span id="legGross"><i class="swatch" style="background:repeating-linear-gradient(90deg,var(--pkv) 0 4px,transparent 4px 8px);height:2px"></i>PKV ohne</span>
+          </div>
+          <span style="font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)">Tippen zum Ablesen</span>
+          <div class="toggle" role="group" aria-label="Ansicht">
+            <button type="button" id="tMonth" aria-pressed="true">Monatlich</button>
+            <button type="button" id="tCum" aria-pressed="false">Kumuliert</button>
+            <button type="button" id="tPot" aria-pressed="false">Depot</button>
+          </div>
+        </div>
+        <div id="chart"><div id="chartSvg"></div><div class="tip-rule" id="tipRule"></div><div class="tip" id="tip"></div></div>
+        <div class="pot-stats" id="potStats"></div>
+        <p class="chart-note" id="note"></p>
+
+        <details>
+          <summary>Jahreswerte anzeigen</summary>
+          <div class="tbl-scroll">
+            <table id="tbl">
+              <thead id="thead"><tr><th>Alter</th><th>Jahr</th><th>GKV / Monat</th><th>PKV / Monat</th><th>Differenz</th><th>Kumuliert GKV</th><th>Kumuliert PKV</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+
+      <!-- ============ QUALITATIV ============ -->
+      <div class="compare">
+        <h2>Was der Rechner nicht rechnen kann</h2>
+        <p class="sub">Die Zahlen oben sind eine Seite der Entscheidung. Die andere sind Eigenschaften, die sich nicht in Euro fassen lassen — und die in der Praxis oft schwerer wiegen als ein paar hundert Euro Unterschied im Monat.</p>
+
+        <div class="two">
+          <div class="card p">
+            <h3>Privat — was dafür und was dagegen spricht</h3>
+
+            <div class="item"><div class="t"><span class="sign plus">+</span>Arbeitgeberzuschuss, auch für die Familie</div>
+              <p>Der Arbeitgeber zahlt die Hälfte des Beitrags — für Sie, den Partner und die Kinder zusammen. Gedeckelt auf die Hälfte des GKV-Höchstbeitrags, 2026 also 508,59 € für die Kranken- plus 104,63 € für die Pflegeversicherung. Bei mehreren mitversicherten Personen ist der Deckel schnell erreicht, jeder weitere Euro geht voll zu Ihren Lasten.</p></div>
+
+            <div class="item"><div class="t"><span class="sign plus">+</span>Beitrag hängt nicht am Einkommen</div>
+              <p>Gehaltssprünge, Boni, Mieteinnahmen, Dividenden, ein Unternehmensverkauf — nichts davon erhöht den Beitrag. In der GKV steigt er mit jedem Euro bis zur Bemessungsgrenze, und die Grenze steigt jedes Jahr mit.</p></div>
+
+            <div class="item"><div class="t"><span class="sign plus">+</span>Alterungsrückstellungen dämpfen den Anstieg</div>
+              <p>Sie sparen im Tarif für Ihr eigenes Alter vor. Mit 60 fällt der gesetzliche 10-%-Zuschlag weg, ab 65 wird aus dem Vorsorgezuschlag gegengesteuert. <b>Aber:</b> Das dämpft, es friert nicht ein. PKV-Beiträge steigen auch im Alter weiter — nur eben von einer Basis aus, für die Sie 30 Jahre lang mitgespart haben.</p></div>
+
+            <div class="item"><div class="t"><span class="sign plus">+</span>Leistungsniveau vertraglich zugesagt</div>
+              <p>Was im Tarif steht, gilt lebenslang und kann nicht per Gesetz gekürzt werden: Chefarzt, Einbettzimmer, freie Arztwahl, Heilpraktiker, höhere Erstattung bei Zahnersatz, kürzere Wartezeiten auf Facharzttermine. Der GKV-Leistungskatalog ist politisch veränderbar — und steht in jeder Sparrunde zur Debatte.</p></div>
+
+            <div class="item"><div class="t"><span class="sign minus">−</span>Jedes Kind kostet einen eigenen Beitrag</div>
+              <p>Die beitragsfreie Familienversicherung gibt es nur gesetzlich. Zwei Kinder in der PKV sind schnell 350–400 € im Monat, die es in der GKV nicht gäbe. Absetzbar sind sie zwar bei den Eltern — aber Absetzbarkeit ist eine Steuerersparnis, keine Kostenersparnis.</p></div>
+
+            <div class="item"><div class="t"><span class="sign minus">−</span>Der Rückweg ist ab 55 praktisch versperrt</div>
+              <p>Nach dem 55. Lebensjahr ist eine Rückkehr in die GKV nur noch in engen Ausnahmen möglich. Wer mit 50 wechselt, trifft eine Entscheidung, die er mit 62 nicht mehr revidieren kann — auch dann nicht, wenn der Beitrag dann unangenehm wird.</p></div>
+
+            <div class="item"><div class="t"><span class="sign minus">−</span>Gesundheitsprüfung, und sie gilt für immer</div>
+              <p>Vorerkrankungen führen zu Zuschlägen, Ausschlüssen oder Ablehnung. Falsche oder unvollständige Angaben im Antrag können den Vertrag noch Jahre später kosten. Und: Was Sie beim Wechsel bekommen, ist das Beste, was Sie je bekommen — der Gesundheitszustand wird nicht besser.</p></div>
+
+            <div class="item"><div class="t"><span class="sign neut">·</span>Beitragsrückerstattung — real, aber kein Dauerläufer</div>
+              <p>Zwei bis sechs Monatsbeiträge zurück, wenn Sie ein Jahr lang keine Rechnung einreichen. Drei Dinge relativieren das: Sie tragen die kleinen Rechnungen selbst, sonst gibt es nichts — der Rechner zieht diesen Betrag deshalb gegen. Die Erstattung ist in den meisten Tarifen <b>gewinnabhängig und nicht garantiert</b>, sie kann gekürzt werden oder ausfallen. Und die Quote leistungsfreier Jahre sinkt mit dem Alter genau dann, wenn Sie die Entlastung am dringendsten bräuchten. Steuerlich mindert eine Erstattung außerdem Ihre abzugsfähigen Vorsorgeaufwendungen im Jahr der Auszahlung. Immerhin: Am Rückfluss ist der Arbeitgeber nicht beteiligt, den behalten Sie ganz.</p></div>
+
+            <div class="item"><div class="t"><span class="sign neut">·</span>Steuer: kleiner Vorteil, oft überschätzt</div>
+              <p>Die Basisabsicherung ist in beiden Systemen voll als Vorsorgeaufwand absetzbar, das ist kein PKV-Argument. Was die PKV wirklich kann: Beiträge für bis zu 2,5 Jahre im Voraus zahlen und in einem Jahr geballt absetzen — interessant in einem Jahr mit hohem Einkommen.</p></div>
+
+            <div class="item"><div class="t"><span class="sign neut">·</span>Vorleistung und Abrechnung</div>
+              <p>Sie bekommen die Rechnung, zahlen und reichen ein. Für die meisten Alltag, für manche ein echtes Ärgernis — und bei einer teuren Behandlung eine spürbare Zwischenfinanzierung.</p></div>
+          </div>
+
+          <div class="card g">
+            <h3>Gesetzlich — was dafür und was dagegen spricht</h3>
+
+            <div class="item"><div class="t"><span class="sign plus">+</span>Familie ohne Aufpreis</div>
+              <p>Kinder und ein Partner ohne nennenswertes eigenes Einkommen sind beitragsfrei mitversichert. Bei drei Kindern und einem Alleinverdiener ist das ein Vorsprung, den kaum eine PKV-Kalkulation aufholt.</p></div>
+
+            <div class="item"><div class="t"><span class="sign plus">+</span>Der Beitrag atmet mit dem Einkommen</div>
+              <p>Elternzeit, Sabbatical, Auftragsflaute, Arbeitslosigkeit: Der Beitrag sinkt mit. Die PKV verlangt weiter dieselbe Summe, unabhängig davon, was hereinkommt. Das ist der am häufigsten unterschätzte Unterschied.</p></div>
+
+            <div class="item"><div class="t"><span class="sign plus">+</span>Keine Gesundheitsprüfung, keine Ausschlüsse</div>
+              <p>Aufnahme unabhängig vom Gesundheitszustand, keine Risikozuschläge, kein Streit über die Frage, ob eine Behandlung „medizinisch notwendig" war.</p></div>
+
+            <div class="item"><div class="t"><span class="sign minus">−</span>Im Alter kann die Bemessung breiter werden</div>
+              <p>Wer die KVdR verfehlt — die 9/10-Regel zur zweiten Hälfte des Erwerbslebens — ist als Rentner freiwillig versichert. Dann zählen auch Mieteinnahmen, Kapitalerträge und Betriebsrenten zur Bemessung, bis zur Bemessungsgrenze. Wer sein Alter über Immobilien und Depot finanziert, kann so beim Höchstbeitrag landen, obwohl die Rente selbst klein ist. Nicht das Vermögen wird belastet, sondern die Erträge daraus — der Effekt ist derselbe.</p></div>
+
+            <div class="item"><div class="t"><span class="sign minus">−</span>Demografie und Finanzlage</div>
+              <p>Umlagefinanzierung heißt: Die Beitragszahler von morgen zahlen für die Versorgung von morgen. Deren Zahl sinkt, die Ausgaben steigen. Das BMG rechnet mit rund 0,3 Prozentpunkten mehr Zusatzbeitrag pro Jahr, der Bundesrechnungshof hält 4,05 % bis 2029 für plausibel. Dazu kommt die jährlich steigende Bemessungsgrenze — beide Hebel wirken zusammen, und beide liegen in politischer Hand.</p></div>
+
+            <div class="item"><div class="t"><span class="sign minus">−</span>Leistungen sind politisch verhandelbar</div>
+              <p>Der Leistungskatalog kann gekürzt, Zuzahlungen können erhöht werden. Es gibt keinen Vertrag, auf den Sie sich in 25 Jahren berufen könnten.</p></div>
+
+            <div class="item"><div class="t"><span class="sign neut">·</span>Ehrlicherweise: Der Kostentrend trifft beide</div>
+              <p>Krankenhauskosten +10 %, Pflege +17,6 %, Arzneimittel +10 % — das sind die Treiber der PKV-Anpassung 2026 und zugleich die der GKV-Defizite. Über zwanzig Jahre trennen beide Systeme 0,5 Prozentpunkte im Jahresschnitt. Wer glaubt, die PKV entkomme der Gesundheitsinflation, irrt.</p></div>
+          </div>
+        </div>
+
+        <div class="checklist">
+          <h3>Bevor Sie unterschreiben</h3>
+          <ol>
+            <li><b>Rechnen Sie den schlechten Fall.</b> Setzen Sie den PKV-Anstieg auf 5 % und schauen Sie auf den Beitrag mit 75. Wenn diese Zahl Sie erschreckt, ist der Wechsel nicht tragfähig — Anpassungen kommen sprunghaft, nicht in Scheibchen.</li>
+            <li><b>Prüfen Sie die 9/10-Regel</b>, bevor Sie wechseln. Wer sie mit dem Wechsel verliert, verliert damit auch die Option, im Alter günstig gesetzlich versichert zu sein.</li>
+            <li><b>Planen Sie die Familie ein, die noch kommt.</b> Ein Tarif, der zu zweit funktioniert, kann mit drei Kindern und einem Elternteil in Teilzeit eng werden.</li>
+            <li><b>Vergleichen Sie Leistung, nicht Preis.</b> Ein Tarif, der 90 € billiger ist, ist es meistens aus einem Grund. Achten Sie auf Erstattung über GOÄ-Höchstsatz, Zahnersatz ohne Summenbegrenzung, offene Hilfsmittelkataloge und einen Wechsel in den Standard- oder Basistarif als Notausgang.</li>
+            <li><b>Fragen Sie nach der Beitragsentwicklung des konkreten Tarifs</b> in den letzten zehn Jahren — nicht nach dem Durchschnitt des Verbands. Zwischen den Tarifen eines Unternehmens liegen Welten.</li>
+            <li><b>Prüfen Sie den Entlastungsbaustein.</b> Zusätzliche Beiträge heute, die den Beitrag ab 65 dauerhaft senken. Meist die wirksamste Maßnahme gegen genau das Risiko, das Sie am Wechsel beunruhigt.</li>
+          </ol>
+        </div>
+
+        <p class="foot">Der Rechner modelliert Kranken- und Pflegepflichtversicherung mit den Rechengrößen 2026: allgemeiner Beitragssatz 14,6 %, Bemessungsgrenze 5.812,50 € im Monat, Pflege 3,6 % bzw. 4,2 % für Kinderlose. In der Rentenphase werden gesetzliche Rente hälftig, Versorgungsbezüge oberhalb des Freibetrags voll und — außerhalb der KVdR — auch Miet- und Kapitaleinkünfte angesetzt. Der Zuschuss der Rentenversicherung zur PKV ist auf den halben tatsächlichen Beitrag begrenzt. Alle Prognosen sind Fortschreibungen Ihrer eigenen Annahmen, keine Zusagen. Das ersetzt keine Beratung: Ob ein konkreter Tarif zu Ihrer Gesundheitshistorie und Lebensplanung passt, entscheidet sich an Bedingungswerken, nicht an einer Kurve.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var euro = function(n){ return new Intl.NumberFormat('de-DE',{maximumFractionDigits:0}).format(Math.round(n)) + " €"; };
+  var euroK = function(n){
+    if (Math.abs(n) >= 1000000) return new Intl.NumberFormat('de-DE',{maximumFractionDigits:2}).format(n/1000000)+" Mio €";
+    return new Intl.NumberFormat('de-DE',{maximumFractionDigits:0}).format(Math.round(n/1000))+" Tsd €";
+  };
+  var $ = function(id){ return document.getElementById(id); };
+  var num = function(id){ var v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+
+  // ---- Kinderliste --------------------------------------------------------
+  var KID_DEFAULTS = [ {age:6, prem:185}, {age:3, prem:175} ];
+
+  function addKidRow(k, silent){
+    var row = document.createElement('div');
+    row.className = 'kid';
+    row.innerHTML =
+      '<input type="number" class="kid-age" value="'+k.age+'" min="0" max="30" aria-label="Alter des Kindes">'+
+      '<input type="number" class="kid-prem" value="'+k.prem+'" step="5" min="0" aria-label="Monatsbeitrag des Kindes">'+
+      '<button type="button" class="kid-del" aria-label="Kind entfernen">&times;</button>';
+    $('kidList').appendChild(row);
+    Array.prototype.forEach.call(row.querySelectorAll('input'), bindDynamic);
+    row.querySelector('.kid-del').addEventListener('click', function(){
+      row.remove(); renderKidEmpty(); markDirty();
+    });
+    renderKidEmpty();
+    if (!silent) markDirty();
+  }
+  function renderKidEmpty(){
+    var list = $('kidList');
+    var old = list.querySelector('.kid-empty');
+    if (old) old.remove();
+    if (!list.querySelector('.kid')){
+      var p = document.createElement('div');
+      p.className = 'kid-empty';
+      p.textContent = 'Keine Kinder — in der GKV wäre hier ohnehin nichts zu zahlen.';
+      list.appendChild(p);
+    }
+  }
+  function readKids(){
+    return Array.prototype.map.call(document.querySelectorAll('#kidList .kid'), function(r){
+      return {
+        age: parseFloat(r.querySelector('.kid-age').value) || 0,
+        prem: parseFloat(r.querySelector('.kid-prem').value) || 0
+      };
+    });
+  }
+
+  var state = { employed:true, view:'month', breMode:'event', gkvMode:'pauschal' };
+
+  // ---- Segmented controls -------------------------------------------------
+  function seg(a,b,key,va,vb,live){
+    function set(v){
+      state[key]=v; sync();
+      if (live) render(); else markDirty();
+    }
+    $(a).addEventListener('click',function(){ set(va); });
+    $(b).addEventListener('click',function(){ set(vb); });
+  }
+  seg('btnAng','btnSelb','employed',true,false,false);
+  seg('tMonth','tCum','view','month','cum',true);
+  seg('btnBreE','btnBreS','breMode','event','smooth',false);
+  seg('btnGkvP','btnGkvD','gkvMode','pauschal','detail',false);
+  $('tPot').addEventListener('click', function(){ state.view='pot'; sync(); render(); });
+  function sync(){
+    $('btnAng').setAttribute('aria-pressed', state.employed);
+    $('btnSelb').setAttribute('aria-pressed', !state.employed);
+    $('tMonth').setAttribute('aria-pressed', state.view==='month');
+    $('tCum').setAttribute('aria-pressed', state.view==='cum');
+    $('tPot').setAttribute('aria-pressed', state.view==='pot');
+    $('rowRendite').style.display = $('investOn').checked ? '' : 'none';
+    $('rowBasisAge').style.display = $('basisOn').checked ? '' : 'none';
+    $('tPot').disabled = !$('investOn').checked;
+    $('tPot').style.opacity = $('investOn').checked ? '' : '.4';
+    $('btnBreE').setAttribute('aria-pressed', state.breMode==='event');
+    $('btnBreS').setAttribute('aria-pressed', state.breMode==='smooth');
+    var ev = state.breMode==='event';
+    $('rowI1').style.display = ev ? '' : 'none';
+    $('rowI2').style.display = ev ? '' : 'none';
+    $('rowQ1').style.display = ev ? 'none' : '';
+    $('rowQ2').style.display = ev ? 'none' : '';
+    $('rowStop').style.display = $('breStop').checked ? '' : 'none';
+    $('rowSpouse').style.display = $('spouse').checked ? '' : 'none';
+    var pa = state.gkvMode === 'pauschal';
+    $('btnGkvD').setAttribute('aria-pressed', !pa);
+    $('btnGkvP').setAttribute('aria-pressed', pa);
+    $('rowGkvG').style.display  = pa ? '' : 'none';
+    $('rowZbStep').style.display = pa ? 'none' : '';
+    $('rowZbCap').style.display  = pa ? 'none' : '';
+    $('rowBbgG').style.display   = pa ? 'none' : '';
+  }
+
+  // ---- Modell -------------------------------------------------------------
+  var ALLG = 14.6;         // allgemeiner Beitragssatz GKV
+  var PFL_KIND = 3.6;      // Pflege mit Kind
+  var PFL_KINDERLOS = 4.2; // Pflege kinderlos
+  var AVG_ZB_START = 2.9;  // durchschnittlicher Zusatzbeitrag (Rechengröße für AG-Zuschuss)
+  var MIN_BASE = 1300;     // Mindestbemessung Selbstständige, ca.
+  var FREIBETRAG_VB = 190; // Freibetrag Versorgungsbezüge, ca.
+
+  function compute(){
+    var startAge = num('age'), maxAge = num('maxAge'), retire = num('retire');
+    var children = readKids(), kidEnd = num('kidEnd'), kidJug = num('kidJug')/100;
+    var spouse = $('spouse').checked, kvdr = $('kvdr').checked;
+    var jumps = $('jumps').checked, real = $('real').checked;
+    var infl = num('infl')/100;
+
+    var income = num('income'), g = num('growth')/100;
+    var bbg = num('bbg'), bbgG = num('bbgG')/100;
+    var zb = num('zusatz'), zbStep = num('zbStep'), zbCap = num('zbCap');
+    var avgZb = AVG_ZB_START;
+
+    // Pauschalmodus: eine Rate trägt Beitragssatz, Bemessungsgrenze und
+    // Einkommensentwicklung zusammen. Die Struktur bleibt dafür eingefroren.
+    var pausch = state.gkvMode === 'pauschal';
+    var gkvG = num('gkvG')/100;
+    var income0 = income, bbg0 = bbg, zb0 = zb;
+
+    var pkvSelf = num('pkvBase'), pkvSp = num('pkvSpouse');
+    var kidPrem = children.map(function(k){ return k.prem; });
+    var pkvPfl = num('pkvPflege'), pkvG = num('pkvG')/100, entlast = num('entlast');
+
+    var rente0 = num('rente'), betrieb0 = num('betrieb'), passiv0 = num('passiv');
+    var hasKids = children.length > 0;   // Elterneigenschaft gilt lebenslang
+
+    var breOn = $('breOn').checked, breMonths = num('breMonths');
+    var breQ1 = num('breQ1')/100, breQ2 = num('breQ2')/100, breSelbst = num('breSelbst');
+    var breI1 = Math.max(1, num('breI1')), breI2 = Math.max(1, num('breI2'));
+    var breStop = $('breStop').checked, breStopAge = num('breStopAge');
+    var sinceLast = 0;
+
+    var investOn = $('investOn').checked, rend = num('rendite')/100;
+    var steuerOn = $('steuerOn').checked;
+    var basisOn = $('basisOn').checked, basisAge = num('basisAge');
+    var pot = 0, potIn = 0;
+
+    var rows = [], cumG = 0, cumP = 0, cumPG = 0, zuschlagDropped = false;
+
+    for (var age = startAge; age <= maxAge; age++){
+      var t = age - startAge;
+      var year = 2026 + t;
+      var retired = age >= retire;
+      var deflate = real ? Math.pow(1+infl, -t) : 1;
+
+      // --- PKV-Beitrag fortschreiben -------------------------------------
+      if (t > 0){
+        var factor = 1;
+        if (jumps){ if (t % 3 === 0) factor = Math.pow(1+pkvG, 3); }
+        else factor = 1 + pkvG;
+        pkvSelf *= factor; pkvSp *= factor; pkvPfl *= factor;
+        for (var ki=0; ki<kidPrem.length; ki++) kidPrem[ki] *= factor;
+      }
+      // 10-%-Zuschlag entfällt mit 60
+      if (age === 60 && !zuschlagDropped && startAge < 60){ pkvSelf /= 1.10; zuschlagDropped = true; }
+
+      // --- Kinder: jedes mit eigenem Alter ---------------------------------
+      // Der Beitrag fällt weg, sobald das Kind das Endalter erreicht. Beim
+      // Sprung in den Jugendtarif mit 21 steigt er einmalig.
+      var kidSum = 0, kidsUnter25 = 0, kidsAktiv = 0;
+      children.forEach(function(k, idx){
+        var ka = k.age + t;
+        if (ka < 25) kidsUnter25++;
+        if (ka >= kidEnd) return;
+        kidsAktiv++;
+        kidSum += kidPrem[idx] * (ka >= 21 && k.age < 21 ? (1+kidJug) : 1);
+      });
+
+      // Pflegesatz: Abschlag ab dem zweiten Kind unter 25, nur auf den
+      // Arbeitnehmeranteil, und er entfällt, sobald die Kinder älter werden.
+      var pflGesamt = hasKids ? PFL_KIND : PFL_KINDERLOS;
+      var pflAbschlag = kidsUnter25 >= 2 ? 0.25 * Math.min(kidsUnter25 - 1, 4) : 0;
+
+      var kidsActive = kidsAktiv;
+      var pkvKV = pkvSelf + kidSum + (spouse ? pkvSp : 0);
+
+      // Notausgang Basistarif: der Beitrag je erwachsener Person ist auf den
+      // GKV-Höchstbeitrag gedeckelt. Kinderbeiträge bleiben davon unberührt.
+      var hoechst = bbg*(ALLG+avgZb)/100;
+      var gedeckelt = false;
+      if (basisOn && age >= basisAge){
+        var capped = Math.min(pkvSelf, hoechst) + kidSum + (spouse ? Math.min(pkvSp, hoechst) : 0);
+        if (capped < pkvKV - 0.5) gedeckelt = true;
+        pkvKV = capped;
+      }
+      if (retired) pkvKV = Math.max(pkvKV - entlast*Math.pow(1+infl, t), pkvSelf*0.35);
+
+      // --- Bezugsgrößen ---------------------------------------------------
+      var rente = rente0 * Math.pow(1+g*0.7, t);       // Renten steigen etwas langsamer
+      var betrieb = betrieb0 * Math.pow(1+infl, t);
+      var passiv = passiv0 * Math.pow(1+infl, t);
+
+      var gkv, pkv;
+
+      // Im Pauschalmodus rechnet die GKV-Seite mit den heutigen Größen und
+      // wird am Ende mit einer einzigen Rate hochskaliert.
+      var gIncome  = pausch ? income0  : income;
+      var gBbg     = pausch ? bbg0     : bbg;
+      var gZb      = pausch ? zb0      : zb;
+      var gRente   = pausch ? rente0   : rente;
+      var gBetrieb = pausch ? betrieb0 : betrieb;
+      var gPassiv  = pausch ? passiv0  : passiv;
+      var gFrei    = pausch ? FREIBETRAG_VB : FREIBETRAG_VB*Math.pow(1+infl,t);
+      var gScale   = pausch ? Math.pow(1+gkvG, t) : 1;
+
+      if (!retired){
+        // ---------------- Erwerbsphase ----------------
+        var base = state.employed ? Math.min(gIncome, gBbg)
+                                  : Math.min(Math.max(gIncome, MIN_BASE*Math.pow(1+bbgG,pausch?0:t)), gBbg);
+        if (state.employed){
+          var pflAN = pflGesamt/2 + (hasKids ? -pflAbschlag : 0.6);
+          gkv = base*(ALLG+gZb)/200 + base*pflAN/100;
+          var maxZ  = bbg*(ALLG+avgZb)/200;
+          var maxZP = bbg*PFL_KIND/200;
+          pkv = (pkvKV - Math.min(pkvKV/2, maxZ)) + (pkvPfl - Math.min(pkvPfl/2, maxZP));
+        } else {
+          gkv = base*(ALLG+gZb)/100 + base*Math.max(0, pflGesamt - pflAbschlag)/100;
+          pkv = pkvKV + pkvPfl;
+        }
+      } else {
+        // ---------------- Rentenphase ----------------
+        var vb = Math.max(0, gBetrieb - gFrei);
+        var gkvBase = gRente + vb + (kvdr ? 0 : gPassiv);
+        gkvBase = Math.min(gkvBase, gBbg);
+        var renteAnteil = Math.min(gRente, gkvBase);
+        var restAnteil = Math.max(0, gkvBase - renteAnteil);
+        gkv = renteAnteil*(ALLG+gZb)/200          // Hälfte trägt die Rentenversicherung
+            + restAnteil*(ALLG+gZb)/100           // Versorgungsbezüge & sonstige Einkünfte voll
+            + gkvBase*pflGesamt/100;               // Pflege trägt der Rentner allein
+        var drv = Math.min(rente*(7.3+avgZb/2)/100, pkvKV/2);
+        pkv = (pkvKV - drv) + pkvPfl;
+      }
+
+      gkv *= gScale;
+
+      // --- Beitragsrückerstattung -----------------------------------------
+      // Ausgezahlt wird auf den eigenen Tarifbeitrag; der Arbeitgeber ist daran
+      // nicht beteiligt. Gegengerechnet werden die Rechnungen, die man in einem
+      // leistungsfreien Jahr selbst schluckt. Lohnt sich das nicht, reicht man
+      // ein — deshalb nie negativ.
+      var pkvGross = pkv, breRel = 0;
+      if (breOn && !(breStop && age > breStopAge)){
+        var payout = breMonths * pkvSelf;
+        var own = breSelbst * Math.pow(1+infl, t);
+        var netto = Math.max(0, payout - own);
+        if (state.breMode === 'event'){
+          // Ein leistungsfreies Jahr alle X Jahre: die Erstattung landet
+          // vollständig in diesem einen Jahr statt verteilt.
+          sinceLast++;
+          var iv = retired ? breI2 : breI1;
+          if (sinceLast >= iv){ breRel = netto/12; sinceLast = 0; }
+        } else {
+          breRel = (retired ? breQ2 : breQ1) * netto / 12;
+        }
+        pkv = Math.max(0, pkv - breRel);
+      }
+
+      // --- Differenzdepot ---------------------------------------------------
+      // Solange die eine Seite günstiger ist, wandert die Differenz ins Depot.
+      // Ab der Rente wird nur noch entnommen, wenn die PKV teurer geworden ist.
+      // Das Depot wird nur bis zum Renteneintritt aufgebaut. Was danach damit
+      // geschieht, ist eine Entnahmefrage und nicht Teil dieses Vergleichs.
+      var potGain = 0, potFlow = 0;
+      if (investOn && !retired){
+        potGain = pot > 0 ? pot*rend*(steuerOn ? 1-0.26375 : 1) : pot*rend;
+        potFlow = (gkv - pkv)*12;
+        pot = pot + potGain + potFlow;
+        if (potFlow > 0) potIn += potFlow;
+      }
+
+      cumG += gkv*12*deflate; cumP += pkv*12*deflate; cumPG += pkvGross*12*deflate;
+      rows.push({ age:age, year:year, retired:retired,
+                  gkv:gkv*deflate, pkv:pkv*deflate, pkvGross:pkvGross*deflate,
+                  bre:breRel*deflate, kidsActive:kidsActive, kidSum:kidSum*deflate,
+                  pot:pot*deflate, potIn:potIn*deflate,
+                  potGain:potGain*deflate, potFlow:potFlow*deflate, gedeckelt:gedeckelt,
+                  gkvNom:gkv, zbJahr:pausch ? zb0 : zb, bbgJahr:gBbg,
+                  cumG:cumG, cumP:cumP, cumPG:cumPG });
+
+      // --- Parameter für Folgejahr ---------------------------------------
+      income *= (1+g); bbg *= (1+bbgG);
+      zb = Math.min(zb + zbStep, zbCap);
+      avgZb = Math.min(avgZb + zbStep, zbCap);
+    }
+    return rows;
+  }
+
+  // ---- Chart --------------------------------------------------------------
+  var GEO = null;   // Geometrie und Daten des zuletzt gezeichneten Diagramms
+
+  function chart(rows){
+    var W=900, H=380, L=64, R=18, T=18, B=44;
+    var iw=W-L-R, ih=H-T-B;
+    var n = rows.length-1;
+    var x = function(i){ return L + iw*i/(n||1); };
+    GEO = { W:W, H:H, L:L, iw:iw, T:T, ih:ih, n:n, rows:rows, view:state.view };
+
+    // ---- Depotansicht: eine Kurve um die Nulllinie ------------------------
+    if (state.view === 'pot'){
+      // Nur die Ansparphase zeigen — danach steht das Kapital fest.
+      var riAll = rows.findIndex(function(r){ return r.retired; });
+      var pr = riAll > 0 ? rows.slice(0, riAll+1) : rows;
+      var nP = pr.length-1;
+      var xp = function(i){ return L + iw*i/(nP||1); };
+      GEO = { W:W, H:H, L:L, iw:iw, T:T, ih:ih, n:nP, rows:pr, view:'pot' };
+      var lo = 0, hi = 0;
+      pr.forEach(function(r){ lo = Math.min(lo, r.pot, r.potIn); hi = Math.max(hi, r.pot, r.potIn); });
+      var span = (hi - lo) || 1;
+      lo -= span*0.08; hi += span*0.08;
+      var yp = function(v){ return T + ih - ih*(v-lo)/(hi-lo); };
+      var zero = yp(0);
+      var gridP='';
+      for (var sp=0; sp<=5; sp++){
+        var vv = lo + (hi-lo)*sp/5, yy2 = yp(vv);
+        gridP += '<line x1="'+L+'" y1="'+yy2.toFixed(1)+'" x2="'+(W-R)+'" y2="'+yy2.toFixed(1)+'" stroke="var(--line-soft)"/>'+
+                 '<text x="'+(L-9)+'" y="'+(yy2+4).toFixed(1)+'" text-anchor="end" font-family="var(--mono)" font-size="10.5" fill="var(--ink-3)">'+euroK(vv)+'</text>';
+      }
+      var linePot = pr.map(function(r,i){ return (i?'L':'M')+xp(i).toFixed(1)+' '+yp(r.pot).toFixed(1); }).join(' ');
+      var lineIn  = pr.map(function(r,i){ return (i?'L':'M')+xp(i).toFixed(1)+' '+yp(r.potIn).toFixed(1); }).join(' ');
+      var areaPot = linePot + ' L'+xp(nP).toFixed(1)+' '+zero.toFixed(1)+' L'+xp(0).toFixed(1)+' '+zero.toFixed(1)+' Z';
+      var areaIn  = lineIn  + ' L'+xp(nP).toFixed(1)+' '+zero.toFixed(1)+' L'+xp(0).toFixed(1)+' '+zero.toFixed(1)+' Z';
+      var last = pr[nP];
+      var ticksP='';
+      pr.forEach(function(r,i){
+        if (r.age % 5 !== 0 && i !== 0 && i !== nP) return;
+        ticksP += '<text x="'+xp(i).toFixed(1)+'" y="'+(T+ih+19)+'" text-anchor="middle" font-family="var(--mono)" font-size="10.5" fill="var(--ink-3)">'+r.age+'</text>';
+      });
+      // Renteneintritt: Endpunkt der Ansparphase, mit Betrag beschriftet
+      var riP = nP;
+      var markP = '';
+      if (riP > 0){
+        var rr = pr[riP], px = xp(riP), py = yp(rr.pot);
+        var flip = px > W*0.66;
+        markP = '<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="5" fill="var(--panel)" stroke="var(--pkv)" stroke-width="2.6"/>'+
+                '<text x="'+(px + (flip?-11:11)).toFixed(1)+'" y="'+(py-13).toFixed(1)+'" text-anchor="'+(flip?'end':'start')+'" font-family="var(--mono)" font-size="10" fill="var(--ink-3)">RENTE MIT '+rr.age+'</text>'+
+                '<text x="'+(px + (flip?-11:11)).toFixed(1)+'" y="'+(py+1).toFixed(1)+'" text-anchor="'+(flip?'end':'start')+'" font-family="var(--mono)" font-size="17" font-weight="600" fill="var(--pkv)">'+euroK(rr.pot)+'</text>';
+      }
+      $('chartSvg').innerHTML =
+        '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Entwicklung des Differenzdepots">'+
+        gridP+
+        '<path d="'+areaPot+'" fill="'+(last.pot>=0?'var(--pkv-soft)':'var(--gkv-soft)')+'" opacity=".5"/>'+
+        '<path d="'+areaIn+'" fill="var(--pkv-soft)" opacity=".85"/>'+
+        '<path d="'+lineIn+'" fill="none" stroke="var(--pkv)" stroke-width="1.2" stroke-dasharray="4 4" opacity=".75"/>'+
+        '<line x1="'+L+'" y1="'+zero.toFixed(1)+'" x2="'+(W-R)+'" y2="'+zero.toFixed(1)+'" stroke="var(--ink)" stroke-width="1.2"/>'+
+        '<path d="'+linePot+'" fill="none" stroke="'+(last.pot>=0?'var(--pkv)':'var(--gkv)')+'" stroke-width="2.4" stroke-linejoin="round"/>'+
+        markP+ticksP+
+        '<text x="'+L+'" y="'+(H-6)+'" font-family="var(--mono)" font-size="10" fill="var(--ink-3)">ALTER</text>'+
+        '</svg>';
+      return -1;
+    }
+
+    var key = state.view==='month' ? ['gkv','pkv'] : ['cumG','cumP'];
+    var gKey = state.view==='month' ? 'pkvGross' : 'cumPG';
+    var showGross = $('breOn').checked && rows.some(function(r){ return r.bre > 0.5; });
+    var max = 0;
+    rows.forEach(function(r){ max = Math.max(max, r[key[0]], r[key[1]], showGross ? r[gKey] : 0); });
+    max = max*1.08 || 1;
+    var y = function(v){ return T + ih - ih*v/max; };
+
+    var pathOf = function(k){
+      return rows.map(function(r,i){ return (i?'L':'M')+x(i).toFixed(1)+' '+y(r[k]).toFixed(1); }).join(' ');
+    };
+    var band = pathOf(key[0]) + ' ' +
+      rows.slice().reverse().map(function(r,i){ return 'L'+x(n-i).toFixed(1)+' '+y(r[key[1]]).toFixed(1); }).join(' ') + ' Z';
+
+    // Gitter
+    var grid='', steps=5;
+    for (var s=0; s<=steps; s++){
+      var v = max*s/steps, yy = y(v);
+      grid += '<line x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+(W-R)+'" y2="'+yy.toFixed(1)+'" stroke="var(--line-soft)" stroke-width="1"/>';
+      grid += '<text x="'+(L-9)+'" y="'+(yy+4).toFixed(1)+'" text-anchor="end" font-family="var(--mono)" font-size="10.5" fill="var(--ink-3)">'+
+              (state.view==='month' ? euro(v) : euroK(v))+'</text>';
+    }
+    // Altersachse
+    var ticks='';
+    rows.forEach(function(r,i){
+      if (r.age % 10 !== 0 && i !== 0 && i !== n) return;
+      ticks += '<line x1="'+x(i).toFixed(1)+'" y1="'+(T+ih)+'" x2="'+x(i).toFixed(1)+'" y2="'+(T+ih+5)+'" stroke="var(--line)"/>';
+      ticks += '<text x="'+x(i).toFixed(1)+'" y="'+(T+ih+19)+'" text-anchor="middle" font-family="var(--mono)" font-size="10.5" fill="var(--ink-3)">'+r.age+'</text>';
+    });
+
+    // Marker: Renteneintritt + Kipppunkt
+    var marks='';
+    var ri = rows.findIndex(function(r){ return r.retired; });
+    if (ri > 0){
+      marks += '<line x1="'+x(ri).toFixed(1)+'" y1="'+T+'" x2="'+x(ri).toFixed(1)+'" y2="'+(T+ih)+'" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2 4"/>';
+      marks += '<text x="'+(x(ri)+6).toFixed(1)+'" y="'+(T+13)+'" font-family="var(--mono)" font-size="10" fill="var(--ink-3)">RENTE</text>';
+    }
+    // Der Kipppunkt wird auf einem gleitenden Dreijahresmittel gesucht,
+    // damit die Zacken der Erstattungsjahre keinen Scheinwechsel auslösen.
+    var smoothDiff = function(i){
+      var a=0,b=0,c=0;
+      for (var k=Math.max(0,i-1); k<=Math.min(n,i+1); k++){ a += rows[k][key[1]]; b += rows[k][key[0]]; c++; }
+      return (a-b)/c;
+    };
+    var cross = -1;
+    for (var i=1; i<rows.length; i++){
+      var da = smoothDiff(i-1), db = smoothDiff(i);
+      if (da === 0 || (da<0) !== (db<0)){ cross = i; break; }
+    }
+    if (cross > 0){
+      marks += '<line x1="'+x(cross).toFixed(1)+'" y1="'+T+'" x2="'+x(cross).toFixed(1)+'" y2="'+(T+ih)+'" stroke="var(--warn)" stroke-width="1.5"/>';
+      marks += '<circle cx="'+x(cross).toFixed(1)+'" cy="'+y(rows[cross][key[0]]).toFixed(1)+'" r="3.5" fill="var(--warn)"/>';
+      marks += '<text x="'+(x(cross)+6).toFixed(1)+'" y="'+(T+ih-8)+'" font-family="var(--mono)" font-size="10" fill="var(--warn)">KIPPPUNKT · '+rows[cross].age+' J.</text>';
+    }
+
+    var dots = '';
+    if (state.view === 'month'){
+      rows.forEach(function(r,i){
+        if (r.bre > 0.5) dots += '<circle cx="'+x(i).toFixed(1)+'" cy="'+y(r.pkv).toFixed(1)+'" r="2.6" fill="var(--panel)" stroke="var(--pkv)" stroke-width="1.4"/>';
+      });
+    }
+
+    var pkvOben = rows[rows.length-1][key[1]] > rows[rows.length-1][key[0]];
+
+    $('chartSvg').innerHTML =
+      '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Beitragsverlauf GKV gegen PKV">'+
+      grid+
+      '<path d="'+band+'" fill="'+(pkvOben?'var(--pkv-soft)':'var(--gkv-soft)')+'" opacity=".55"/>'+
+      '<path d="'+pathOf(key[0])+'" fill="none" stroke="var(--gkv)" stroke-width="2.2" stroke-linejoin="round"/>'+
+      (showGross ? '<path d="'+pathOf(gKey)+'" fill="none" stroke="var(--pkv)" stroke-width="1.3" stroke-dasharray="4 4" opacity=".7"/>' : '')+
+      '<path d="'+pathOf(key[1])+'" fill="none" stroke="var(--pkv)" stroke-width="2.2" stroke-linejoin="round"/>'+
+      ticks+marks+dots+
+      '<line x1="'+L+'" y1="'+(T+ih)+'" x2="'+(W-R)+'" y2="'+(T+ih)+'" stroke="var(--line)"/>'+
+      '<text x="'+L+'" y="'+(H-6)+'" font-family="var(--mono)" font-size="10" fill="var(--ink-3)">ALTER</text>'+
+      '</svg>';
+
+    return cross;
+  }
+
+  // ---- Ablesen am Diagramm ------------------------------------------------
+  function showTip(clientX){
+    if (!GEO) return;
+    var host = $('chart'), svg = host.querySelector('svg');
+    if (!svg) return;
+    var box = svg.getBoundingClientRect();
+    var scale = box.width / GEO.W;
+    var vx = (clientX - box.left) / scale;
+    var i = Math.round((vx - GEO.L) / (GEO.iw || 1) * (GEO.n || 1));
+    i = Math.max(0, Math.min(GEO.n, i));
+    var r = GEO.rows[i];
+
+    var body;
+    if (GEO.view === 'pot'){
+      body = '<div class="h">Alter '+r.age+' · '+r.year+'</div>'+
+             '<div class="r"><span>Depot</span><b>'+euro(r.pot)+'</b></div>'+
+             '<div class="r"><span>Ertrag</span><b>'+euro(r.potGain)+'</b></div>'+
+             '<div class="r"><span>'+(r.potFlow<0?'Entnahme':'Einzahlung')+'</span><b>'+euro(Math.abs(r.potFlow))+'</b></div>';
+    } else if (GEO.view === 'cum'){
+      var dc = r.cumP - r.cumG;
+      body = '<div class="h">Alter '+r.age+' · '+r.year+'</div>'+
+             '<div class="r"><span>GKV</span><b>'+euroK(r.cumG)+'</b></div>'+
+             '<div class="r"><span>PKV</span><b>'+euroK(r.cumP)+'</b></div>'+
+             '<div class="r d"><span>'+(dc<0?'privat gespart':'privat mehr')+'</span><b>'+euroK(Math.abs(dc))+'</b></div>';
+    } else {
+      var d = r.pkv - r.gkv;
+      body = '<div class="h">Alter '+r.age+' · '+r.year+'</div>'+
+             '<div class="r"><span>GKV</span><b>'+euro(r.gkv)+'</b></div>'+
+             '<div class="r"><span>PKV</span><b>'+euro(r.pkv)+'</b></div>'+
+             '<div class="r d"><span>'+(d<0?'privat günstiger':'privat teurer')+'</span><b>'+euro(Math.abs(d))+'</b></div>';
+    }
+
+    var tip = $('tip'), rule = $('tipRule');
+    tip.innerHTML = body;
+    var px = (GEO.L + GEO.iw*i/(GEO.n||1)) * scale;
+    var tw = tip.offsetWidth || 150;
+    var left = px + 12;
+    if (left + tw > box.width) left = px - tw - 12;
+    tip.style.left = Math.max(0, left) + 'px';
+    tip.style.opacity = '1';
+    rule.style.left = px + 'px';
+    rule.style.height = (GEO.ih + GEO.T) * scale + 'px';
+    rule.style.opacity = '.35';
+  }
+  function hideTip(){ $('tip').style.opacity = '0'; $('tipRule').style.opacity = '0'; }
+
+  (function(){
+    var host = $('chart');
+    host.addEventListener('pointermove', function(e){ showTip(e.clientX); });
+    host.addEventListener('pointerdown', function(e){ showTip(e.clientX); });
+    host.addEventListener('pointerleave', hideTip);
+    host.addEventListener('pointercancel', hideTip);
+    document.addEventListener('pointerdown', function(e){
+      if (!host.contains(e.target)) hideTip();
+    });
+  })();
+
+  // ---- Render -------------------------------------------------------------
+  function render(){
+    var rows = compute();
+    if (!rows.length) return;
+    var first = rows[0], last = rows[rows.length-1];
+    var ri = rows.findIndex(function(r){ return r.retired; });
+    var atRetire = ri >= 0 ? rows[ri] : last;
+
+    function kpi(box, val, sub, d){
+      $('v'+box).textContent = val;
+      $('s'+box).innerHTML = sub;
+      var el = $('kpi'+box);
+      el.className = 'kpi' + (d === 0 ? '' : (d < 0 ? ' win-pkv' : ' win-gkv'));
+    }
+
+    var d1 = first.pkv - first.gkv;
+    kpi(1, euro(first.pkv) + ' PKV',
+        'GKV: <b>'+euro(first.gkv)+'</b> — ' + (d1<0 ? euro(-d1)+' günstiger privat' : euro(d1)+' teurer privat'), d1);
+
+    var d2 = atRetire.pkv - atRetire.gkv;
+    kpi(2, euro(atRetire.pkv) + ' PKV',
+        'GKV: <b>'+euro(atRetire.gkv)+'</b> im Alter '+atRetire.age+' — ' + (d2<0 ? euro(-d2)+' günstiger' : euro(d2)+' teurer'), d2);
+
+    var d3 = last.cumP - last.cumG;
+    kpi(3, (d3<0 ? '−' : '+') + euroK(Math.abs(d3)),
+        (d3<0 ? 'Ersparnis privat' : 'Mehrkosten privat') + ' bis Alter '+last.age+
+        '. GKV gesamt: <b>'+euroK(last.cumG)+'</b>, PKV gesamt: <b>'+euroK(last.cumP)+'</b>.', d3);
+
+    var cross = chart(rows);
+    hideTip();
+    var real = $('real').checked;
+    $('potStats').className = 'pot-stats';
+
+    // ---- Kopfzeile: die tatsächlich wirksamen Annahmen ---------------------
+    var pct = function(v){ return new Intl.NumberFormat('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1}).format(v)+' %'; };
+    $('fPkv').textContent = pct(num('pkvG'));
+
+    // In der Erwerbsphase wirkt in der GKV mehr als ein Regler. Deshalb wird
+    // hier die effektiv resultierende Rate zurückgerechnet, nicht ein Eingabewert.
+    var endIdx = ri > 0 ? ri-1 : rows.length-1;
+    var jahre = rows[endIdx].age - rows[0].age;
+    var effG = jahre > 0 ? Math.pow(rows[endIdx].gkvNom / rows[0].gkvNom, 1/jahre) - 1 : 0;
+    $('fGkv').textContent = pct(effG*100);
+    $('fGkvSub').innerHTML = (state.gkvMode === 'pauschal'
+        ? 'Ihre pauschale Annahme, bis Alter '+rows[endIdx].age+'.'
+        : 'Effektiv aus Satz, Grenze und Einkommen, bis Alter '+rows[endIdx].age+'.')+
+      '<br>Historisch: <b>3,9 %</b> (2006–2026)';
+
+    var lastRow = rows[rows.length-1];
+    $('fZb').textContent = pct(lastRow.zbJahr);
+    $('fZbSub').innerHTML = 'Zusatzbeitrag in Ihrem Alter '+lastRow.age+
+      '.<br>Heute <b>3,1 %</b>, das BMG erwartet <b>4,05 %</b> bis 2029';
+    var bbgRet = rows[ri > 0 ? ri : rows.length-1];
+    $('fBbg').textContent = euro(bbgRet.bbgJahr);
+    $('fBbgSub').innerHTML = 'Bemessungsgrenze in Ihrem Alter '+bbgRet.age+
+      '.<br>Heute: <b>5.812,50 €</b> im Monat';
+
+    if ($('investOn').checked){
+      var potR = ri >= 0 ? rows[ri] : last;
+      $('s3').innerHTML += ' <b>Depot:</b> '+euroK(potR.pot)+' angespart bis Alter '+potR.age+
+        ', davon '+euroK(potR.potIn)+' eingezahlt. Aufschlüsselung in der Ansicht „Depot".';
+    }
+
+    if (state.view === 'pot'){
+      var rr2 = ri >= 0 ? rows[ri] : last;
+      var prows = ri > 0 ? rows.slice(0, ri+1) : rows;
+      var ertrag = rr2.pot - rr2.potIn;
+      $('potStats').className = 'pot-stats on';
+      $('potStats').innerHTML =
+        '<div><div class="k">Eingezahlt</div><div class="v">'+euroK(rr2.potIn)+'</div>'+
+        '<div class="s">die gesparte Differenz, Monat für Monat</div></div>'+
+        '<div class="hi"><div class="k">Kapital mit '+rr2.age+'</div><div class="v">'+euroK(rr2.pot)+'</div>'+
+        '<div class="s">'+euro(rr2.pot/Math.max(1,(last.age-rr2.age)*12))+' pro Monat, wenn es bis '+last.age+' reichen soll</div></div>'+
+        '<div><div class="k">Davon Ertrag</div><div class="v">'+euroK(ertrag)+'</div>'+
+        '<div class="s">'+(rr2.potIn>0 ? Math.round(ertrag/rr2.potIn*100)+' % auf die Einzahlungen' : '—')+'</div></div>';
+      $('note').innerHTML =
+        'Die Kurve endet mit dem Renteneintritt — was danach mit dem Kapital geschieht, ist eine Entnahmefrage und gehört nicht in diesen Vergleich. '+
+        'Die dunkle Fläche sind Ihre Einzahlungen, die helle darüber der Zinseszins.'+
+        (real ? ' Werte in heutiger Kaufkraft.' : ' Werte nominal, also in Euro des jeweiligen Jahres — in '+(rr2.age-rows[0].age)+' Jahren ist das real deutlich weniger wert, als die Zahl suggeriert.');
+      $('thead').innerHTML = '<tr><th>Alter</th><th>Jahr</th><th>Differenz / Mon.</th>'+
+        '<th>Einzahlung</th><th>Entnahme</th><th>Ertrag</th><th>Depotstand</th></tr>';
+      var tbP = $('tbl').querySelector('tbody'), hP = '';
+      prows.forEach(function(r){
+        var dd = r.gkv - r.pkv;
+        hP += '<tr'+(r.age===rr2.age?' class="mark"':'')+'><td>'+r.age+'</td><td>'+r.year+'</td>'+
+              '<td style="color:'+(dd>0?'var(--pkv)':'var(--gkv)')+'">'+(dd>0?'+':'−')+euro(Math.abs(dd))+'</td>'+
+              '<td>'+(r.potFlow > 0 ? euro(r.potFlow) : '—')+'</td>'+
+              '<td>'+(r.potFlow < 0 ? euro(-r.potFlow) : '—')+'</td>'+
+              '<td>'+euro(r.potGain)+'</td>'+
+              '<td><b>'+euro(r.pot)+'</b></td></tr>';
+      });
+      tbP.innerHTML = hP;
+      return;
+    }
+
+    $('thead').innerHTML = '<tr><th>Alter</th><th>Jahr</th><th>GKV / Monat</th><th>PKV / Monat</th>'+
+      '<th>Differenz</th><th>Kumuliert GKV</th><th>Kumuliert PKV</th></tr>';
+
+    $('note').innerHTML =
+      (cross > 0
+        ? 'Die Kurven kreuzen sich im Alter <b>'+rows[cross].age+'</b> (Jahr '+rows[cross].year+'). Bis dahin liegt '+
+          (rows[0].pkv < rows[0].gkv ? 'die PKV' : 'die GKV')+' vorn, danach dreht sich das Verhältnis.'
+        : 'Ein Kipppunkt tritt in diesem Szenario nicht ein — '+
+          (last.pkv < last.gkv ? 'die PKV' : 'die GKV')+' bleibt über die gesamte Laufzeit günstiger.')
+      + (real ? ' Alle Werte in heutiger Kaufkraft.' : ' Alle Werte nominal, also in Euro des jeweiligen Jahres.')
+      + ' Die Fläche zwischen den Kurven zeigt, wie viel jährlich auf dem Spiel steht.';
+
+    var breTotal = last.cumPG - last.cumP;
+    var showGross = $('breOn').checked && breTotal > 100;
+    $('legGross').style.display = showGross ? '' : 'none';
+    if (showGross){
+      var breYears = rows.filter(function(r){ return r.bre > 0.5; }).length;
+      $('note').innerHTML += ' <b>Rückerstattung:</b> über die gesamte Laufzeit '+euroK(breTotal)+
+        ' netto, also nach Abzug der selbst getragenen Rechnungen — das entspricht '+
+        euro(breTotal/((last.age-first.age+1)*12))+' im Monat, wenn man es über alle Jahre verteilt. ' +
+        (state.breMode==='event'
+          ? 'Tatsächlich fällt der Betrag in '+breYears+' einzelnen Jahren an; die Ringe auf der Kurve markieren sie.'
+          : 'Hier geglättet dargestellt — die Zacken sind herausgerechnet.') +
+        ' Die gestrichelte Linie zeigt den Verlauf ohne Erstattung.';
+    }
+
+    var kidDrop = -1;
+    for (var ki=1; ki<rows.length; ki++){
+      if (rows[ki-1].kidsActive > 0 && rows[ki].kidsActive === 0){ kidDrop = ki; break; }
+    }
+    if (kidDrop > 0){
+      $('note').innerHTML += ' <b>Kinder:</b> Der letzte Kinderbeitrag entfällt in Ihrem Alter '+
+        rows[kidDrop].age+' (Jahr '+rows[kidDrop].year+') — die PKV-Kurve fällt dort sichtbar ab. Bis dahin kosten die Kinder privat '+
+        euro(rows[0].kidSum)+' im Monat, gesetzlich nichts.';
+    }
+
+    var capRow = rows.find(function(r){ return r.gedeckelt; });
+    if (capRow){
+      $('note').innerHTML += ' <b>Basistarif:</b> Ab Ihrem Alter '+capRow.age+
+        ' greift der Deckel — der PKV-Beitrag läuft dort auf den GKV-Höchstbeitrag auf und wächst nur noch mit ihm weiter.';
+    }
+
+    var tb = $('tbl').querySelector('tbody'), html = '';
+    rows.forEach(function(r){
+      var d = r.pkv - r.gkv;
+      html += '<tr'+(r.age===atRetire.age?' class="mark"':'')+'><td>'+r.age+'</td><td>'+r.year+'</td>'+
+              '<td>'+euro(r.gkv)+'</td><td>'+euro(r.pkv)+'</td>'+
+              '<td style="color:'+(d<0?'var(--gkv)':'var(--pkv)')+'">'+(d<0?'−':'+')+euro(Math.abs(d))+'</td>'+
+              '<td>'+euroK(r.cumG)+'</td><td>'+euroK(r.cumP)+'</td></tr>';
+    });
+    tb.innerHTML = html;
+  }
+
+  // ---- Eingaben sammeln, Ergebnis auf Knopfdruck --------------------------
+  var fields = Array.prototype.slice.call(document.querySelectorAll('#calc, .inputs input, .inputs select'))
+                 .filter(function(el){ return el.id !== 'calc'; });
+  var defaults = {};
+  fields.forEach(function(el){
+    defaults[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
+  });
+  var defaultState = { employed:state.employed, breMode:state.breMode };
+  var dirty = false;
+
+  function markDirty(){
+    dirty = true;
+    var b = $('calc');
+    b.dataset.dirty = 'true';
+    b.textContent = 'Neu berechnen';
+    $('results').dataset.stale = 'true';
+  }
+  function markClean(){
+    dirty = false;
+    var b = $('calc');
+    b.dataset.dirty = 'false';
+    b.textContent = 'Berechnet';
+    $('results').dataset.stale = 'false';
+    fields.forEach(function(el){ el.classList.remove('changed'); });
+  }
+  function apply(){
+    render();
+    markClean();
+  }
+
+  function bindDynamic(el){
+    el.addEventListener('input', function(){ el.classList.add('changed'); markDirty(); });
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); apply(); }
+    });
+  }
+
+  fields.forEach(function(el){
+    var evt = (el.type === 'checkbox') ? 'change' : 'input';
+    el.addEventListener(evt, function(){
+      sync();
+      var d = (el.type === 'checkbox') ? el.checked : el.value;
+      el.classList.toggle('changed', d !== defaults[el.id]);
+      markDirty();
+    });
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); apply(); }
+    });
+  });
+
+  KID_DEFAULTS.forEach(function(k){ addKidRow(k, true); });
+  $('addKid').addEventListener('click', function(){ addKidRow({age:0, prem:180}); });
+
+  $('calc').addEventListener('click', apply);
+  $('reset').addEventListener('click', function(){
+    fields.forEach(function(el){
+      if (el.type === 'checkbox') el.checked = defaults[el.id]; else el.value = defaults[el.id];
+      el.classList.remove('changed');
+    });
+    $('kidList').innerHTML = '';
+    KID_DEFAULTS.forEach(function(k){ addKidRow(k, true); });
+    state.employed = defaultState.employed;
+    state.breMode = defaultState.breMode;
+    sync(); apply();
+  });
+
+  sync(); render(); markClean();
+})();
+</script>
+</body>
+</html>
