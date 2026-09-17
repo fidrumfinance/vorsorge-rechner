@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rechner: ETF-Sparplan vs. ETF-Police | Zukunftslotsen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#14264A; --navy-deep:#0C1A36; --gold:#C29B40; --gold-soft:#F3EAD3;
+  --bg:#F4F6FA; --surface:#FFFFFF; --ink:#1C2433; --muted:#5B6577; --line:#D9DEE7;
+  --etf:#14264A; --pol:#C29B40; --paid:#9AA3B2; --good:#1F7A4D; --warn:#9A5B00; --warn-bg:#FFF4E0;
+  --head-font:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body-font:Calibri,Carlito,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1628; --surface:#16213A; --ink:#E8ECF3; --muted:#A3AEC2; --line:#2A3858;
+    --etf:#8FB1F0; --pol:#D9B660; --paid:#6E7A91; --gold-soft:#2C2A22; --good:#5CC592; --warn:#F0B35A; --warn-bg:#2E2615;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1628; --surface:#16213A; --ink:#E8ECF3; --muted:#A3AEC2; --line:#2A3858;
+  --etf:#8FB1F0; --pol:#D9B660; --paid:#6E7A91; --gold-soft:#2C2A22; --good:#5CC592; --warn:#F0B35A; --warn-bg:#2E2615;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body-font);font-size:16px;line-height:1.45}
+h1,h2,h3{font-family:var(--head-font);font-weight:600;margin:0;line-height:1.1}
+.top{background:var(--navy-deep);color:#fff;border-bottom:4px solid var(--gold)}
+.top-in{max-width:1180px;margin:0 auto;padding:22px 20px 26px}
+.brand{font-family:var(--head-font);font-size:1.25rem;font-weight:600;color:var(--gold);letter-spacing:.02em}
+.brand small{display:block;font-family:var(--body-font);font-size:.85rem;color:#C9D2E3;font-weight:400;letter-spacing:0}
+.top h1{font-size:clamp(2rem,5vw,3.1rem);margin-top:14px}
+.top p{margin:6px 0 0;color:#C9D2E3;max-width:64ch}
+main{max-width:1180px;margin:0 auto;padding:24px 20px 40px;display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+aside.panel{padding:18px 18px 8px;position:sticky;top:12px}
+@media (max-width:900px){aside.panel{position:static}}
+fieldset{border:0;margin:0 0 14px;padding:0}
+legend{font-family:var(--head-font);font-size:1.2rem;font-weight:600;color:var(--navy);padding:0 0 6px;border-bottom:2px solid var(--gold);width:100%;margin-bottom:10px}
+:root[data-theme="dark"] legend{color:var(--pol)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) legend{color:var(--pol)}}
+.f{margin-bottom:11px}
+.f label{display:flex;justify-content:space-between;gap:8px;font-size:.93rem;margin-bottom:3px}
+.f label span{color:var(--muted);font-size:.85rem}
+.row{display:flex;gap:8px;align-items:center}
+input[type=number],select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);font:inherit}
+input[type=number]{max-width:110px;text-align:right}
+input[type=range]{flex:1;accent-color:var(--gold)}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:.93rem;margin-bottom:10px}
+.chk input{margin-top:3px;accent-color:var(--gold)}
+.hint{font-size:.82rem;color:var(--muted);margin:2px 0 0}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button.reset{background:none;border:1px solid var(--line);color:var(--muted);padding:6px 10px;border-radius:4px;font:inherit;font-size:.88rem;cursor:pointer;margin:4px 0 12px}
+button.reset:hover{color:var(--ink);border-color:var(--muted)}
+
+.result{padding:22px}
+.verdict{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+@media (max-width:640px){.verdict{grid-template-columns:1fr}}
+.v{padding:16px 18px}
+.v + .v{border-left:1px solid var(--line)}
+@media (max-width:640px){.v + .v{border-left:0;border-top:1px solid var(--line)}}
+.v .lbl{font-size:.9rem;color:var(--muted)}
+.v .num{font-family:var(--head-font);font-size:2.1rem;font-weight:600;line-height:1.1;margin-top:2px}
+.v.etf .num{color:var(--etf)} .v.pol .num{color:var(--pol)}
+.v.diff{background:var(--navy);color:#fff}
+.v.diff .lbl{color:#C9D2E3}
+.v.diff .num{font-size:2.6rem;color:var(--gold)}
+.v.diff .sub{font-size:.88rem;color:#C9D2E3;margin-top:2px}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:4px;padding:8px 12px;font-size:.9rem;margin-top:12px}
+.warn:empty{display:none}
+
+section.block{margin-top:26px}
+section.block h2{font-size:1.5rem;color:var(--ink);margin-bottom:10px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+thead th{font-family:var(--head-font);font-size:1.1rem;font-weight:600;border-bottom:2px solid var(--gold)}
+thead th.etf{color:var(--etf)} thead th.pol{color:var(--pol)}
+tr.sum td{font-weight:700;border-top:2px solid var(--ink)}
+tr.sub td{color:var(--muted);font-size:.92rem}
+.foot{font-size:.82rem;color:var(--muted);margin-top:6px}
+
+.chartwrap{position:relative}
+svg.chart{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:.9rem;margin-bottom:6px}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:8px 10px;font-size:.85rem;box-shadow:0 4px 14px rgba(12,26,54,.15);display:none;white-space:nowrap}
+.tip b{font-family:var(--head-font);font-size:1rem}
+
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.fact{border-left:3px solid var(--gold);padding:4px 0 4px 12px}
+.fact .k{font-size:.88rem;color:var(--muted)}
+.fact .val{font-family:var(--head-font);font-size:1.35rem;font-weight:600}
+details{margin-top:26px}
+summary{cursor:pointer;font-family:var(--head-font);font-size:1.3rem;font-weight:600}
+details .tw{max-height:420px;overflow:auto;margin-top:10px}
+details thead th{position:sticky;top:0;background:var(--surface)}
+tr.sw td{background:var(--gold-soft)}
+.disclaimer{max-width:1180px;margin:0 auto;padding:0 20px 36px;font-size:.82rem;color:var(--muted)}
+.disclaimer p{margin:4px 0;max-width:110ch}
+@media (prefers-reduced-motion:no-preference){ .v .num{transition:color .2s} }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">Zukunftslotsen<small>Unabhängige Finanz- und Versicherungsberatung</small></div>
+    <h1>ETF-Sparplan oder ETF-Police?</h1>
+    <p>Gleiche Bruttorendite, unterschiedliche Besteuerung und Kosten: Passen Sie die Annahmen an und sehen Sie sofort, welche Variante nach Steuern vorne liegt.</p>
+  </div>
+</header>
+
+<main>
+  <aside class="panel" aria-label="Eingaben">
+    <fieldset>
+      <legend>Sparplan</legend>
+      <div class="f"><label for="rate">Sparrate <span>€ / Monat</span></label>
+        <div class="row"><input type="range" id="rate_r" min="25" max="1500" step="25"><input type="number" id="rate" min="0" step="5"></div></div>
+      <div class="f"><label for="lump">Einmalbetrag zu Beginn <span>€</span></label>
+        <div class="row"><input type="range" id="lump_r" min="0" max="100000" step="1000"><input type="number" id="lump" min="0" step="500"></div></div>
+      <div class="f"><label for="years">Laufzeit <span>Jahre</span></label>
+        <div class="row"><input type="range" id="years_r" min="1" max="50" step="1"><input type="number" id="years" min="1" max="50" step="1"></div></div>
+      <div class="f"><label for="ret">Bruttorendite <span>% p. a.</span></label>
+        <div class="row"><input type="range" id="ret_r" min="0" max="12" step="0.1"><input type="number" id="ret" min="-5" max="20" step="0.1"></div></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>ETF-Sparplan</legend>
+      <div class="f"><label for="ter">Laufende Kosten (TER + Depot) <span>% p. a.</span></label>
+        <div class="row"><input type="range" id="ter_r" min="0" max="1.5" step="0.05"><input type="number" id="ter" min="0" max="5" step="0.05"></div></div>
+      <div class="f"><label for="sw">Anzahl Fondswechsel <span>gleichmäßig verteilt</span></label>
+        <div class="row"><input type="range" id="sw_r" min="0" max="20" step="1"><input type="number" id="sw" min="0" max="50" step="1"></div>
+        <p class="hint" id="swYears"></p></div>
+      <div class="f"><label for="abg">Abgeltungsteuer</label>
+        <select id="abg">
+          <option value="26.375">26,375 % (inkl. Soli, ohne Kirchensteuer)</option>
+          <option value="27.819">27,819 % (mit 8 % Kirchensteuer)</option>
+          <option value="27.995">27,995 % (mit 9 % Kirchensteuer)</option>
+        </select></div>
+      <div class="f"><label for="spb">Sparerpauschbetrag je Verkauf</label>
+        <select id="spb">
+          <option value="0">nicht berücksichtigen</option>
+          <option value="1000">1.000 € (Einzelperson)</option>
+          <option value="2000">2.000 € (zusammen veranlagt)</option>
+        </select>
+        <p class="hint">Vereinfachung: voller Freibetrag in jedem Jahr mit Fondswechsel.</p></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>ETF-Police</legend>
+      <div class="f"><label for="pc">Effektivkosten <span>% p. a.</span></label>
+        <div class="row"><input type="range" id="pc_r" min="0" max="3" step="0.05"><input type="number" id="pc" min="0" max="10" step="0.05"></div>
+        <p class="hint">Reduction in Yield laut Basisinformationsblatt – Abschluss-, Verwaltungs- und Fondskosten enthalten.</p></div>
+      <label class="chk"><input type="checkbox" id="hev"><span>Halbeinkünfteverfahren (Laufzeit mind. 12 Jahre und Auszahlung ab 62)</span></label>
+      <div class="f" id="persWrap"><label for="pers">Persönlicher Steuersatz bei Auszahlung <span>%</span></label>
+        <div class="row"><input type="range" id="pers_r" min="0" max="45" step="1"><input type="number" id="pers" min="0" max="50" step="0.5"></div></div>
+    </fieldset>
+
+    <button class="reset" type="button" id="reset">Beispielwerte wiederherstellen</button>
+  </aside>
+
+  <div class="panel result">
+    <div class="verdict">
+      <div class="v etf"><div class="lbl">ETF-Sparplan netto</div><div class="num" id="oEtf">–</div></div>
+      <div class="v pol"><div class="lbl">ETF-Police netto</div><div class="num" id="oPol">–</div></div>
+      <div class="v diff"><div class="lbl" id="oDiffLbl">Vorteil</div><div class="num" id="oDiff">–</div><div class="sub" id="oDiffSub"></div></div>
+    </div>
+    <div class="warn" id="warn" role="status"></div>
+
+    <section class="block">
+      <h2>Ergebnis im Detail</h2>
+      <div class="tw">
+        <table>
+          <thead><tr><th></th><th class="etf">ETF-Sparplan</th><th class="pol">ETF-Police</th></tr></thead>
+          <tbody id="tbl"></tbody>
+        </table>
+      </div>
+      <p class="foot" id="tblFoot"></p>
+    </section>
+
+    <section class="block">
+      <h2>Vermögensentwicklung</h2>
+      <div class="legend">
+        <span><i style="background:var(--etf)"></i>ETF-Depot (nach Steuern auf Fondswechsel)</span>
+        <span><i style="background:var(--pol)"></i>Police (vor Steuer bei Auszahlung)</span>
+        <span><i style="background:var(--paid)"></i>Eigene Einzahlungen</span>
+      </div>
+      <div class="chartwrap" id="chartWrap">
+        <svg class="chart" id="chart" viewBox="0 0 720 320" role="img" aria-label="Vermögensentwicklung beider Varianten"></svg>
+        <div class="tip" id="tip"></div>
+      </div>
+      <p class="foot">Goldene Markierungen auf der Zeitachse zeigen die Fondswechsel im ETF-Depot.</p>
+    </section>
+
+    <section class="block">
+      <h2>Einordnung</h2>
+      <div class="facts" id="facts"></div>
+    </section>
+
+    <details>
+      <summary>Jahresübersicht</summary>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Jahr</th><th>Einzahlungen</th><th class="etf">ETF-Depot</th><th>Steuer im Jahr</th><th class="pol">Police</th></tr></thead>
+          <tbody id="yearTbl"></tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+</main>
+
+<div class="disclaimer">
+  <p><strong>Unverbindliche Musterrechnung.</strong> Kein Angebot, keine Anlage- oder Steuerberatung. Die unterstellte Rendite ist konstant und nicht garantiert; tatsächliche Wertentwicklungen schwanken.</p>
+  <p>Vereinfachungen: monatliche Verzinsung (Rendite ÷ 12), Einzahlung jeweils zum Monatsende, Vorabpauschale und Verlustverrechnung und Teilfreistellung nicht berücksichtigt, Ausgabeaufschläge und Spreads beim Fondswechsel nicht enthalten. Die Police wird bei einmaliger Kapitalauszahlung am Laufzeitende betrachtet; Anzahl und Zeitpunkt der Fondswechsel sind Annahmen zur Veranschaulichung.</p>
+  <p>Zukunftslotsen – Unabhängige Finanz- und Versicherungsberatung, Lingen (Ems)</p>
+</div>
+
+<script>
+(function(){
+  const DEFAULTS = {rate:100, lump:0, years:40, ret:8, ter:0, sw:5, abg:"26.375", spb:"0", pc:0.6, hev:true, pers:30};
+  const pairs = ["rate","lump","years","ret","ter","sw","pc","pers"];
+  const $ = id => document.getElementById(id);
+  const eur = x => (Math.round(x/10)*10).toLocaleString("de-DE",{maximumFractionDigits:0}) + " €";
+  const eurExact = x => Math.round(x).toLocaleString("de-DE") + " €";
+  const pct = (x,d=2) => x.toLocaleString("de-DE",{minimumFractionDigits:d,maximumFractionDigits:d}) + " %";
+  const num = id => { const v = parseFloat(String($(id).value).replace(",", ".")); return isFinite(v) ? v : 0; };
+
+  function setAll(p){
+    pairs.forEach(k => { $(k).value = p[k]; $(k+"_r").value = p[k]; });
+    $("abg").value = p.abg; $("spb").value = p.spb; $("hev").checked = p.hev;
+  }
+  pairs.forEach(k => {
+    $(k+"_r").addEventListener("input", () => { $(k).value = $(k+"_r").value; run(); });
+    $(k).addEventListener("input", () => { $(k+"_r").value = $(k).value; run(); });
+  });
+  ["abg","spb","hev"].forEach(k => $(k).addEventListener("change", run));
+  $("reset").addEventListener("click", () => { setAll(DEFAULTS); run(); });
+
+  function read(){
+    const years = Math.max(1, Math.min(50, Math.round(num("years"))));
+    return {
+      rate: Math.max(0, num("rate")), lump: Math.max(0, num("lump")), years,
+      r: num("ret")/100, ter: Math.max(0, num("ter"))/100,
+      sw: Math.max(0, Math.min(years, Math.round(num("sw")))),
+      abg: parseFloat($("abg").value)/100, spb: parseFloat($("spb").value),
+      pc: Math.max(0, num("pc"))/100, hev: $("hev").checked,
+      pers: Math.max(0, num("pers"))/100
+    };
+  }
+
+  function switchMonths(p){
+    const s = new Set(); const N = p.years*12;
+    for (let k=1; k<=p.sw; k++) s.add(Math.round(k*N/p.sw));
+    return s;
+  }
+
+  function calcEtf(p, withTax){
+    const N = p.years*12, mr = (p.r - p.ter)/12, sw = switchMonths(p);
+    let v = p.lump, basis = p.lump, runTax = 0, endTax = 0, valBeforeEnd = 0;
+    const yearly = [], yearTax = new Array(p.years+1).fill(0);
+    const realize = (month) => {
+      const g = v - basis;
+      if (g <= 0) return 0;
+      const taxable = Math.max(0, g - p.spb);
+      const t = taxable * p.abg;
+      v -= t; basis = v;
+      yearTax[Math.ceil(month/12)] += t;
+      return t;
+    };
+    for (let i=1; i<=N; i++){
+      v *= 1+mr; v += p.rate; basis += p.rate;
+      if (withTax && sw.has(i)) runTax += realize(i);
+      if (i % 12 === 0) yearly.push(v);
+    }
+    valBeforeEnd = v;
+    if (withTax && !sw.has(N)) endTax = realize(N);
+    return {gross: valBeforeEnd, net: v, runTax, endTax, yearly, yearTax, sw};
+  }
+
+  function calcPol(p, pcOverride){
+    const N = p.years*12, pc = pcOverride == null ? p.pc : pcOverride;
+    const mr = (p.r - pc)/12;
+    let v = p.lump; const yearly = [];
+    for (let i=1; i<=N; i++){ v *= 1+mr; v += p.rate; if (i%12===0) yearly.push(v); }
+    const paid = p.lump + p.rate*N, gain = v - paid;
+    let tax = 0;
+    if (gain > 0){
+      tax = p.hev ? gain*0.5*p.pers : Math.max(0, gain - p.spb)*p.abg;
+    }
+    return {gross: v, gain, tax, net: v - tax, yearly};
+  }
+
+  function breakEven(p, target){
+    let lo = 0, hi = 0.10;
+    if (calcPol(p, lo).net < target) return null;
+    if (calcPol(p, hi).net > target) return Infinity;
+    for (let i=0; i<50; i++){ const mid=(lo+hi)/2; if (calcPol(p, mid).net > target) lo = mid; else hi = mid; }
+    return lo;
+  }
+
+  function run(){
+    const p = read();
+    const paid = p.lump + p.rate*p.years*12;
+    const e = calcEtf(p, true), e0 = calcEtf(p, false), po = calcPol(p);
+    const diff = po.net - e.net;
+
+    $("oEtf").textContent = eur(e.net);
+    $("oPol").textContent = eur(po.net);
+    $("oDiffLbl").textContent = diff >= 0 ? "Vorteil ETF-Police" : "Vorteil ETF-Sparplan";
+    $("oDiff").textContent = eur(Math.abs(diff));
+    const base = Math.min(e.net, po.net);
+    $("oDiffSub").textContent = base > 0 ? "entspricht " + pct(Math.abs(diff)/base*100,1) + " mehr Nettovermögen" : "";
+
+    const swList = [...e.sw].sort((a,b)=>a-b).map(m => (m/12 % 1 === 0 ? m/12 : (m/12).toLocaleString("de-DE",{maximumFractionDigits:1})));
+    $("swYears").textContent = p.sw ? "Wechsel in Jahr " + swList.join(", ") : "Keine Fondswechsel – Versteuerung erst beim Verkauf am Ende.";
+
+    const warns = [];
+    if (p.hev && p.years < 12) warns.push("Das Halbeinkünfteverfahren setzt mindestens 12 Jahre Vertragslaufzeit voraus. Bei dieser Laufzeit wäre die Abgeltungsteuer realistischer – Häkchen entfernen.");
+    if (Math.round(num("sw")) > p.years) warns.push("Maximal ein Fondswechsel pro Jahr wird berechnet.");
+    $("warn").textContent = warns.join(" ");
+
+    const lastAtEnd = e.sw.has(p.years*12);
+    const rows = [
+      ["Eigene Einzahlungen", eur(paid), eur(paid), ""],
+      ["Wertzuwachs ohne Steuern", eur(e0.gross - paid), eur(po.gain), "sub"],
+      ["Endwert vor Steuer bei Auszahlung", eur(e.gross) + "*", eur(po.gross), ""],
+      ["Steuern während der Laufzeit (" + p.sw + " Fondswechsel)", eur(e.runTax), eur(0), ""],
+      ["Steuer bei Auszahlung", lastAtEnd ? "–" : eur(e.endTax), eur(po.tax), ""],
+      ["Steuern gesamt", eur(e.runTax + e.endTax), eur(po.tax), "sub"],
+      ["Nettovermögen nach Steuern", eur(e.net), eur(po.net), "sum"]
+    ];
+    $("tbl").innerHTML = rows.map(r => `<tr class="${r[3]}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+    const polTaxText = p.hev
+      ? `Police: Halbeinkünfteverfahren – 50 % des Gewinns mit ${pct(p.pers*100,1)} persönlichem Steuersatz = effektiv ${pct(0.5*p.pers*100,2)} auf den Gewinn.`
+      : `Police: Abgeltungsteuer ${pct(p.abg*100,3)} auf den Gewinn.`;
+    $("tblFoot").textContent = "* ETF-Depot nach bereits gezahlten Steuern auf die Fondswechsel" + (lastAtEnd ? "; der letzte Wechsel fällt auf das Laufzeitende, daher keine zusätzliche Endbesteuerung. " : ". ") + polTaxText;
+
+    // Facts
+    const be = breakEven(p, e.net);
+    const beText = be === null ? "Police liegt selbst ohne Kosten nicht vorne"
+                 : be === Infinity ? "über 10 % p. a."
+                 : pct(be*100,2) + " p. a.";
+    const costDrag = e0.gross - calcPol(p, 0).gross; // ETF without tax vs Police w/o cost -> both minus ter differences
+    const polCostEffect = calcPol(p, 0).gross - po.gross;
+    const lostCompound = (e0.gross - e.net) - (e.runTax + e.endTax);
+    $("facts").innerHTML = [
+      ["Gleichstand bei Policenkosten von", beText],
+      ["Kostenwirkung der Police über die Laufzeit", eur(polCostEffect)],
+      ["Entgangener Zinseszins im ETF-Depot durch Steuerzahlungen", eur(Math.max(0,lostCompound))],
+      ["Nettorendite Police vor Steuern", pct((p.r - p.pc)*100,2) + " p. a."]
+    ].map(f => `<div class="fact"><div class="k">${f[0]}</div><div class="val">${f[1]}</div></div>`).join("");
+
+    // Year table
+    let html = "";
+    for (let y=1; y<=p.years; y++){
+      const isSw = [...e.sw].some(m => Math.ceil(m/12) === y);
+      html += `<tr class="${isSw?"sw":""}"><td>${y}</td><td>${eurExact(p.lump + p.rate*12*y)}</td><td>${eurExact(e.yearly[y-1])}</td><td>${e.yearTax[y] ? eurExact(e.yearTax[y]) : "–"}</td><td>${eurExact(po.yearly[y-1])}</td></tr>`;
+    }
+    $("yearTbl").innerHTML = html;
+
+    drawChart(p, e, po);
+  }
+
+  let chartState = null;
+  function drawChart(p, e, po){
+    const W=720, H=320, L=70, R=16, T=16, B=38;
+    const n = p.years;
+    const pts = [{y:0, etf:p.lump, pol:p.lump, paid:p.lump}];
+    for (let y=1; y<=n; y++) pts.push({y, etf:e.yearly[y-1], pol:po.yearly[y-1], paid:p.lump + p.rate*12*y});
+    const max = Math.max(1, ...pts.map(d => Math.max(d.etf, d.pol, d.paid)));
+    const niceStep = (m) => { const raw = m/5, mag = Math.pow(10, Math.floor(Math.log10(raw))); const s = [1,2,2.5,5,10].map(x=>x*mag).find(x => x >= raw); return s; };
+    const step = niceStep(max), top = Math.ceil(max/step)*step;
+    const x = y => L + (W-L-R) * (y / n);
+    const yy = v => T + (H-T-B) * (1 - v/top);
+    const css = getComputedStyle(document.documentElement);
+    let s = "";
+    for (let v=0; v<=top+1e-6; v+=step){
+      s += `<line x1="${L}" x2="${W-R}" y1="${yy(v)}" y2="${yy(v)}" stroke="var(--line)" stroke-width="1"/>`;
+      const lab = v >= 1000 ? (v/1000).toLocaleString("de-DE",{maximumFractionDigits:1}) + " T€" : v + " €";
+      s += `<text x="${L-8}" y="${yy(v)+4}" text-anchor="end" font-size="12" fill="var(--muted)">${lab}</text>`;
+    }
+    const tickEvery = n <= 12 ? 1 : n <= 25 ? 5 : 5;
+    for (let y=0; y<=n; y+=tickEvery){
+      s += `<text x="${x(y)}" y="${H-B+18}" text-anchor="middle" font-size="12" fill="var(--muted)">${y}</text>`;
+    }
+    s += `<text x="${W-R}" y="${H-4}" text-anchor="end" font-size="12" fill="var(--muted)">Jahre</text>`;
+    [...e.sw].forEach(m => { const xx = L + (W-L-R)*(m/(n*12)); s += `<path d="M${xx-5},${H-B} L${xx+5},${H-B} L${xx},${H-B-8} Z" fill="var(--pol)"/>`; });
+    const line = (key, color, w, dash) => `<polyline fill="none" stroke="${color}" stroke-width="${w}" ${dash?`stroke-dasharray="${dash}"`:""} stroke-linejoin="round" points="${pts.map(d => x(d.y).toFixed(1)+","+yy(d[key]).toFixed(1)).join(" ")}"/>`;
+    s += line("paid","var(--paid)",2,"5 4");
+    s += line("pol","var(--pol)",3);
+    s += line("etf","var(--etf)",3);
+    s += `<line id="hoverLine" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="var(--muted)" stroke-width="1" visibility="hidden"/>`;
+    s += `<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent" id="hit"/>`;
+    const svg = $("chart"); svg.innerHTML = s;
+    chartState = {pts, x, L, R, W, n};
+    const hit = $("hit"), tip = $("tip"), hl = $("hoverLine"), wrap = $("chartWrap");
+    const move = (ev) => {
+      const r = svg.getBoundingClientRect();
+      const px = (ev.clientX - r.left) * (W / r.width);
+      const y = Math.max(0, Math.min(n, Math.round((px - L) / (W-L-R) * n)));
+      const d = pts[y];
+      hl.setAttribute("x1", x(y)); hl.setAttribute("x2", x(y)); hl.setAttribute("visibility","visible");
+      tip.innerHTML = `<b>Jahr ${y}</b><br>ETF-Depot: ${eurExact(d.etf)}<br>Police: ${eurExact(d.pol)}<br>Einzahlungen: ${eurExact(d.paid)}`;
+      tip.style.display = "block";
+      const tx = (x(y) / W) * r.width, tw = tip.offsetWidth;
+      tip.style.left = Math.max(0, Math.min(r.width - tw, tx + 12 > r.width - tw ? tx - tw - 12 : tx + 12)) + "px";
+      tip.style.top = "10px";
+    };
+    hit.addEventListener("mousemove", move);
+    hit.addEventListener("mouseleave", () => { tip.style.display="none"; hl.setAttribute("visibility","hidden"); });
+    hit.addEventListener("touchmove", (ev) => { move(ev.touches[0]); }, {passive:true});
+  }
+
+  setAll(DEFAULTS);
+  run();
+})();
+</script>
+</body>
+</html>
