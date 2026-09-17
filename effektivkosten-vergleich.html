@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Effektivkosten-Vergleich zweier Policen | Zukunftslotsen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#14264A; --navy-deep:#0C1A36; --gold:#C29B40; --gold-soft:#F3EAD3;
+  --bg:#F4F6FA; --surface:#FFFFFF; --ink:#1C2433; --muted:#5B6577; --line:#D9DEE7;
+  --etf:#14264A; --pol:#C29B40; --paid:#9AA3B2; --good:#1F7A4D; --warn:#9A5B00; --warn-bg:#FFF4E0;
+  --head-font:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body-font:Calibri,Carlito,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1628; --surface:#16213A; --ink:#E8ECF3; --muted:#A3AEC2; --line:#2A3858;
+    --etf:#8FB1F0; --pol:#D9B660; --paid:#6E7A91; --gold-soft:#2C2A22; --good:#5CC592; --warn:#F0B35A; --warn-bg:#2E2615;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1628; --surface:#16213A; --ink:#E8ECF3; --muted:#A3AEC2; --line:#2A3858;
+  --etf:#8FB1F0; --pol:#D9B660; --paid:#6E7A91; --gold-soft:#2C2A22; --good:#5CC592; --warn:#F0B35A; --warn-bg:#2E2615;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body-font);font-size:16px;line-height:1.45}
+h1,h2,h3{font-family:var(--head-font);font-weight:600;margin:0;line-height:1.1}
+.top{background:var(--navy-deep);color:#fff;border-bottom:4px solid var(--gold)}
+.top-in{max-width:1180px;margin:0 auto;padding:22px 20px 26px}
+.brand{font-family:var(--head-font);font-size:1.25rem;font-weight:600;color:var(--gold);letter-spacing:.02em}
+.brand small{display:block;font-family:var(--body-font);font-size:.85rem;color:#C9D2E3;font-weight:400;letter-spacing:0}
+.top h1{font-size:clamp(2rem,5vw,3.1rem);margin-top:14px}
+.top p{margin:6px 0 0;color:#C9D2E3;max-width:64ch}
+main{max-width:1180px;margin:0 auto;padding:24px 20px 40px;display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+aside.panel{padding:18px 18px 8px;position:sticky;top:12px}
+@media (max-width:900px){aside.panel{position:static}}
+fieldset{border:0;margin:0 0 14px;padding:0}
+legend{font-family:var(--head-font);font-size:1.2rem;font-weight:600;color:var(--navy);padding:0 0 6px;border-bottom:2px solid var(--gold);width:100%;margin-bottom:10px}
+:root[data-theme="dark"] legend{color:var(--pol)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) legend{color:var(--pol)}}
+.f{margin-bottom:11px}
+.f label{display:flex;justify-content:space-between;gap:8px;font-size:.93rem;margin-bottom:3px}
+.f label span{color:var(--muted);font-size:.85rem}
+.row{display:flex;gap:8px;align-items:center}
+input[type=number],select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);font:inherit}
+input[type=number]{max-width:110px;text-align:right}
+input[type=range]{flex:1;accent-color:var(--gold)}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:.93rem;margin-bottom:10px}
+.chk input{margin-top:3px;accent-color:var(--gold)}
+.hint{font-size:.82rem;color:var(--muted);margin:2px 0 0}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button.reset{background:none;border:1px solid var(--line);color:var(--muted);padding:6px 10px;border-radius:4px;font:inherit;font-size:.88rem;cursor:pointer;margin:4px 0 12px}
+button.reset:hover{color:var(--ink);border-color:var(--muted)}
+
+.result{padding:22px}
+.verdict{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+@media (max-width:640px){.verdict{grid-template-columns:1fr}}
+.v{padding:16px 18px}
+.v + .v{border-left:1px solid var(--line)}
+@media (max-width:640px){.v + .v{border-left:0;border-top:1px solid var(--line)}}
+.v .lbl{font-size:.9rem;color:var(--muted)}
+.v .num{font-family:var(--head-font);font-size:2.1rem;font-weight:600;line-height:1.1;margin-top:2px}
+.v.etf .num{color:var(--etf)} .v.pol .num{color:var(--pol)}
+.v.diff{background:var(--navy);color:#fff}
+.v.diff .lbl{color:#C9D2E3}
+.v.diff .num{font-size:2.6rem;color:var(--gold)}
+.v.diff .sub{font-size:.88rem;color:#C9D2E3;margin-top:2px}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:4px;padding:8px 12px;font-size:.9rem;margin-top:12px}
+.warn:empty{display:none}
+
+section.block{margin-top:26px}
+section.block h2{font-size:1.5rem;color:var(--ink);margin-bottom:10px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+thead th{font-family:var(--head-font);font-size:1.1rem;font-weight:600;border-bottom:2px solid var(--gold)}
+thead th.etf{color:var(--etf)} thead th.pol{color:var(--pol)}
+tr.sum td{font-weight:700;border-top:2px solid var(--ink)}
+tr.sub td{color:var(--muted);font-size:.92rem}
+.foot{font-size:.82rem;color:var(--muted);margin-top:6px}
+
+.chartwrap{position:relative}
+svg.chart{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:.9rem;margin-bottom:6px}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:8px 10px;font-size:.85rem;box-shadow:0 4px 14px rgba(12,26,54,.15);display:none;white-space:nowrap}
+.tip b{font-family:var(--head-font);font-size:1rem}
+
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.fact{border-left:3px solid var(--gold);padding:4px 0 4px 12px}
+.fact .k{font-size:.88rem;color:var(--muted)}
+.fact .val{font-family:var(--head-font);font-size:1.35rem;font-weight:600}
+details{margin-top:26px}
+summary{cursor:pointer;font-family:var(--head-font);font-size:1.3rem;font-weight:600}
+details .tw{max-height:420px;overflow:auto;margin-top:10px}
+details thead th{position:sticky;top:0;background:var(--surface)}
+tr.sw td{background:var(--gold-soft)}
+.disclaimer{max-width:1180px;margin:0 auto;padding:0 20px 36px;font-size:.82rem;color:var(--muted)}
+.disclaimer p{margin:4px 0;max-width:110ch}
+@media (prefers-reduced-motion:no-preference){ .v .num{transition:color .2s} }
+
+input[type=text]{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);font:inherit}
+legend .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.v .sub2{font-size:.88rem;color:var(--muted);margin-top:2px}
+.v.diff .sub2{color:#C9D2E3}
+tr.hl td{background:var(--gold-soft);font-weight:700}
+td.neg{color:#B03A2E} td.pos{color:var(--good)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) td.neg{color:#F08C80}}
+:root[data-theme="dark"] td.neg{color:#F08C80}
+.lesart{border-left:3px solid var(--gold);padding:6px 0 6px 14px;margin:18px 0 0;max-width:78ch}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">Zukunftslotsen<small>Unabhängige Finanz- und Versicherungsberatung</small></div>
+    <h1>Was kosten Zehntelprozente?</h1>
+    <p>Zwei Policen, gleiche Beiträge, gleiche Rendite – nur die Effektivkosten unterscheiden sich. Tragen Sie beide Angebote ein und sehen Sie, wie viel Kapital der Unterschied bis zum Rentenbeginn ausmacht.</p>
+  </div>
+</header>
+
+<main>
+  <aside class="panel" aria-label="Eingaben">
+    <fieldset>
+      <legend>Gemeinsame Annahmen</legend>
+      <div class="f"><label for="rate">Monatlicher Beitrag <span>€</span></label>
+        <div class="row"><input type="range" id="rate_r" min="10" max="1000" step="5"><input type="number" id="rate" min="0" step="5"></div></div>
+      <div class="f"><label for="lump">Einmalbetrag zu Beginn <span>€</span></label>
+        <div class="row"><input type="range" id="lump_r" min="0" max="100000" step="1000"><input type="number" id="lump" min="0" step="500"></div></div>
+      <div class="f"><label for="years">Laufzeit bis Rentenbeginn <span>Jahre</span></label>
+        <div class="row"><input type="range" id="years_r" min="1" max="70" step="1"><input type="number" id="years" min="1" max="80" step="1"></div></div>
+      <div class="f"><label for="ret">Bruttorendite der Fondsanlage <span>% p. a.</span></label>
+        <div class="row"><input type="range" id="ret_r" min="0" max="12" step="0.1"><input type="number" id="ret" min="-5" max="20" step="0.1"></div></div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="dot" style="background:var(--etf)"></span>Police A</legend>
+      <div class="f"><label for="nameA">Anbieter / Tarif</label><input type="text" id="nameA" maxlength="40"></div>
+      <div class="f"><label for="costA">Effektivkosten <span>% p. a.</span></label>
+        <div class="row"><input type="range" id="costA_r" min="0" max="3" step="0.05"><input type="number" id="costA" min="0" max="10" step="0.01"></div></div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="dot" style="background:var(--pol)"></span>Police B</legend>
+      <div class="f"><label for="nameB">Anbieter / Tarif</label><input type="text" id="nameB" maxlength="40"></div>
+      <div class="f"><label for="costB">Effektivkosten <span>% p. a.</span></label>
+        <div class="row"><input type="range" id="costB_r" min="0" max="3" step="0.05"><input type="number" id="costB" min="0" max="10" step="0.01"></div></div>
+    </fieldset>
+    <button class="reset" type="button" id="reset">Beispielwerte wiederherstellen</button>
+  </aside>
+
+  <div class="panel result">
+    <div class="verdict">
+      <div class="v etf"><div class="lbl" id="lA"></div><div class="num" id="oA">–</div><div class="sub2" id="sA"></div></div>
+      <div class="v pol"><div class="lbl" id="lB"></div><div class="num" id="oB">–</div><div class="sub2" id="sB"></div></div>
+      <div class="v diff"><div class="lbl" id="lD">Differenz</div><div class="num" id="oD">–</div><div class="sub2" id="sD"></div></div>
+    </div>
+    <p class="lesart" id="lesart"></p>
+
+    <section class="block">
+      <h2>Szenarien</h2>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Variante</th><th>Effektivkosten</th><th>Nettorendite</th><th>Endkapital</th><th id="diffHead">Differenz</th></tr></thead>
+          <tbody id="scen"></tbody>
+        </table>
+      </div>
+    </section>
+
+
+    <section class="block">
+      <h2>Kapitalentwicklung</h2>
+      <div class="legend">
+        <span><i style="background:var(--etf)"></i><span id="lgA"></span></span>
+        <span><i style="background:var(--pol)"></i><span id="lgB"></span></span>
+        <span><i style="background:var(--paid)"></i>Eingezahlt</span>
+      </div>
+      <div class="chartwrap" id="chartWrap">
+        <svg class="chart" id="chart" viewBox="0 0 720 320" role="img" aria-label="Kapitalentwicklung beider Policen"></svg>
+        <div class="tip" id="tip"></div>
+      </div>
+      <div class="tw" style="margin-top:14px">
+        <table>
+          <thead><tr><th>Nach</th><th>Eingezahlt</th><th class="etf" id="thA"></th><th class="pol" id="thB"></th><th>Differenz</th></tr></thead>
+          <tbody id="steps"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>Was der Vergleich nicht abbildet</h2>
+      <div class="facts">
+        <div class="fact"><div class="k">Gleiche Kostenbasis</div><div>Beide Quoten müssen entweder inklusive oder exklusive der laufenden Fondskosten angegeben sein.</div></div>
+        <div class="fact"><div class="k">Leistungsumfang</div><div>Zusatzbausteine wie eine Pflege-Option erhöhen die Kostenquote, bringen aber eigene Leistungen mit.</div></div>
+        <div class="fact"><div class="k">Flexibilität</div><div>Beitragspausen, Zuzahlungen, Fondsauswahl und Übertragbarkeit können stärker wirken als wenige Zehntelprozente.</div></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="disclaimer">
+  <p><strong>Unverbindliche Modellrechnung.</strong> Keine Anlageberatung. Maßgeblich sind ausschließlich die Angebotsunterlagen, das Basisinformationsblatt und die Versicherungsbedingungen der jeweiligen Gesellschaft.</p>
+  <p>Rechenweg: Nettorendite = Bruttorendite minus Effektivkosten, gleichmäßig über die Laufzeit; Umrechnung auf einen gleichwertigen Monatszins, Beitrag jeweils zum Monatsende. Eine konstante Rendite ist eine Rechenannahme, keine Prognose. Steuern bei Auszahlung sind nicht berücksichtigt.</p>
+  <p>Zukunftslotsen – Unabhängige Finanz- und Versicherungsberatung, Lingen (Ems)</p>
+</div>
+
+<script>
+(function(){
+  const DEFAULTS = {rate:50, lump:0, years:59, ret:8, costA:0.65, costB:0.95, nameA:"Helvetia", nameB:"Alte Leipziger FR10"};
+  const pairs = ["rate","lump","years","ret","costA","costB"];
+  const texts = ["nameA","nameB"];
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const eur = x => Math.round(x).toLocaleString("de-DE") + " €";
+  const sgn = x => (x > 0 ? "+" : x < 0 ? "−" : "±") + Math.abs(Math.round(x)).toLocaleString("de-DE") + " €";
+  const pct = (x,d=2) => x.toLocaleString("de-DE",{minimumFractionDigits:d,maximumFractionDigits:d}) + " %";
+  const num = id => { const v = parseFloat(String($(id).value).replace(",", ".")); return isFinite(v) ? v : 0; };
+
+  function setAll(p){
+    pairs.forEach(k => { $(k).value = p[k]; $(k+"_r").value = p[k]; });
+    texts.forEach(k => $(k).value = p[k]);
+  }
+  pairs.forEach(k => {
+    $(k+"_r").addEventListener("input", () => { $(k).value = $(k+"_r").value; run(); });
+    $(k).addEventListener("input", () => { $(k+"_r").value = $(k).value; run(); });
+  });
+  texts.forEach(k => $(k).addEventListener("input", run));
+  $("reset").addEventListener("click", () => { setAll(DEFAULTS); run(); });
+
+  function series(p, cost){
+    const mr = Math.pow(1 + p.ret - cost, 1/12) - 1;
+    let v = p.lump; const yearly = [p.lump];
+    for (let i=1; i<=p.years*12; i++){ v *= 1+mr; v += p.rate; if (i%12===0) yearly.push(v); }
+    return yearly;
+  }
+
+  function run(){
+    const p = {
+      rate: Math.max(0, num("rate")), lump: Math.max(0, num("lump")),
+      years: Math.max(1, Math.min(80, Math.round(num("years")))),
+      ret: num("ret")/100, cA: Math.max(0, num("costA"))/100, cB: Math.max(0, num("costB"))/100
+    };
+    const nA = $("nameA").value.trim() || "Police A", nB = $("nameB").value.trim() || "Police B";
+    const paid = p.lump + p.rate*12*p.years;
+    const A = series(p, p.cA), B = series(p, p.cB);
+    const eA = A[p.years], eB = B[p.years];
+    const d = eB - eA;
+    const better = d > 0 ? nB : nA, worse = d > 0 ? nA : nB;
+    const bigger = Math.max(eA, eB);
+
+    $("lA").textContent = nA + " · " + pct(p.cA*100);
+    $("lB").textContent = nB + " · " + pct(p.cB*100);
+    $("oA").textContent = eur(eA); $("oB").textContent = eur(eB);
+    $("sA").textContent = pct((p.ret - p.cA)*100) + " netto";
+    $("sB").textContent = pct((p.ret - p.cB)*100) + " netto";
+    if (Math.abs(d) < 0.5){
+      $("lD").textContent = "Differenz"; $("oD").textContent = "0 €"; $("sD").textContent = "gleiches Endkapital";
+    } else {
+      $("lD").textContent = "Vorteil " + better;
+      $("oD").textContent = eur(Math.abs(d));
+      $("sD").textContent = worse + ": " + pct(Math.abs(d)/bigger*100,1) + " weniger Kapital";
+    }
+    ["lgA","thA"].forEach(id => $(id).textContent = nA);
+    ["lgB","thB"].forEach(id => $(id).textContent = nB);
+
+    const pp = Math.abs(p.cB - p.cA)*100;
+    $("lesart").textContent = Math.abs(d) < 0.5
+      ? "Bei gleichen Effektivkosten führen beide Policen zum selben Endkapital – dann entscheiden Leistungen und Flexibilität."
+      : `Lesart: ${pct(pp).replace(" %","")} Prozentpunkte Kostenunterschied kosten über ${p.years} Jahre rund ${eur(Math.round(Math.abs(d)/100)*100)} Endkapital – das entspricht dem ${(Math.abs(d)/paid).toLocaleString("de-DE",{maximumFractionDigits:1})}-fachen aller eingezahlten Beiträge (${eur(paid)}). Je länger die Laufzeit, desto stärker wirkt jeder Zehntelprozentpunkt, weil er den Zinseszins über die gesamte Zeit dämpft.`;
+
+    // Scenarios (reference = Police A)
+    const scen = [
+      ["Kostenfrei (Referenz)", 0, ""],
+      [nA, p.cA, "hl"],
+      [nB, p.cB, ""]
+    ];
+    $("diffHead").textContent = "Differenz zu " + nA;
+    $("scen").innerHTML = scen.map(s => {
+      const e = s[1] === p.cA && s[2]==="hl" ? eA : series(p, s[1])[p.years];
+      const df = e - eA, isRef = s[2]==="hl";
+      return `<tr class="${s[2]}"><td>${esc(s[0])}</td><td>${pct(s[1]*100)}</td><td>${pct((p.ret-s[1])*100)}</td><td>${eur(e)}</td><td class="${isRef?"":df<0?"neg":"pos"}">${isRef?"–":sgn(df)}</td></tr>`;
+    }).join("");
+
+    // Step table
+    const step = p.years > 30 ? 10 : p.years > 10 ? 5 : 1;
+    const ys = []; for (let y=step; y<p.years; y+=step) ys.push(y); ys.push(p.years);
+    $("steps").innerHTML = ys.map(y => {
+      const df = B[y]-A[y];
+      return `<tr${y===p.years?' class="sum"':""}><td>${y} ${y===1?"Jahr":"Jahren"}</td><td>${eur(p.lump + p.rate*12*y)}</td><td>${eur(A[y])}</td><td>${eur(B[y])}</td><td class="${Math.abs(df)<0.5?"":df<0?"neg":"pos"}">${sgn(df)}</td></tr>`;
+    }).join("");
+
+    drawChart(p, A, B, nA, nB);
+  }
+
+  function drawChart(p, A, B, nA, nB){
+    const W=720, H=320, L=70, R=16, T=16, B_=38, n=p.years;
+    const pts = A.map((a,y) => ({y, a, b:B[y], paid:p.lump + p.rate*12*y}));
+    const max = Math.max(1, ...pts.map(d => Math.max(d.a, d.b, d.paid)));
+    const raw = max/5, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1,2,2.5,5,10].map(x=>x*mag).find(x => x >= raw), top = Math.ceil(max/step)*step;
+    const x = y => L + (W-L-R)*(y/n), yy = v => T + (H-T-B_)*(1 - v/top);
+    let s = "";
+    for (let v=0; v<=top+1e-6; v+=step){
+      s += `<line x1="${L}" x2="${W-R}" y1="${yy(v)}" y2="${yy(v)}" stroke="var(--line)"/>`;
+      const lab = v >= 1000 ? (v/1000).toLocaleString("de-DE",{maximumFractionDigits:1}) + " T€" : v + " €";
+      s += `<text x="${L-8}" y="${yy(v)+4}" text-anchor="end" font-size="12" fill="var(--muted)">${lab}</text>`;
+    }
+    const te = n <= 12 ? 1 : n <= 30 ? 5 : 10;
+    for (let y=0; y<=n; y+=te) s += `<text x="${x(y)}" y="${H-B_+18}" text-anchor="middle" font-size="12" fill="var(--muted)">${y}</text>`;
+    s += `<text x="${W-R}" y="${H-4}" text-anchor="end" font-size="12" fill="var(--muted)">Jahre</text>`;
+    const line = (k,c,w,dash) => `<polyline fill="none" stroke="${c}" stroke-width="${w}" ${dash?`stroke-dasharray="${dash}"`:""} stroke-linejoin="round" points="${pts.map(d => x(d.y).toFixed(1)+","+yy(d[k]).toFixed(1)).join(" ")}"/>`;
+    s += line("paid","var(--paid)",2,"5 4") + line("b","var(--pol)",3) + line("a","var(--etf)",3);
+    s += `<line id="hoverLine" y1="${T}" y2="${H-B_}" stroke="var(--muted)" visibility="hidden"/>`;
+    s += `<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B_}" fill="transparent" id="hit"/>`;
+    const svg = $("chart"); svg.innerHTML = s;
+    const hit = $("hit"), tip = $("tip"), hl = $("hoverLine");
+    const move = ev => {
+      const r = svg.getBoundingClientRect();
+      const px = (ev.clientX - r.left) * (W / r.width);
+      const y = Math.max(0, Math.min(n, Math.round((px - L)/(W-L-R)*n)));
+      const d = pts[y];
+      hl.setAttribute("x1", x(y)); hl.setAttribute("x2", x(y)); hl.setAttribute("visibility","visible");
+      tip.innerHTML = `<b>Jahr ${y}</b><br>${esc(nA)}: ${eur(d.a)}<br>${esc(nB)}: ${eur(d.b)}<br>Eingezahlt: ${eur(d.paid)}`;
+      tip.style.display = "block";
+      const tx = (x(y)/W)*r.width, tw = tip.offsetWidth;
+      tip.style.left = Math.max(0, Math.min(r.width - tw, tx + 12 > r.width - tw ? tx - tw - 12 : tx + 12)) + "px";
+      tip.style.top = "10px";
+    };
+    hit.addEventListener("mousemove", move);
+    hit.addEventListener("mouseleave", () => { tip.style.display="none"; hl.setAttribute("visibility","hidden"); });
+    hit.addEventListener("touchmove", ev => move(ev.touches[0]), {passive:true});
+  }
+
+  setAll(DEFAULTS);
+  run();
+})();
+</script>
+</body>
+</html>
