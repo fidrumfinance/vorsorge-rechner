@@ -1,0 +1,1026 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Zukunftslotsen Immobilienrechner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Lato:wght@400;700;900&family=Caveat:wght@500;700&display=swap">
+<style>
+/* Layout: navy hero band with big serif headline and orange rule; below a grey canvas with white cards (inputs left, results right). PDF pages reuse the same language with a fixed paper palette. */
+:root{
+  --bg:#ECEDF1; --canvas-line:#E2E4EA; --surface:#FFFFFF; --surface-2:#F5F6F9; --line:#E6E8ED; --fg:#151F36; --muted:#5E6779;
+  --navy:#1F2D4D; --strip:#1F2D4D; --or:#E8922A; --or-ink:#C9741A; --soft:#FBEEDC; --soft-ink:#1F2D4D;
+  --pos:#1E7A55; --neg:#B4372E; --warn:#9A6A00; --warn-soft:#FBF1D9; --neg-soft:#F8E6E3;
+  --grn:#17804F; --grn-2:#4FB383; --grn-soft:#E2F2E9; --red:#C0392F; --red-soft:#FBE6E3; --nred:#F2475A; --pgrn:#5BE3A0; --g2:#4E8F2A; --pB1:#E2F3E9; --pB2:#EEF6E2; --pB3:#FDE7E9; --pS1:#9FD8B8; --pS2:#C9E3A6; --pS3:#F8B4BC; --pB4:#E1F4F2; --pS4:#A9DCD6; --pB5:#E8F0FC; --pS5:#BFD3F2; --tq:#1B7F74; --bl:#2F5FA8;
+  --c-wert:#1F2D4D; --c-rs:#C0392F; --c-verm:#2E9A63; --c-vor:#A3AABA; --c-nach:#E8922A; --pill:#17804F; --pill-t:#FFFFFF;
+  --font-d:"Playfair Display",Georgia,"Times New Roman",serif; --font-b:"Lato","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1322; --canvas-line:#111B2E; --surface:#131E33; --surface-2:#18253E; --line:#24334F; --fg:#ECEFF5; --muted:#A1ABBE;
+  --strip:#283A62; --or:#F2A045; --or-ink:#F5B061; --soft:#2B2216; --soft-ink:#F6E3C6;
+  --pos:#5CC497; --neg:#F08A80; --warn:#E8BC55; --warn-soft:#2A2310; --neg-soft:#2E1715;
+  --grn:#5CC98F; --grn-2:#3E9E6E; --grn-soft:#14301F; --red:#F08A80; --red-soft:#341A18; --nred:#FF6B7A; --pgrn:#5BE3A0; --g2:#9BCB6B; --pB1:#173426; --pB2:#232F18; --pB3:#3A1C21; --pS1:#4FA77A; --pS2:#8DB35F; --pS3:#D9707D; --pB4:#123331; --pS4:#4DA79D; --pB5:#172640; --pS5:#6F93D0; --tq:#6FD3C6; --bl:#9DBCF0;
+  --c-wert:#C9D6F2; --c-rs:#F08A80; --c-verm:#4FB383; --c-vor:#56627C; --c-nach:#F2A045; --pill:#2E9A63; --pill-t:#FFFFFF; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1322; --canvas-line:#111B2E; --surface:#131E33; --surface-2:#18253E; --line:#24334F; --fg:#ECEFF5; --muted:#A1ABBE;
+  --strip:#283A62; --or:#F2A045; --or-ink:#F5B061; --soft:#2B2216; --soft-ink:#F6E3C6;
+  --pos:#5CC497; --neg:#F08A80; --warn:#E8BC55; --warn-soft:#2A2310; --neg-soft:#2E1715;
+  --grn:#5CC98F; --grn-2:#3E9E6E; --grn-soft:#14301F; --red:#F08A80; --red-soft:#341A18; --nred:#FF6B7A; --pgrn:#5BE3A0; --g2:#9BCB6B; --pB1:#173426; --pB2:#232F18; --pB3:#3A1C21; --pS1:#4FA77A; --pS2:#8DB35F; --pS3:#D9707D; --pB4:#123331; --pS4:#4DA79D; --pB5:#172640; --pS5:#6F93D0; --tq:#6FD3C6; --bl:#9DBCF0;
+  --c-wert:#C9D6F2; --c-rs:#F08A80; --c-verm:#4FB383; --c-vor:#56627C; --c-nach:#F2A045; --pill:#2E9A63; --pill-t:#FFFFFF; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-b);font-size:14px;line-height:1.45}
+td,.kpi b,.pay b{font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--or);outline-offset:2px}
+
+/* hero band */
+.band{background:radial-gradient(120% 140% at 85% 0%,#2E4170 0%,#1F2D4D 45%,#151F38 100%);color:#fff;border-bottom:3px solid #E8922A;padding-block:18px 26px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:1320px;margin:0 auto;display:grid;gap:18px}
+.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.lockup{display:flex;align-items:center;gap:14px;min-width:0}
+.emb{width:58px;height:58px;flex:none;border-radius:50%;overflow:hidden;box-shadow:0 0 0 2px #E8922A55}
+.emb img,.emb svg{width:100%;height:100%;object-fit:contain;display:block}
+.wm{font-family:var(--font-d);font-weight:700;letter-spacing:.13em;font-size:22px;line-height:1;color:#fff;padding-bottom:7px;border-bottom:2px solid #E8922A;white-space:nowrap}
+.wm .dia{color:#E8922A;font-size:.7em;margin:0 .05em;vertical-align:.12em}
+.claim{font-family:var(--font-d);font-style:italic;font-weight:600;font-size:12.5px;color:#DCE2EE;margin-top:6px}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.tag{border:1.5px solid #E8922A;color:#F6C27F;border-radius:99px;padding:7px 16px;font-size:11px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
+.btn{border:1px solid #ffffff38;background:#ffffff10;color:#fff;border-radius:99px;padding:8px 14px;font-weight:700;font-size:12.5px}
+.btn:hover{background:#ffffff22}
+.btn.or{background:#E8922A;border-color:#E8922A;color:#1A2440}
+.btn.or:hover{background:#F2A956}
+.btn[disabled]{opacity:.6;cursor:wait}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.hero h1{font-family:var(--font-d);font-weight:800;font-size:clamp(30px,4.6vw,52px);line-height:1.05;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.hero h1 i{color:#F2A045;font-weight:800}
+.hero p{margin:8px 0 0;color:#C9D1E2;font-size:15px}
+.example{display:inline-block;margin-top:10px;font-size:10.5px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#1A2440;background:#F6C27F;padding:3px 9px;border-radius:99px}
+.photo{margin:0;position:relative;width:min(300px,100%);border-radius:16px;overflow:hidden;box-shadow:0 10px 30px #0006;border:2px solid #ffffff22}
+.photo img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+a.btn{text-decoration:none;display:inline-block;line-height:normal}
+.photo button{position:absolute;right:8px;bottom:8px;border:0;border-radius:99px;background:#000b;color:#fff;font-size:11px;font-weight:700;padding:5px 10px}
+
+.wrap{max-width:1320px;margin:0 auto;padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:330px minmax(0,1fr);gap:22px;align-items:start}
+body.present .wrap{grid-template-columns:minmax(0,1fr)}
+body.present .inputs{display:none}
+@media (max-width:920px){.wrap{grid-template-columns:minmax(0,1fr)}}
+
+/* inputs */
+.inputs{display:flex;flex-direction:column;gap:10px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding-right:4px}
+@media (max-width:920px){.inputs{position:static;max-height:none;overflow:visible}}
+details.grp{flex:none;background:var(--surface);border-radius:14px;overflow:hidden;box-shadow:0 1px 2px #1F2D4D14}
+details.grp>summary{list-style:none;padding:13px 14px 11px;background:var(--surface);color:var(--fg);border-bottom:1px solid var(--line);font-weight:900;font-size:11px;letter-spacing:.16em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+details.grp>summary::-webkit-details-marker{display:none}
+details.grp>summary::after{content:"+";color:var(--or);font-size:16px;font-weight:700;letter-spacing:0}
+details.grp[open]>summary::after{content:"–"}
+.gbody{padding:14px;display:grid;gap:10px}
+.f label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:700}
+.f .hint,.hint{font-size:11px;color:var(--muted);margin-top:3px}
+.inp{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);overflow:hidden}
+.inp:focus-within{border-color:var(--or)}
+.inp input,.inp select{flex:1;min-width:0;width:100%;border:0;background:transparent;color:var(--fg);padding:8px 10px;font:inherit;font-variant-numeric:tabular-nums}
+.inp input:focus,.inp select:focus{outline:none}
+.inp .u{padding:0 10px;color:var(--muted);font-size:12px;white-space:nowrap}
+.inp select option{background:var(--surface);color:var(--fg)}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.row2>*,.f{min-width:0}
+.tog{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700}
+.tog input{width:18px;height:18px;accent-color:var(--or)}
+.derived{font-size:12px;color:var(--muted);background:var(--soft);border-radius:10px;padding:8px 10px;display:grid;gap:2px}
+.derived b{color:var(--fg)}
+.side-actions{display:flex;gap:8px}
+.side-actions button{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:99px;padding:8px;font-size:12px;font-weight:700}
+
+/* results */
+.results{display:flex;flex-direction:column;gap:22px;min-width:0}
+.sec{font-weight:900;font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--fg);margin:4px 0 -8px;display:flex;flex-direction:column;gap:7px}
+.sec::after{content:"";width:46px;height:3px;background:var(--or);border-radius:2px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);border-radius:16px;padding:18px 20px 16px;border-top:3px solid var(--or);box-shadow:0 1px 2px #1F2D4D14,0 8px 20px -12px #1F2D4D30}
+.kpi b{display:block;font-family:var(--font-d);font-weight:800;font-size:clamp(22px,2.6vw,32px);line-height:1.05;color:var(--fg)}
+.kpi b.g{color:var(--grn)}.kpi b.r{color:var(--nred)}
+.kfoot{color:var(--muted);font-size:12px;margin:-12px 0 0}
+.kpi span{display:block;color:var(--muted);font-size:14px;margin-top:6px}
+.kpi small{display:block;color:var(--muted);font-size:11.5px;margin-top:3px}
+
+/* who pays: ring + list */
+.pay4{display:grid;grid-template-columns:210px minmax(0,1fr);gap:26px;align-items:center;background:var(--surface);border-radius:16px;padding:20px 24px;box-shadow:0 1px 2px #1F2D4D14,0 8px 20px -14px #1F2D4D30}
+@media (max-width:640px){.pay4{grid-template-columns:minmax(0,1fr);justify-items:center}.pay4 ul{width:100%}}
+.ring{position:relative;width:210px;height:210px}
+.ring svg{width:100%;height:100%;display:block}
+.ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.ring .c span{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ring .c b{font-family:var(--font-d);font-weight:800;font-size:32px;line-height:1.1;color:var(--nred);font-variant-numeric:lining-nums;white-space:nowrap}
+.ring .c b.g{color:var(--grn)}
+.ring .c small{font-size:12px;color:var(--muted)}
+.pay4 ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.pay4 li{display:grid;grid-template-columns:14px minmax(0,1fr) auto 44px;gap:12px;align-items:center;padding:12px 16px;border-radius:12px;font-size:16px}
+.pay4 li i{width:12px;height:12px;border-radius:50%}
+.pay4 li b{font-family:var(--font-d);font-weight:800;font-size:clamp(19px,2vw,24px);font-variant-numeric:lining-nums;white-space:nowrap}
+.pay4 li em{font-style:normal;color:var(--muted);font-size:13px;text-align:right}
+.pay4 .l1{background:var(--pB1)}.pay4 .l1 i{background:var(--pS1)}.pay4 .l1 b{color:var(--grn)}
+.pay4 .l2{background:var(--pB2)}.pay4 .l2 i{background:var(--pS2)}.pay4 .l2 b{color:var(--g2)}
+.pay4 .l3{background:var(--pB3)}.pay4 .l3 i{background:var(--pS3)}.pay4 .l3 b{color:var(--nred)}
+.pay4 .l4{background:var(--pB4)}.pay4 .l4 i{background:var(--pS4)}.pay4 .l4 b{color:var(--tq)}
+.pay4 .l5{background:var(--pB5)}.pay4 .l5 i{background:var(--pS5)}.pay4 .l5 b{color:var(--bl)}
+/* old bar (unused) */
+.pay{display:flex;border-radius:16px;overflow:hidden;min-height:84px;box-shadow:0 1px 2px #1F2D4D14}
+.pay>div{display:flex;flex-direction:column;justify-content:center;padding:10px 16px;min-width:0;overflow:hidden}
+.pay b{font-family:var(--font-d);font-weight:800;font-size:clamp(18px,2.2vw,28px);line-height:1.05;white-space:nowrap}
+.pay span{font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;margin-top:4px;white-space:nowrap}
+.pay .m{background:#1F2D4D;color:#fff}.pay .m b{color:var(--pgrn)}
+.pay .fa{background:#E8922A;color:#fff}.pay .fa b{color:#0B4D2E}
+.pay .du{background:var(--soft);color:var(--soft-ink)}.pay .du b{color:var(--nred)}
+.pay .ok{background:var(--grn-soft);color:var(--grn)}
+.pay .tiny{flex:0 0 auto!important;min-width:78px}.pay .tiny b{font-size:16px}.pay .tiny span{font-size:9px;letter-spacing:.04em}
+.paynote{color:var(--muted);font-size:13.5px;margin:-8px 0 0}
+
+/* table cards */
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:1100px){.two{grid-template-columns:minmax(0,1fr)}}
+.tc{background:var(--surface);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px #1F2D4D14,0 8px 20px -14px #1F2D4D30;min-width:0}
+.tc>h3{margin:0;background:var(--strip);color:#F6C27F;font-family:var(--font-b);font-weight:900;font-size:12px;letter-spacing:.18em;text-transform:uppercase;padding:13px 20px}
+.tc .rows>div{display:flex;justify-content:space-between;gap:12px;padding:11px 20px;border-bottom:1px solid var(--line);font-size:15px}
+.tc .rows>div span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tc .rows>div.tot{background:var(--soft);color:var(--soft-ink);border-bottom:0;padding:14px 20px;font-family:var(--font-d);font-weight:800;font-size:clamp(17px,1.8vw,21px)}
+.tc .rows .star{color:var(--or-ink)}
+.tc .rows>div.g span:last-child,.tc .rows>div.g{color:var(--grn)}.tc .rows>div.g span:last-child{font-weight:700}
+.tc .rows>div.nb{border-bottom:0;padding-bottom:3px}
+.tc .rows>div.sub{padding-top:0;font-size:13px;color:var(--grn)}
+.tc .rows>div.sub span:first-child{padding-left:14px}
+.tc .rows>div.tot2{font-weight:700;background:var(--surface-2)}.tc .rows>div.tot2.r span:last-child{color:var(--nred)}.tc .rows>div.tot2.gg span:last-child{color:var(--grn)}
+.tc .rows>div.tot.r{background:var(--soft);color:var(--soft-ink)}.tc .rows>div.tot.r span:last-child{color:var(--nred)}.tc .rows>div.tot.gg{background:var(--grn-soft);color:var(--grn)}
+.tc .note{font-size:11.5px;color:var(--muted);padding:10px 20px 14px}
+.card{background:var(--surface);border-radius:16px;padding:20px;min-width:0;box-shadow:0 1px 2px #1F2D4D14,0 8px 20px -14px #1F2D4D30}
+.card .sub{color:var(--muted);font-size:13px;margin:0 0 12px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--fg);margin-bottom:8px}
+.legend i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:7px;vertical-align:-2px}
+.chart svg{width:100%;height:auto;display:block}
+.sliders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 26px;border-top:1px solid var(--line);margin-top:14px;padding-top:14px}
+@media (max-width:700px){.sliders{grid-template-columns:minmax(0,1fr)}}
+.sl label{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:900;color:var(--muted)}
+.sl label output{color:var(--fg);font-variant-numeric:tabular-nums;letter-spacing:0}
+.sl input[type=range]{width:100%;accent-color:var(--or)}
+
+/* risks */
+.risks{display:grid;gap:8px}
+.risk{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;padding:11px 14px;border-radius:12px;background:var(--surface-2);font-size:13.5px}
+.risk .pill{font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;padding:4px 9px;border-radius:99px;height:fit-content;white-space:nowrap}
+.risk.info .pill{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.risk.warn{background:var(--warn-soft)}.risk.warn .pill{background:var(--warn);color:var(--surface)}
+.risk.crit{background:var(--neg-soft)}.risk.crit .pill{background:var(--neg);color:var(--surface)}
+@media (max-width:600px){.risk{grid-template-columns:minmax(0,1fr)}}
+
+/* tables */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);padding:7px 14px;border-radius:99px;font-weight:700;font-size:12px}
+.tabs button[aria-selected="true"]{background:var(--strip);border-color:var(--strip);color:#fff}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;max-height:520px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{position:sticky;top:0;background:var(--surface-2);text-align:right;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:9px 10px;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+td{text-align:right;padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr.zb td{background:var(--warn-soft)}
+tr.mark td{background:var(--soft);color:var(--soft-ink);font-weight:700}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.allz>summary{cursor:pointer;font-weight:900;font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;list-style:none}
+.allz>summary::-webkit-details-marker{display:none}
+.allz>summary span{letter-spacing:0;text-transform:none;font-weight:400;color:var(--muted)}
+.allz>summary::after{content:"+";color:var(--or);font-size:18px}.allz[open]>summary::after{content:"–"}
+td.vg{color:var(--grn);font-weight:700}
+.taxbox .tw{max-height:none}.taxbox th{position:static}
+
+.fine{font-size:12px;color:var(--muted);line-height:1.6}
+.fine ol{padding-left:18px;margin:0;display:grid;gap:6px}
+.fine h4{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg);margin:0 0 8px}
+.fine .rl{display:grid;gap:5px;margin:0 0 16px;padding:0;list-style:none}
+.fine .rl li{padding-left:14px;position:relative}
+.fine .rl li::before{content:"";position:absolute;left:0;top:.55em;width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.fine .rl li.warn::before{background:#E8922A}.fine .rl li.crit::before{background:var(--red)}
+.fine b{color:var(--fg)}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1F2D4D;color:#fff;padding:10px 18px;border-radius:99px;font-weight:700;font-size:13px;z-index:20;box-shadow:0 8px 24px #0005}
+
+/* ---------- PDF pages (fixed paper palette) ---------- */
+#report{position:fixed;left:-12000px;top:0;width:794px}
+.rp{width:794px;height:1123px;background:#ECEDF1;color:#151F36;font-family:var(--font-b);font-size:11px;line-height:1.4;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.rp .rh{background:radial-gradient(120% 140% at 85% 0%,#2E4170 0%,#1F2D4D 45%,#151F38 100%);color:#fff;padding:20px 30px 16px;border-bottom:3px solid #E8922A}
+.rp .rh .top{display:flex;align-items:center;gap:12px}
+.rp .emb{width:50px;height:50px}
+.rp .wm{font-size:18px;padding-bottom:6px}
+.rp .claim{font-size:10.5px;margin-top:5px}
+.rp .tag{margin-left:auto;font-size:9px;padding:6px 14px;color:#F6C27F}
+.rp h1{font-family:var(--font-d);font-weight:800;font-size:34px;line-height:1.05;margin:14px 0 0;color:#fff}
+.rp h1 i{color:#F2A045}
+.rp .rh p{margin:5px 0 0;color:#C9D1E2;font-size:12px}
+.rp .rb{padding:16px 26px 0;flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
+.rp .sec{font-size:10px;color:#151F36;margin:2px 0 -4px;gap:5px}
+.rp .sec::after{width:34px;height:2.5px;background:#E8922A}
+.rp .kpis{gap:10px}
+.rp .kpi{padding:12px 14px 11px;border-top-color:#E8922A;box-shadow:0 1px 2px #1F2D4D18;background:#fff}
+.rp .kpi b{font-size:22px;color:#151F36}.rp .kpi b.o{color:#C9741A}
+.rp .kpi span{font-size:10.5px;color:#5E6779;margin-top:4px}
+.rp .pay4{grid-template-columns:128px 1fr;gap:20px;padding:10px 18px;background:#fff;box-shadow:0 1px 2px #1F2D4D18}
+.rp .ring{width:128px;height:128px}.rp .ring .c span{font-size:8px;color:#5E6779}.rp .ring .c b{font-size:23px;color:#F2475A}.rp .ring .c b.g{color:#17804F}.rp .ring .c small{font-size:9px;color:#5E6779}
+.rp .pay4 ul{gap:7px}.rp .pay4 li{padding:4px 12px;font-size:11.5px;grid-template-columns:10px 1fr auto 36px;gap:10px}.rp .pay4 li i{width:9px;height:9px}.rp .pay4 li b{font-size:17px}.rp .pay4 li em{font-size:10px;color:#5E6779}
+.rp .pay4 .l1{background:#E2F3E9}.rp .pay4 .l1 i{background:#9FD8B8}.rp .pay4 .l1 b{color:#17804F}
+.rp .pay4 .l2{background:#EEF6E2}.rp .pay4 .l2 i{background:#C9E3A6}.rp .pay4 .l2 b{color:#4E8F2A}
+.rp .pay4 .l3{background:#FDE7E9}.rp .pay4 .l3 i{background:#F8B4BC}.rp .pay4 .l3 b{color:#F2475A}
+.rp .pay4 .l4{background:#E1F4F2}.rp .pay4 .l4 i{background:#A9DCD6}.rp .pay4 .l4 b{color:#1B7F74}
+.rp .pay4 .l5{background:#E8F0FC}.rp .pay4 .l5 i{background:#BFD3F2}.rp .pay4 .l5 b{color:#2F5FA8}
+.rp .pay{min-height:62px}
+.rp .pay>div{padding:7px 14px}
+.rp .pay b{font-size:20px}.rp .pay span{font-size:8.5px}
+.rp .pay .m{background:#1F2D4D}.rp .pay .m b{color:#5BE3A0}.rp .pay .fa{background:#E8922A}.rp .pay .fa b{color:#0B4D2E}.rp .pay .du{background:#FBEEDC;color:#1F2D4D}.rp .pay .du b{color:#F2475A}
+.rp .kfoot{font-size:8.5px;color:#5E6779;margin:-6px 0 0}
+.rp .kpi b.g,.rp .tc .rows>div.g,.rp .tc .rows>div.sub,.rp td.vg{color:#17804F}.rp .kpi b.r{color:#F2475A}
+.rp .tc .rows>div.sub{font-size:10px;padding-top:0}.rp .tc .rows>div.nb{padding-bottom:2px}
+.rp .tc .rows>div.tot2{background:#F5F6F9}.rp .tc .rows>div.tot2.r span:last-child{color:#F2475A}.rp .tc .rows>div.tot2.gg span:last-child{color:#17804F}
+.rp .tc .rows>div.tot.r{background:#FBEEDC;color:#1F2D4D}.rp .tc .rows>div.tot.r span:last-child{color:#F2475A}.rp .tc .rows>div.tot.gg{background:#E2F2E9;color:#17804F}
+.rp .fineP h4{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 6px;color:#151F36}
+.rp .fineP .rl{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:4px;font-size:8.8px}
+.rp .fineP .rl li{padding-left:12px;position:relative}.rp .fineP .rl li::before{content:"";position:absolute;left:0;top:.5em;width:6px;height:6px;border-radius:50%;background:#8A93A5}
+.rp .fineP .rl li.warn::before{background:#E8922A}.rp .fineP .rl li.crit::before{background:#C0392F}
+.rp .fineP ol{font-size:8.8px}
+.rp .paynote{font-size:10px;color:#5E6779;margin:-6px 0 0}
+.rp .two{grid-template-columns:1fr 1fr;gap:12px}
+.rp .tc,.rp .card{background:#fff;box-shadow:0 1px 2px #1F2D4D18}
+.rp .tc>h3{background:#1F2D4D;color:#F6C27F;font-size:9px;padding:9px 14px}
+.rp .tc .rows>div{padding:6px 14px;font-size:11px;border-bottom-color:#E6E8ED}
+.rp .tc .rows>div.tot{background:#FBEEDC;color:#1F2D4D;font-size:14px;padding:8px 14px}
+.rp .tc .rows .star{color:#C9741A}
+.rp .tc .note{font-size:8.5px;color:#5E6779;padding:6px 14px 8px}
+.rp .card{padding:12px 14px;border-radius:14px}
+.rp .legend{font-size:9.5px;color:#151F36;gap:14px;margin-bottom:4px}
+.rp .legend i{width:10px;height:10px}
+.rp table{font-size:9.8px}
+.rp th{position:static;background:#F5F6F9;color:#5E6779;border-bottom:1px solid #E6E8ED;padding:5px 6px;font-size:8px}
+.rp td{border-bottom:1px solid #E6E8ED;padding:3.4px 6px;color:#151F36}
+.rp td,.rp th,.rp b,.rp span{font-variant-numeric:normal}
+.rp table.dense{font-size:9px}.rp table.dense td{padding:2.4px 6px}.rp table.xs td{padding:1.7px 6px}
+.rp tr.mark td{background:#FBEEDC;color:#1F2D4D}.rp tr.zb td{background:#FBF1D9}
+.rp .tw{border:0;max-height:none;overflow:visible;border-radius:0}
+.rp .rk{display:grid;gap:5px}
+.rp .rk div{padding:6px 10px;border-radius:8px;background:#F5F6F9;font-size:9.6px}
+.rp .rk div.warn{background:#FBF1D9}.rp .rk div.crit{background:#F8E6E3}
+.rp .rk div b{font-size:7.6px;letter-spacing:.09em;text-transform:uppercase;margin-right:6px}
+.rp .rf{margin:0 26px;padding:9px 0 14px;font-size:7.4px;color:#5E6779;display:flex;justify-content:space-between;gap:16px}
+.rp .rf .d{max-width:610px}
+.rp .fineP{font-size:9.6px;color:#2C374C;line-height:1.6}
+.rp .fineP ol{padding-left:16px;margin:0;display:grid;gap:6px}
+.rp .sig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px;margin-top:auto;padding-bottom:18px}
+.rp .sig div{border-top:1px solid #151F36;padding-top:5px;font-size:9px;color:#5E6779}
+.rp .who{display:flex;justify-content:space-between;gap:16px;align-items:center;background:#fff;border-radius:14px;padding:12px 16px;box-shadow:0 1px 2px #1F2D4D18}
+.rp .who .k{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:#C9741A;font-weight:900}
+.rp .who .n{font-family:var(--font-d);font-weight:800;font-size:22px;line-height:1.1}
+.rp .ph{border-radius:14px;overflow:hidden;height:250px;box-shadow:0 1px 2px #1F2D4D18}
+.rp .ph img{width:100%;height:100%;object-fit:cover;display:block}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="band">
+  <div class="band-in">
+    <div class="top">
+      <div class="lockup">
+        <div class="emb" id="embApp"></div>
+        <div>
+          <div class="wm">ZUKUNFTSL<b class="dia">◆</b>TSEN</div>
+          <div class="claim">Immobilien · Kapitalanlage</div>
+        </div>
+      </div>
+      <div class="right">
+        <span class="tag">Kapitalanlage</span>
+        <button class="btn" id="btnPresent" type="button" aria-pressed="false">Kundenansicht</button>
+        <button class="btn" id="btnLogo" type="button" hidden>Logo</button>
+        <button class="btn" id="btnPhoto" type="button" title="Exposé als PDF (oder ein Foto) hinzufügen">Exposé</button>
+        <input type="file" id="photoFile" accept="application/pdf,.pdf,image/*" hidden>
+        <input type="file" id="logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden>
+        <button class="btn" id="btnClient" type="button" title="Eigene Datei für den Kunden: nur Kundenansicht, Schieberegler aktiv">Kundenversion erstellen</button>
+        <a class="btn" id="expoLink" href="#" target="_blank" rel="noopener" hidden>Exposé ansehen</a>
+        <button class="btn or" id="btnPdf" type="button">PDF erstellen</button>
+      </div>
+    </div>
+    <div class="hero">
+      <div>
+        <h1 id="hTitle">Deine Wohnung in <i>Hannover</i></h1>
+        <p id="hSub"></p>
+        <span class="example" id="exampleTag">Beispielwerte · bitte mit Objektdaten ersetzen</span>
+      </div>
+      <figure class="photo" id="photoBox" hidden><img id="photoImg" alt="Objektfoto"><button type="button" id="photoDel">Entfernen</button></figure>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="inputs" id="inputs" aria-label="Eingaben"></aside>
+
+  <main class="results">
+    <section class="kpis" id="kpis" aria-label="Kennzahlen"></section>
+    <p class="kfoot" id="kfoot"></p>
+
+    <h2 class="sec">Wer bezahlt deine Immobilie?</h2>
+    <div class="pay4" id="pay"></div>
+    <p class="paynote" id="payNote"></p>
+
+    <section class="two">
+      <div class="tc"><h3>Monatliche Betrachtung</h3><div class="rows" id="mon"></div><div class="note" id="monNote"></div></div>
+      <div class="tc"><h3>Finanzierung</h3><div class="rows" id="finT"></div></div>
+    </section>
+
+    <h2 class="sec">Dein Vermögensaufbau</h2>
+    <section class="card chart">
+      <div class="legend"><span><i style="background:var(--c-wert)"></i>Immobilienwert</span><span><i style="background:var(--c-rs)"></i>Restschuld</span><span><i style="background:var(--c-verm)"></i>dein Vermögen</span></div>
+      <div id="vChart"></div>
+      <div class="sliders" id="sliders"></div>
+    </section>
+
+    <h2 class="sec" style="margin-bottom:-6px">Deine Rendite</h2>
+    <div class="two"><div id="renBox"></div><div></div></div>
+
+    <div id="depWrap">
+      <h2 class="sec" style="margin-bottom:14px">Dein Depot aus der Renovierungsrückstellung</h2>
+      <div id="depBox"></div>
+    </div>
+
+    <div id="taxWrap">
+      <h2 class="sec" style="margin-bottom:14px">Deine Steuerwirkung im ersten Jahr</h2>
+      <section class="card taxbox">
+        <p class="sub" id="taxSub"></p>
+        <div class="tw" id="taxTbl"></div>
+      </section>
+    </div>
+
+    <details class="card allz">
+      <summary>Alle Zahlen anzeigen <span>Jahresübersicht · Tilgungsplan · Steuer</span></summary>
+      <div class="tabs" role="tablist" style="margin-top:14px">
+        <button role="tab" aria-selected="true" data-tab="jahr" type="button">Jahresübersicht</button>
+        <button role="tab" aria-selected="false" data-tab="tilg" type="button">Tilgungsplan</button>
+        <button role="tab" aria-selected="false" data-tab="steuer" type="button">Steuerliche Betrachtung</button>
+      </div>
+      <div class="tw" id="tbl"></div>
+    </details>
+
+    <h2 class="sec">Hinweise &amp; Kleingedrucktes</h2>
+    <section class="card fine" id="fine"></section>
+  </main>
+</div>
+
+<div id="report" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function(){
+"use strict";
+const CL=window.ZL_CLIENT||null;
+const SRC=(document.currentScript&&document.currentScript.textContent)||Array.from(document.scripts).map(x=>x.textContent).find(t=>t.indexOf("const KEY=\"zl-immorechner")>=0)||"";
+const PRISTINE=["header.band",".wrap","#report"].map(q=>{const e=document.querySelector(q);return e?e.outerHTML:"";}).join("\n");
+const GREST={"Baden-Württemberg":5,"Bayern":3.5,"Berlin":6,"Brandenburg":6.5,"Bremen":5.5,"Hamburg":5.5,"Hessen":6,"Mecklenburg-Vorpommern":6,"Niedersachsen":5,"Nordrhein-Westfalen":6.5,"Rheinland-Pfalz":5,"Saarland":6.5,"Sachsen":5.5,"Sachsen-Anhalt":5,"Schleswig-Holstein":6.5,"Thüringen":5};
+
+const DEFAULTS={
+  kunde:"Beispielkunde",ort:"Hannover",objekt:"Eigentumswohnung als Kapitalanlage",quelle:"",berater:"Lukas Priebe",datum:new Date().toISOString().slice(0,10),
+  kaufpreis:245000,wfl:62,land:"Niedersachsen",notar:1.5,grundbuch:0.5,makler:0,geb:85,
+  miete:810,ausfall:0,mInt:5,mInc:10,verw:80,rueck:70,kst:0,
+  ek:0,zins:4.44,tilg:1.1,zinsbindung:10,anschlusszins:5,anschlusstilg:2,
+  kfwOn:false,kfwBetrag:100000,kfwZins:2.9,kfwLaufzeit:30,
+  modus:"std",steuerOn:true,einkArt:"brutto",veranl:"einzel",brutto1:85000,brutto2:0,zveIn:70000,kist:0,afaTyp:"linear",afa:6.25,sonderOn:false,
+  wert:2,horizon:10,
+  zusText:"Zinsübernahme durch Vertrieb",zusBetrag:0,zusDauer:2,zusNotar:false,
+  subOn:false,istMiete:0,subBetrag:0,subSteuer:"ist",depotOn:false,depotBetrag:0,depotZins:6,depotEntn:6,depotInfo:"",finNK:0,knkVerk:false,subMode:"fix",stufP:15,stufMon:36,stufN:4,stSatz:42,sanBetrag:0,sanJahre:1,moebel:0,moebelJahre:10,photo:""
+};
+const GF=Object.assign({},DEFAULTS),GF_PHOTO=null;
+const PRESETS={beispiel:["Beispiel Hannover",DEFAULTS]};
+const KEY="zl-immorechner-v12";
+let S=load();
+let tab="jahr";
+
+function load(){if(CL)return Object.assign({},DEFAULTS,CL.S);try{const r=localStorage.getItem(KEY);if(r){return Object.assign({},DEFAULTS,JSON.parse(r));}}catch(e){}return Object.assign({},GF);}
+function save(){if(CL)return;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+/* ---------- formatting ---------- */
+const nf0=new Intl.NumberFormat("de-DE",{maximumFractionDigits:0});
+const nf2=new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const eur=(v,d)=>(d?nf2:nf0).format(Math.abs(v)<0.005?0:v)+" €";
+const sEur=(v,d)=>(v>0.004?"+":"")+eur(v,d);
+const pct=(v,d=2)=>new Intl.NumberFormat("de-DE",{maximumFractionDigits:d}).format(v)+" %";
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cls=v=>v<-0.5?"neg":v>0.5?"pos":"";
+const dDE=iso=>{const p=(iso||"").split("-");return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:iso};
+
+/* ---------- Einkommensteuer 2026 (§ 32a EStG), Soli, KiSt ---------- */
+function est(x){x=Math.floor(Math.max(x,0));if(x<=12348)return 0;if(x<=17799){const y=(x-12348)/1e4;return Math.floor((914.51*y+1400)*y);}if(x<=69878){const z=(x-17799)/1e4;return Math.floor((173.10*z+2397)*z+1034.87);}if(x<=277825)return Math.floor(0.42*x-11135.63);return Math.floor(0.45*x-19470.38);}
+function taxAll(zve,joint,kist){const e=joint?2*est(zve/2):est(zve);const fg=joint?40700:20350;const soli=e<=fg?0:Math.min(e*0.055,(e-fg)*0.119);const ks=e*kist/100;return {zve:Math.max(zve,0),e,soli,ks,tot:e+soli+ks};}
+function vorsorge(b){if(b<=0)return {an:0,rv:0,kv:0,pv:0};return {an:Math.min(1230,b),rv:0.093*Math.min(b,101400),kv:0.0875*0.96*Math.min(b,69750),pv:0.018*Math.min(b,69750)};}
+function zveBase(s){
+  const joint=s.veranl==="zusammen";
+  if(s.einkArt==="zve")return {zve:Math.max(0,Number(s.zveIn)||0),parts:null};
+  const bs=[Number(s.brutto1)||0].concat(joint?[Number(s.brutto2)||0]:[]);
+  let br=0,an=0,sv=0;bs.forEach(b=>{const v=vorsorge(b);br+=b;an+=v.an;sv+=v.rv+v.kv+v.pv;});
+  const sa=joint?72:36;return {zve:Math.max(0,br-an-sv-sa),parts:{br,an,sv,sa}};
+}
+
+/* ---------- model ---------- */
+function compute(s){
+  const n=k=>Number(s[k])||0;
+  const KP=n("kaufpreis"), gr=GREST[s.land]??5;
+  const knkRows=[["Grunderwerbsteuer ("+s.land+")",gr],["Notar",n("notar")],["Grundbuch",n("grundbuch")],["Maklerprovision",n("makler")]];
+  const knkPct=knkRows.reduce((a,r)=>a+r[1],0), knkVerk=!!s.knkVerk, knk=knkVerk?0:KP*knkPct/100, knkTot=KP*knkPct/100, invest=KP+knk;
+  const ek=Math.min(Math.max(n("ek"),0),invest), darlehen=invest-ek;
+  const kfw=s.kfwOn?Math.min(n("kfwBetrag"),darlehen):0, bank=darlehen-kfw;
+  const pro=s.modus==="pro";
+  const z1=n("zins")/100,t1=n("tilg")/100,zb=pro?Math.max(1,Math.round(n("zinsbindung"))):999,z2=pro?n("anschlusszins")/100:z1,t2=pro?n("anschlusstilg")/100:t1;
+  const ausP=pro?n("ausfall"):0,kstP=pro?n("kst"):0;
+  const joint=s.veranl==="zusammen",kist=Number(s.kist)||0,ZB=zveBase(s),tax0=taxAll(ZB.zve,joint,kist);
+  const flat=s.einkArt==="satz",satz=n("stSatz")/100;
+  const grenz=flat?satz*100:(taxAll(ZB.zve+100,joint,kist).tot-tax0.tot);
+  let rs=bank,rate=bank*(z1+t1)/12,rate2=null,rsZb=null;
+  const kz=n("kfwZins")/100,kn=Math.max(1,n("kfwLaufzeit"))*12;
+  let krs=kfw;const krate=kfw>0?(kz>0?kfw*(kz/12)/(1-Math.pow(1+kz/12,-kn)):kfw/kn):0;
+  const rate1=rate+krate;
+  const MAXY=60,fin=[];let payoff=null;
+  for(let y=1;y<=MAXY;y++){
+    let zi=0,ti=0,ra=0;
+    for(let m=0;m<12;m++){
+      const mi=(y-1)*12+m;
+      if(mi===zb*12){rsZb=rs+krs;if(rs>0.005){rate=rs*(z2+t2)/12;rate2=rate;}}
+      const zr=mi<zb*12?z1:z2;
+      if(rs>0.005){const i=rs*zr/12;let p=Math.min(Math.max(rate-i,0),rs);rs-=p;zi+=i;ti+=p;ra+=i+p;}
+      if(krs>0.005){const i=krs*kz/12;let p=Math.min(Math.max(krate-i,0),krs);krs-=p;zi+=i;ti+=p;ra+=i+p;}
+    }
+    fin.push({y,zins:zi,tilg:ti,rate:ra,rs:Math.max(rs+krs,0)});
+    if(payoff===null&&rs+krs<=0.01)payoff=y;
+  }
+  const pro0=s.modus==="pro", san=pro0?Math.min(n("sanBetrag"),KP):0, sanJ=Math.min(5,Math.max(1,Math.round(n("sanJahre")))), moeb=pro0?Math.min(n("moebel"),KP-san):0, moebJ=Math.max(1,Math.round(n("moebelJahre")||10));
+  const basis=Math.max(0,invest-san-moeb)*n("geb")/100, sonderBasis=Math.min(basis,n("wfl")*4000);
+  const stuf=s.subOn&&s.subMode==="stufen", sp=n("stufP")/100, sMon=Math.max(1,Math.round(n("stufMon"))), sN=Math.max(1,Math.round(n("stufN")));
+  const tenantM=m=>Math.min(n("miete"),n("istMiete")*Math.pow(1+sp,Math.min(sN,1+Math.floor((m-1)/sMon))));
+  let subM=s.subOn?Math.max(0,n("miete")-(stuf?tenantM(1):n("istMiete"))):0, subMonths=stuf?(()=>{let m=1;while(m<=720&&tenantM(m)<n("miete")-0.005)m++;return m-1;})():(subM>0?n("subBetrag")/subM:0);
+  let subPot=0;if(stuf)for(let m=1;m<=subMonths;m++)subPot+=n("miete")-tenantM(m);
+  const depot=s.depotOn?n("depotBetrag"):0, dz=n("depotZins")/100, de=n("depotEntn")/100, SPB=joint?2000:1000;
+  const depY=[];{let K=depot,cum=0;for(let y=1;y<=Math.max(30,n("horizon"));y++){const st=K,g=K>0?K*dz:0,tx=Math.max(0,g-SPB)*0.26375,E=Math.max(0,Math.min(depot*de,K+g-tx));K=K+g-tx-E;cum+=E;depY.push({y,start:st,g,tx,E,K,cum});}}
+  const depGross=depY.length?depY[0].g:0, depTax=depY.length?depY[0].tx:0, depE1=depY.length?depY[0].E:0;
+  let cum=0,cumCF=-ek,cumR=0,afaEnd=null;const yrs=[];
+  const H=Math.max(30,n("horizon"));
+  for(let y=1;y<=H;y++){
+    const f=fin[y-1];
+    const k=n("mInt")>0?Math.floor((y-1)/n("mInt")):0;
+    const mB=n("miete")*12*Math.pow(1+n("mInc")/100,k), aus=mB*ausP/100, miete=mB-aus;
+    let subY;if(stuf){subY=0;for(let m=12*(y-1)+1;m<=12*y;m++)subY+=Math.max(0,n("miete")-tenantM(m))*(mB/12/n("miete")||1);}else{const subMo=Math.min(Math.max(subMonths-12*(y-1),0),12);subY=subM*subMo;}
+    const stMiete=(s.subOn&&s.subSteuer==="ist")?miete-subY:miete;
+    const kf=Math.pow(1+kstP/100,y-1), verw=n("verw")*12*kf, rueck=n("rueck")*12*kf;
+    let afa=s.afaTyp==="degressiv"?(basis-cum)*0.05:basis*n("afa")/100;
+    const sonder=s.sonderOn&&y<=4?sonderBasis*0.05:0;
+    const afaT=Math.max(0,Math.min(afa+sonder,basis-cum));cum+=afaT;
+    if(afaEnd===null&&afaT<0.5&&y>1)afaEnd=y;
+    const sanY=san&&y<=sanJ?san/sanJ:0, moebY=moeb&&y<=moebJ?moeb/moebJ:0;
+    const stErg=stMiete-f.zins-verw-afaT-sanY-moebY-(y===1?n("finNK"):0), tax1=flat?{zve:0,e:0,soli:0,ks:0,tot:stErg*satz}:taxAll(ZB.zve+stErg,joint,kist), stEff=s.steuerOn?(flat?-stErg*satz:tax0.tot-tax1.tot):0;
+    const depNet=depot?depY[y-1].E:0, depCap=depot?depY[y-1].K:0;
+    const cfVor=miete+depNet-f.rate-verw-rueck, cfNach=cfVor+stEff;
+    const wert=KP*Math.pow(1+n("wert")/100,y), verm=wert-f.rs;
+    cumCF+=cfNach;cumR+=rueck;
+    const zus=n("zusBetrag")>0&&y<=n("zusDauer")?n("zusBetrag")*12:0;
+    yrs.push({y,sanY,moebY,subY,stMiete,depNet,depCap,tax1,mB,aus,miete,verw,rueck,zins:f.zins,tilg:f.tilg,rate:f.rate,rs:f.rs,afa:afaT,sonder:Math.min(sonder,afaT),stErg,stEff,cfVor,cfNach,wert,verm,cumCF,cumR,zus});
+  }
+  let vPos=null;for(const r of yrs){if(r.verm>0){vPos=r.y;break;}}
+  const HZ=Math.min(Math.max(Math.round(n("horizon"))||10,1),30);
+  const cfs=[-ek].concat(yrs.slice(0,HZ).map(r=>s.steuerOn?r.cfNach:r.cfVor));const endV=yrs[HZ-1].verm+yrs[HZ-1].depCap;cfs[HZ]+=endV;
+  const npv=r=>cfs.reduce((a,c,i)=>a+c/Math.pow(1+r,i),0);
+  let irr=null;const paid=-cfs.slice(0,HZ).reduce((a,c)=>a+Math.min(c,0),0)-Math.min(cfs[HZ]-endV,0);
+  if(paid>1&&npv(-0.99)*npv(10)<0){let lo=-0.99,hi=10;for(let i=0;i<200;i++){const mid=(lo+hi)/2;if(npv(lo)*npv(mid)<=0)hi=mid;else lo=mid;}irr=(lo+hi)/2;}
+  const ownSum=ek+yrs.slice(0,HZ).reduce((a,r)=>a+Math.max(0,-(s.steuerOn?r.cfNach:r.cfVor)),0), inSum=yrs.slice(0,HZ).reduce((a,r)=>a+Math.max(0,(s.steuerOn?r.cfNach:r.cfVor)),0);
+  const REN={HZ,irr,ownSum,inSum,endV,gain:endV+inSum-ownSum,mult:ownSum>1?(endV+inSum)/ownSum:null};
+  const depSim=depot>0?depY.slice(0,10):[];let depEnd=null;for(const d of depY){if(d.K<=0.5&&d.E<depot*de-0.5){depEnd=d.y;break;}}
+  return {san,sanJ,moeb,moebJ,stuf,subPot,tenantM,flat,REN,knkVerk,knkTot,depSim,depEnd,depE1,subM,subMonths,depot,depGross,depTax,pro,ausP,kstP,joint,kist,ZB,tax0,grenz,krate,KP,gr,knkRows,knkPct,knk,invest,ek,darlehen,kfw,bank,rate1,rate2,rsZb,zb,payoff,fin,basis,sonderBasis,yrs,afaEnd,vPos,
+    v0:KP-darlehen,brutto:n("kaufpreis")>0?n("miete")*12/KP*100:0,faktor:n("miete")>0?KP/(n("miete")*12):0,qm:n("wfl")>0?KP/n("wfl"):0};
+}
+
+/* ---------- risk notes ---------- */
+function risks(s,R){
+  const L=[],y1=R.yrs[0],h=Number(s.horizon)||10;
+  if(!String(s.quelle).trim())L.push(["warn","Datenquelle fehlt","Bitte eintragen, von wem die Objektdaten stammen (z. B. Bauträger oder Vertrieb). Sie erscheint im PDF."]);
+  if(R.subM>0){
+    const endY=Math.ceil(R.subMonths/12);
+    if(R.stuf)L.push(["crit","Mietsubvention",`Die aktuelle Miete beträgt ${eur(s.istMiete,true)}. Angenommen sind ${s.stufN} Mieterhöhungen um je ${pct(s.stufP,1)} im Abstand von ${s.stufMon} Monaten, die erste sofort. Bis die Soll-Miete von ${eur(s.miete,true)} erreicht ist (nach ca. ${R.subMonths} Monaten), zahlt der Verkäufer die Differenz, insgesamt ca. ${eur(R.subPot,true)}. Die Erhöhungen sind nur im Rahmen von Mietspiegel und Kappungsgrenze möglich und nicht gesichert. Gelingt keine Erhöhung, fehlen nach der Subvention bis zu ${eur(s.miete-s.istMiete)} pro Monat. Die Subvention sollte im notariellen Kaufvertrag geregelt sein.`]);
+    else L.push(["crit","Mietsubvention",`Die tatsächliche Miete beträgt ${eur(s.istMiete,true)}. Die Differenz zur Soll-Miete (${eur(R.subM,true)} pro Monat) zahlt der Verkäufer aus einem Topf von ${eur(s.subBetrag,true)}. Das reicht für ca. ${Math.floor(R.subMonths)} Monate, also bis ins Jahr ${endY}. Danach ist eine Miete von ${eur(s.miete)} angenommen. Ob die erreichbar ist (Mieterhöhung im Rahmen der Kappungsgrenze oder Neuvermietung), ist nicht gesichert. Ohne Erhöhung fehlen dann ca. ${eur(R.subM)} pro Monat. Die Subvention sollte im notariellen Kaufvertrag geregelt sein.`]);
+    L.push(["warn","Subvention steuerlich",s.subSteuer==="ist"?`Steuerlich ist während der Subvention nur die vom Mieter gezahlte Miete angesetzt. Ob die Zahlungen des Verkäufers als Einnahmen aus Vermietung gelten oder die Anschaffungskosten mindern, muss der Steuerberater klären. Werden sie als Einnahme gewertet, fällt der Steuervorteil in diesen Jahren um ca. ${eur(R.subM*R.grenz/100)} pro Monat geringer aus.`:"Die Subvention ist steuerlich als Einnahme angesetzt. Die richtige Behandlung muss der Steuerberater klären."]);
+  }
+  if(R.depot>0){
+    L.push(["warn","Depot",`${s.depotInfo?esc(s.depotInfo)+": ":""}${eur(R.depot)} werden einmalig ausgezahlt und angelegt. Angenommen sind ${pct(s.depotZins,1)} Ertrag und ${pct(s.depotEntn,1)} Entnahme pro Jahr (${eur(R.depE1/12)} pro Monat). Der Ertrag ist eine Annahme und nicht garantiert.${Number(s.depotEntn)>Number(s.depotZins)?` Da mehr entnommen wird als erwirtschaftet, schrumpft das Depot${R.depEnd?` und ist ca. im Jahr ${R.depEnd} aufgebraucht`:""}.`:""} Bei Kursverlusten schrumpft das Kapital, wenn trotzdem entnommen wird. Wird das Geld für eine Renovierung gebraucht, entfällt die Auszahlung. ${R.depTax>0?`Abgeltungsteuer ca. ${eur(R.depTax)} pro Jahr ist berücksichtigt.`:"Die Erträge liegen unter dem Sparerpauschbetrag, sofern dieser nicht schon anderweitig genutzt wird."} Ob die Rückstellung die Anschaffungskosten und damit die AfA mindert, muss der Steuerberater prüfen.`]);
+  }
+  if(Number(s.zusBetrag)>0){
+    if(s.zusNotar)L.push(["info","Zusage Dritter",`${esc(s.zusText)}: ${eur(s.zusBetrag)} pro Monat für ${s.zusDauer} Jahre. Laut Angabe im notariellen Kaufvertrag vereinbart. Wird nur gesondert ausgewiesen und ist in der Hauptrechnung nicht enthalten.`]);
+    else L.push(["crit","Zusage Dritter",`${esc(s.zusText)} ist nicht notariell vereinbart und damit rechtlich unsicher. Sie ist in dieser Berechnung nicht enthalten und sollte nicht in die Kaufentscheidung einfließen.`]);
+  }
+  if(R.darlehen>R.KP+1)L.push(["warn","Vollfinanzierung",`Finanziert werden ${pct(R.darlehen/R.KP*100,1)} des Kaufpreises inklusive Nebenkosten. Die Restschuld liegt anfangs über dem Kaufpreis. Rechnerisches Vermögen gibt es ${R.vPos?"ab Jahr "+R.vPos:"im Betrachtungszeitraum nicht"}, sofern die angenommene Wertsteigerung eintritt.`]);
+  if(R.pro&&R.rate2!==null)L.push(["warn","Zinsbindung",`Die Zinsbindung endet nach ${R.zb} Jahren bei einer Restschuld von ca. ${eur(R.rsZb)}. Mit dem angenommenen Anschlusszins von ${pct(s.anschlusszins)} und ${pct(s.anschlusstilg)} Tilgung liegt die Bankrate dann bei ca. ${eur(R.rate2+R.krate)} pro Monat (anfangs ${eur(R.rate1)}). Der tatsächliche Zins kann höher liegen.`]);
+  if(!R.payoff)L.push(["crit","Tilgung","Das Darlehen wird mit diesen Annahmen innerhalb von 60 Jahren nicht vollständig getilgt. Tilgung erhöhen."]);
+  if(s.steuerOn){
+    L.push(["info","Ohne Steuereffekt",`Vor Steuern beträgt das Monatsergebnis im ersten Jahr ${sEur(y1.cfVor/12)}. Der Steuereffekt von ${sEur(y1.stEff/12)} pro Monat ist ${R.flat?`mit einem pauschalen Grenzsteuersatz von ${pct(R.grenz,1)} gerechnet. Liegt das Einkommen niedriger oder rutscht der Verlust in die Progression, fällt er kleiner aus.`:`aus einem zu versteuernden Einkommen von ca. ${eur(R.ZB.zve)} (Grenzsteuersatz ca. ${pct(R.grenz,1)}) geschätzt und setzt voraus, dass dieses Einkommen gleich bleibt.`}`]);
+    if(R.san||R.moeb){const a=R.yrs[Math.max(0,R.sanJ-1)],b=R.yrs[R.sanJ];
+      L.push(["warn","Sanierung & Möbel",`${R.san?`Die Sanierung von ${eur(R.san)} ist als Erhaltungsaufwand verteilt auf ${R.sanJ} ${R.sanJ>1?"Jahre":"Jahr"} abgesetzt (${eur(R.san/R.sanJ)} pro Jahr). `:""}${R.moeb?`Möbel von ${eur(R.moeb)} werden über ${R.moebJ} Jahre abgeschrieben (${eur(R.moeb/R.moebJ)} pro Jahr). `:""}Beide Beträge sind aus der Gebäude-AfA herausgerechnet. ${R.san&&b?`Nach Jahr ${R.sanJ} fällt der Sanierungs-Effekt weg: Das Monatsergebnis ändert sich von ${sEur((s.steuerOn?a.cfNach:a.cfVor)/12)} auf ${sEur((s.steuerOn?b.cfNach:b.cfVor)/12)}. `:""}Ob die Sanierung sofort bzw. verteilt (§ 82b EStDV) absetzbar ist, hängt vom Einzelfall ab: Ist sie im Kaufpreis enthalten oder vom Verkäufer vor Übergabe ausgeführt, gehört sie in der Regel zu den Anschaffungskosten. Übersteigen Instandsetzungen in den ersten 3 Jahren 15 % der Gebäude-Anschaffungskosten (netto), gelten sie als anschaffungsnaher Herstellungsaufwand und sind nur über die Gebäude-AfA absetzbar. Das muss der Steuerberater vorab prüfen.${R.moeb?" Separat im Kaufvertrag ausgewiesene Möbel sind grunderwerbsteuerfrei, die Kaufnebenkosten können dadurch etwas niedriger sein.":""}`]);}
+    if(s.afaTyp==="linear"&&Number(s.afa)>3)L.push(["warn","Erhöhte AfA",`Ein AfA-Satz von ${pct(s.afa)} liegt über dem gesetzlichen Regelsatz und setzt in der Regel ein anerkanntes Gutachten zur Restnutzungsdauer voraus. Die Abschreibung ist nach ca. ${Math.ceil(100/s.afa)} Jahren verbraucht. Danach fällt dieser Teil des Steuereffekts weg.`]);
+    if(s.afaTyp==="degressiv")L.push(["warn","Degressive AfA","5 % degressive AfA nur für neu gebaute Mietwohnungen mit Baubeginn bzw. Erwerb im gesetzlichen Zeitfenster. Voraussetzungen vom Steuerberater bestätigen lassen."]);
+    if(s.sonderOn){
+      const a=R.yrs[3],b=R.yrs[4];
+      L.push(["warn","Sonder-AfA § 7b",`Die Sonder-AfA wirkt nur in den Jahren 1 bis 4. Von Jahr 4 auf Jahr 5 ändert sich das Monatsergebnis nach Steuern von ${sEur(a.cfNach/12)} auf ${sEur(b.cfNach/12)}. Voraussetzungen (u. a. Effizienzhaus 40 mit QNG, Bauantrag im Förderzeitraum, Baukostenobergrenze, Bemessungsgrundlage max. 4.000 €/m², 10 Jahre Vermietung) müssen vom Steuerberater geprüft werden.`]);
+      if(!(Number(s.wfl)>0))L.push(["crit","Sonder-AfA","Ohne Wohnfläche wird die Sonder-AfA mit 0 € angesetzt."]);
+    }
+  }
+  let worst=null;for(const r of R.yrs.slice(0,30)){const v=s.steuerOn?r.cfNach:r.cfVor;if(!worst||v<worst.v)worst={v,y:r.y};}
+  if(worst&&worst.v<0)L.push(["info","Höchste Zuzahlung",`Die höchste monatliche Zuzahlung ${s.steuerOn?"nach":"vor"} Steuern in den ersten 30 Jahren liegt bei ca. ${eur(-worst.v/12)} (Jahr ${worst.y}).`]);
+  if(Number(s.mInt)>0)L.push(["info","Mieterhöhung",`Angenommen sind ${pct(s.mInc,1)} Mieterhöhung alle ${s.mInt} Jahre. Möglich nur im Rahmen von Mietspiegel, Kappungsgrenze und gegebenenfalls Mietpreisbremse. Nicht garantiert.`]);
+  if(!R.pro)L.push(["info","Standardrechnung","Sollzins für die gesamte Laufzeit konstant, ohne Mietausfall und ohne Kostensteigerung. Für ein vorsichtigeres Szenario den Rechenmodus „Erweitert“ wählen."]);
+  else if(!(R.ausP>0))L.push(["warn","Mietausfall","Es ist kein Mietausfall bzw. Leerstand angesetzt. Üblich sind 2 bis 4 % der Jahresmiete."]);
+  return L;
+}
+
+/* ---------- charts ---------- */
+function niceMax(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const m=v/p;return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p;}
+function kfmt(v){const a=Math.abs(v);return (a>=1e6?nf2.format(v/1e6).replace(/,00$/,"")+" Mio":a>=1000?nf0.format(v/1000)+" T":nf0.format(v))+" €";}
+function lineChart(series,o){
+  const W=o.w||760,Hh=o.h||300,pl=70,pr=16,pt=12,pb=28,n=series[0].v.length;
+  let mn=0,mx=0;series.forEach(s=>s.v.forEach(v=>{mn=Math.min(mn,v);mx=Math.max(mx,v);}));
+  mx=niceMax(mx);mn=mn<0?-niceMax(-mn):0;
+  const X=i=>pl+(W-pl-pr)*i/(n-1),Y=v=>pt+(Hh-pt-pb)*(1-(v-mn)/(mx-mn));
+  let g="";const steps=4;
+  for(let i=0;i<=steps;i++){const v=mn+(mx-mn)*i/steps;g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:${o.grid};stroke-width:1${Math.abs(v)<1e-9?"":";stroke-dasharray:2 4"}"/><text x="${pl-8}" y="${Y(v)+3.5}" text-anchor="end" style="fill:${o.txt};font-size:${o.fs||11}px">${kfmt(v)}</text>`;}
+  if(mn<0)g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(0)}" y2="${Y(0)}" style="stroke:${o.axis};stroke-width:1"/>`;
+  for(let i=0;i<n;i++){const yr=o.x0+i;if(yr%5===0||i===0)g+=`<text x="${X(i)}" y="${Hh-8}" text-anchor="middle" style="fill:${o.txt};font-size:${o.fs||11}px">${i===0?"Jahr "+yr:yr}</text>`;}
+  series.forEach(s=>{const d=s.v.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)).join(" ");
+    if(s.area)g+=`<path d="${d} L${X(n-1)} ${Y(Math.max(mn,0))} L${X(0)} ${Y(Math.max(mn,0))} Z" style="fill:${s.c};fill-opacity:.12;stroke:none"/>`;
+    g+=`<path d="${d}" style="fill:none;stroke:${s.c};stroke-width:${s.w||2.2};stroke-linejoin:round"/>`;
+    g+=`<circle cx="${X(n-1)}" cy="${Y(s.v[n-1])}" r="3.5" style="fill:${s.c}"/>`;});
+  if(o.mark!=null&&o.mark<n){g+=`<line x1="${X(o.mark)}" x2="${X(o.mark)}" y1="${pt}" y2="${Hh-pb}" style="stroke:${o.markC};stroke-width:1.2;stroke-dasharray:4 4"/><text x="${X(o.mark)+5}" y="${pt+10}" style="fill:${o.markC};font-size:${(o.fs||11)-1}px;font-weight:700">${o.markL}</text>`;}
+  return `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${o.label||"Diagramm"}">${g}</svg>`;
+}
+function barChart(groups,o){
+  const W=o.w||760,Hh=o.h||260,pl=58,pr=10,pt=10,pb=26,n=groups.length,k=groups[0].v.length;
+  let mn=0,mx=0;groups.forEach(g=>g.v.forEach(v=>{mn=Math.min(mn,v);mx=Math.max(mx,v);}));
+  const st=niceMax(Math.max(mx-mn,1)/4);mx=Math.ceil(mx/st)*st;mn=Math.floor(mn/st)*st;if(mx===mn)mx=mn+st;
+  const Y=v=>pt+(Hh-pt-pb)*(1-(v-mn)/(mx-mn)),bw=(W-pl-pr)/n;
+  let g="";
+  for(let v=mn;v<=mx+st/2;v+=st){g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:${o.grid};stroke-dasharray:2 4"/><text x="${pl-6}" y="${Y(v)+3.5}" text-anchor="end" style="fill:${o.txt};font-size:${o.fs||10.5}px">${nf0.format(v)} €</text>`;}
+  g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(0)}" y2="${Y(0)}" style="stroke:${o.axis};stroke-width:1.2"/>`;
+  groups.forEach((gr,i)=>{const inner=bw*0.8,w=inner/k;gr.v.forEach((v,j)=>{const x=pl+i*bw+bw*0.1+j*w,y=Math.min(Y(v),Y(0)),h=Math.abs(Y(v)-Y(0));g+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(w-0.6,0.8).toFixed(1)}" height="${Math.max(h,0.5).toFixed(1)}" rx="1" style="fill:${o.c[j]}"/>`;});
+    if(gr.lab)g+=`<text x="${pl+i*bw+bw/2}" y="${Hh-8}" text-anchor="middle" style="fill:${o.txt};font-size:${o.fs||10.5}px">${gr.lab}</text>`;});
+  if(o.mark!=null){const x=pl+o.mark*bw;g+=`<line x1="${x}" x2="${x}" y1="${pt}" y2="${Hh-pb}" style="stroke:${o.markC};stroke-dasharray:4 4"/><text x="${x+4}" y="${pt+10}" style="fill:${o.markC};font-size:${(o.fs||10.5)-0.5}px;font-weight:700">${o.markL}</text>`;}
+  return `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${o.label||"Diagramm"}">${g}</svg>`;
+}
+const APP={grid:"var(--line)",txt:"var(--muted)",axis:"var(--fg)",markC:"var(--warn)"};
+const PAP={grid:"#E1E4EC",txt:"#5A6478",axis:"#0E1A2F",markC:"#9A6A00"};
+
+/* ---------- inputs ---------- */
+const FORM=[
+ ["Rechenmodus",true,[
+  {k:"modus",l:"Berechnung",t:"select",opts:[["std","Standard"],["pro","Erweitert (Pro)"]],h:"Erweitert: Mietausfall, Kostensteigerung, Anschlussfinanzierung"}
+ ]],
+ ["Kunde & Objekt",true,[
+  {k:"kunde",l:"Kunde",t:"text"},{row:[{k:"ort",l:"Ort",t:"text"},{k:"objekt",l:"Objektbeschreibung",t:"text"}]},
+  {k:"quelle",l:"Objektdaten laut",t:"text",ph:"z. B. Bauträger / Vertrieb",h:"Herkunft von Preis, Miete und Hausgeld. Steht im PDF."},
+  {row:[{k:"berater",l:"Berater",t:"text"},{k:"datum",l:"Datum",t:"date"}]}
+ ]],
+ ["Kaufpreis & Nebenkosten",true,[
+  {row:[{k:"kaufpreis",l:"Kaufpreis",u:"€",step:1000},{k:"wfl",l:"Wohnfläche",u:"m²",step:1}]},
+  {k:"land",l:"Bundesland (Grunderwerbsteuer)",t:"select",opts:Object.keys(GREST).map(k=>[k,k+" · "+String(GREST[k]).replace(".",",")+" %"])},
+  {row:[{k:"notar",l:"Notar",u:"%",step:0.1},{k:"grundbuch",l:"Grundbuch",u:"%",step:0.1}]},
+  {row:[{k:"makler",l:"Makler",u:"%",step:0.01},{k:"geb",l:"Gebäudeanteil",u:"%",step:1}]},
+  {derived:"dKnk"}
+ ]],
+ ["Miete & Kosten",true,[
+  {k:"miete",l:"Kaltmiete",u:"€/Mon.",step:10},
+  {row:[{k:"mInt",l:"Mieterhöhung",t:"select",opts:[[0,"keine"],[1,"jährlich"],[2,"alle 2 J."],[3,"alle 3 J."],[5,"alle 5 J."]]},{k:"mInc",l:"um",u:"%",step:0.5}]},
+  {k:"verw",l:"Hausgeld nicht umlagefähig",u:"€/Mon.",step:5,h:"inkl. Verwaltungsgebühren · steuerlich absetzbar"},
+  {k:"rueck",l:"Instandhaltungsrücklage",u:"€/Mon.",step:5,h:"erst bei Verwendung absetzbar"},
+  {row:[{k:"ausfall",l:"Mietausfall",u:"%",step:0.5,dep:"modus=pro"},{k:"kst",l:"Kostensteigerung",u:"% p. a.",step:0.5,dep:"modus=pro"}]},
+  {derived:"dMiete"}
+ ]],
+ ["Finanzierung",true,[
+  {k:"knkVerk",l:"Kaufnebenkosten trägt der Verkäufer",t:"tog"},
+  {k:"ek",l:"Eigenkapital",u:"€",step:1000,h:"0 € = Kaufpreis und Nebenkosten finanziert"},
+  {row:[{k:"zins",l:"Sollzins",u:"%",step:0.01},{k:"tilg",l:"Tilgung",u:"%",step:0.1}]},
+  {row:[{k:"zinsbindung",l:"Zinsbindung",u:"Jahre",step:1,dep:"modus=pro"},{k:"anschlusszins",l:"Anschlusszins",u:"%",step:0.1,dep:"modus=pro"}]},
+  {k:"anschlusstilg",l:"Tilgung nach Zinsbindung",u:"%",step:0.1,dep:"modus=pro"},
+  {k:"kfwOn",l:"Förderdarlehen (z. B. KfW) einbeziehen",t:"tog"},
+  {row:[{k:"kfwBetrag",l:"Förderbetrag",u:"€",step:1000,dep:"kfwOn"},{k:"kfwZins",l:"Zins",u:"%",step:0.01,dep:"kfwOn"}]},
+  {k:"kfwLaufzeit",l:"Laufzeit Förderdarlehen",u:"Jahre",step:1,dep:"kfwOn"},
+  {derived:"dFin"}
+ ]],
+ ["Steuer",true,[
+  {k:"steuerOn",l:"Steuereffekt ausweisen",t:"tog"},
+  {row:[{k:"einkArt",l:"Eingabe",t:"select",opts:[["brutto","Bruttogehalt"],["zve","zvE direkt"],["satz","Steuersatz pauschal"]]},{k:"veranl",l:"Veranlagung",t:"select",opts:[["einzel","Einzeln"],["zusammen","Zusammen"]]}]},
+  {k:"brutto1",l:"Bruttojahreseinkommen",u:"€",step:1000,dep:"einkArt=brutto",h:"Gesamtbrutto inkl. Sonderzahlungen"},
+  {k:"brutto2",l:"Bruttojahreseinkommen Partner",u:"€",step:1000,dep:"einkArt=brutto&veranl=zusammen"},
+  {k:"zveIn",l:"Zu versteuerndes Einkommen",u:"€",step:1000,dep:"einkArt=zve",h:"z. B. aus dem letzten Steuerbescheid"},
+  {k:"stSatz",l:"Grenzsteuersatz pauschal",u:"%",step:1,dep:"einkArt=satz",h:"wie in Vertriebs-Kalkulationen üblich, ohne Progression"},
+  {k:"kist",l:"Kirchensteuer",t:"select",opts:[[0,"keine"],[8,"8 % (BY, BW)"],[9,"9 %"]]},
+  {derived:"dTax"},
+  {k:"afaTyp",l:"AfA-Methode",t:"select",opts:[["linear","Linear (Satz frei)"],["degressiv","Degressiv 5 % (Neubau)"]]},
+  {k:"afa",l:"AfA-Satz linear",u:"%",step:0.25,h:"2 % / 2,5 % / 3 % gesetzlich, höher nur mit Gutachten",dep:"afaTyp=linear"},
+  {k:"sonderOn",l:"Sonder-AfA § 7b (5 %, Jahre 1–4)",t:"tog"},
+  {derived:"dAfa"}
+ ]],
+ ["Sanierung & Möbel (Pro)",false,[
+  {html:'<div class="hint" data-dep="modus!=pro" id="sanHint">Nur im Rechenmodus „Erweitert (Pro)“ verfügbar.</div>'},
+  {row:[{k:"sanBetrag",l:"Sanierung im Kaufpreis",u:"€",step:1000,dep:"modus=pro"},{k:"sanJahre",l:"Absetzen über",t:"select",opts:[[1,"1 Jahr"],[2,"2 Jahre"],[3,"3 Jahre"],[4,"4 Jahre"],[5,"5 Jahre"]],dep:"modus=pro"}]},
+  {row:[{k:"moebel",l:"Möbel / Einrichtung",u:"€",step:500,dep:"modus=pro"},{k:"moebelJahre",l:"AfA Möbel",u:"Jahre",step:1,dep:"modus=pro"}]},
+  {derived:"dSan"}
+ ]],
+ ["Subvention & Rückstellung",false,[
+  {k:"subOn",l:"Mietsubvention vom Verkäufer",t:"tog"},
+  {k:"subMode",l:"Art der Subvention",t:"select",opts:[["fix","Fester Topf bis aufgebraucht"],["stufen","Stufenweise bis Soll-Miete"]],dep:"subOn"},
+  {row:[{k:"istMiete",l:"Ist-Miete",u:"€/Mon.",step:1,dep:"subOn"},{k:"subBetrag",l:"Subvention gesamt",u:"€",step:100,dep:"subOn&subMode=fix"}]},
+  {row:[{k:"stufP",l:"Erhöhung je Stufe",u:"%",step:1,dep:"subOn&subMode=stufen"},{k:"stufMon",l:"alle",u:"Monate",step:6,dep:"subOn&subMode=stufen"}]},
+  {k:"stufN",l:"Anzahl Erhöhungen (erste sofort)",u:"Stufen",step:1,dep:"subOn&subMode=stufen"},
+  {k:"subSteuer",l:"Steuerlich ansetzen",t:"select",opts:[["ist","nur Ist-Miete"],["einnahme","Ist-Miete + Subvention"]],dep:"subOn"},
+  {html:'<div class="hint" data-dep="subOn">Kaltmiete oben = Soll-Miete. Die Differenz zahlt der Verkäufer, bis der Topf leer ist.</div>'},
+  {k:"depotOn",l:"Renovierungsrückstellung ins Depot",t:"tog"},
+  {k:"depotBetrag",l:"Betrag",u:"€",step:500,dep:"depotOn"},
+  {row:[{k:"depotZins",l:"Ertrag p. a.",u:"%",step:0.5,dep:"depotOn"},{k:"depotEntn",l:"Entnahme p. a.",u:"%",step:0.5,dep:"depotOn"}]},
+  {derived:"dDep"},
+  {k:"depotInfo",l:"Herkunft (fürs PDF)",t:"text",dep:"depotOn"},
+  {k:"finNK",l:"Finanzierungsnebenkosten (Werbungskosten Jahr 1)",u:"€",step:50}
+ ]],
+ ["Entwicklung",false,[
+  {row:[{k:"wert",l:"Wertsteigerung",u:"% p. a.",step:0.25},{k:"horizon",l:"Betrachtung",u:"Jahre",step:1}]}
+ ]],
+ ["Zusagen Dritter (gesondert)",false,[
+  {k:"zusText",l:"Art der Zusage",t:"text"},
+  {row:[{k:"zusBetrag",l:"Betrag",u:"€/Mon.",step:10},{k:"zusDauer",l:"Dauer",u:"Jahre",step:1}]},
+  {k:"zusNotar",l:"Im notariellen Kaufvertrag vereinbart",t:"tog"},
+  {html:'<div class="hint" style="font-size:11px;color:var(--muted)">Wird nie in die Hauptrechnung eingerechnet, nur gesondert ausgewiesen.</div>'}
+ ]]
+];
+const SLIDERS=[
+ {k:"horizon",l:"Zeitraum",min:5,max:30,step:1,f:v=>v+" Jahre"},
+ {k:"wert",l:"Wertsteigerung p. a.",min:0,max:5,step:0.25,f:v=>pct(v)},
+ {k:"tilg",l:"Tilgung p. a.",min:0.5,max:5,step:0.1,f:v=>pct(v)},
+];
+
+function fieldHTML(f){
+  if(f.row)return `<div class="row2">${f.row.map(fieldHTML).join("")}</div>`;
+  if(f.derived)return `<div class="derived" id="${f.derived}"></div>`;
+  if(f.html)return f.html;
+  const dep=f.dep?` data-dep="${f.dep}"`:"";
+  if(f.t==="tog")return `<label class="tog"${dep}><input type="checkbox" id="in-${f.k}" data-k="${f.k}"> ${f.l}</label>`;
+  let ctl;
+  if(f.t==="select")ctl=`<select id="in-${f.k}" data-k="${f.k}">${f.opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join("")}</select>`;
+  else if(f.t==="text"||f.t==="date")ctl=`<input type="${f.t}" id="in-${f.k}" data-k="${f.k}"${f.ph?` placeholder="${f.ph}"`:""}>`;
+  else ctl=`<input type="number" inputmode="decimal" id="in-${f.k}" data-k="${f.k}" step="${f.step||1}">`;
+  return `<div class="f"${dep}><label for="in-${f.k}">${f.l}</label><div class="inp">${ctl}${f.u?`<span class="u">${f.u}</span>`:""}</div>${f.h?`<div class="hint">${f.h}</div>`:""}</div>`;
+}
+function buildInputs(){
+  const el=document.getElementById("inputs");
+  el.innerHTML=FORM.map(([g,open,items])=>`<details class="grp"${open?" open":""}><summary>${g}</summary><div class="gbody">${items.map(fieldHTML).join("")}</div></details>`).join("")+
+   `<div class="side-actions"><div class="inp" style="flex:2"><select id="presetSel" aria-label="Vorlage laden"><option value="">Kalkulation laden …</option>${Object.keys(PRESETS).map(k=>`<option value="${k}">${PRESETS[k][0]}</option>`).join("")}</select></div><button type="button" id="btnClear">Leeres Blatt</button></div>`;
+  document.getElementById("sliders").innerHTML=SLIDERS.map(s=>`<div class="sl"><label for="sl-${s.k}">${s.l}<output id="o-${s.k}"></output></label><input type="range" id="sl-${s.k}" data-k="${s.k}" min="${s.min}" max="${s.max}" step="${s.step}"></div>`).join("");
+  document.addEventListener("input",onInput);document.addEventListener("change",onInput);
+  document.getElementById("presetSel").onchange=e=>{const p=PRESETS[e.target.value];if(!p)return;S=Object.assign({},p[1]);photoURL=p[2]||null;try{photoURL?localStorage.setItem(KEY+"-photo",photoURL):localStorage.removeItem(KEY+"-photo");}catch(err){}paintPhoto();setExpo(null,"");e.target.value="";syncControls(true);render();toast(p[0]+" geladen");};
+  document.getElementById("btnClear").onclick=()=>{S=Object.assign({},DEFAULTS,{kunde:"",ort:"",objekt:"",quelle:"",kaufpreis:0,wfl:0,miete:0,verw:0,rueck:0,datum:new Date().toISOString().slice(0,10)});syncControls(true);render();toast("Leeres Blatt");};
+}
+function onInput(e){
+  const k=e.target.dataset&&e.target.dataset.k;if(!k)return;
+  const t=e.target;let v;
+  if(t.type==="checkbox")v=t.checked;else if(t.type==="number"||t.type==="range")v=t.value===""?0:Number(t.value);
+  else if(t.tagName==="SELECT"&&/^\d+$/.test(t.value))v=Number(t.value);else v=t.value;
+  S[k]=v;syncControls(false,t);render();
+}
+function syncControls(all,src){
+  document.querySelectorAll("[data-k]").forEach(c=>{
+    if(c===src||(!all&&c===document.activeElement&&c.type!=="range"))return;
+    const v=S[c.dataset.k];
+    if(c.type==="checkbox")c.checked=!!v;else c.value=v;
+  });
+  document.querySelectorAll("[data-dep]").forEach(d=>{d.hidden=!d.dataset.dep.split("&").every(c=>{if(c.includes("!=")){const [k,val]=c.split("!=");return String(S[k])!==val;}const [k,val]=c.split("=");return val?String(S[k])===val:!!S[k];});});
+}
+
+/* ---------- render ---------- */
+let R;
+const smEur=(v,d=true)=>(v<-0.004?"− ":v>0.004?"+ ":"")+(d?nf2:nf0).format(Math.abs(v))+" €";
+const r100=v=>Math.round(v/100)*100;
+function heroTitle(s){return s.ort&&String(s.ort).trim()?`Deine Wohnung in <i>${esc(s.ort)}</i>`:`Deine <i>Kapitalanlage</i>`;}
+function heroSub(s,R){return [s.objekt||"Eigentumswohnung als Kapitalanlage",R.qm?nf0.format(s.wfl)+" m² · "+nf0.format(R.qm)+" €/m²":"","Musterberechnung"].filter(Boolean).join(" · ");}
+function kpisHTML(R,s){
+  const y1=R.yrs[0],h=horizon(s),yh=R.yrs[h-1],m=(s.steuerOn?y1.cfNach:y1.cfVor)/12;
+  const k=(v,l,c)=>`<div class="kpi"><b class="${c||""}">${v}</b><span>${l}</span></div>`;
+  return k(eur(R.KP),"Kaufpreis")+k(eur(s.miete),R.subM?(R.stuf?`Soll-Miete (Mieter ${eur(R.tenantM(1))} + Subvention)`:`Soll-Miete (Ist ${eur(s.istMiete)} + Subvention)`):"Kaltmiete pro Monat","g")+
+    k((m<0?"− ":"+ ")+eur(Math.abs(m)),m<0?"deine Zuzahlung mtl.*":"dein Überschuss mtl.*",m<0?"r":"g")+
+    k(eur(r100(yh.verm+(R.depot?yh.depCap:0))),`Vermögen nach ${h} Jahren**${R.depot?" inkl. Depot":""}`,"g");
+}
+function kfoot(s){return `* ${s.steuerOn?"nach Steuern":"vor Steuern"}, Durchschnitt im ersten Jahr · ** rechnerisch: Immobilienwert minus Restschuld, vor Verkaufskosten und Steuern`;}
+function riskSmall(s,R){return `<h4>Zu dieser Berechnung</h4><ul class="rl">${risks(s,R).map(([lv,t,x])=>`<li class="${lv}"><b>${t}:</b> ${x}</li>`).join("")}</ul>`;}
+function horizon(s){return Math.min(Math.max(Math.round(Number(s.horizon))||10,1),30);}
+function payParts(R,s){
+  const y=R.yrs[0],C=(y.rate+y.verw+y.rueck)/12,S=y.subY/12,M=y.miete/12-S,Dp=y.depNet/12,F=s.steuerOn?Math.max(0,y.stEff/12):0,D=Math.max(0,C-M-S-Dp-F),T=M+S+Dp+F+D;
+  return {C,M,S,Dp,F,D,T,sur:Math.max(0,M+S+Dp+F-C)};
+}
+function payHTML(P,s,paper){
+  const r=78,C=2*Math.PI*r,gap=P.T>0?2.5:0,cols=paper?["#9FD8B8","#C9E3A6","#F8B4BC","#A9DCD6","#BFD3F2"]:["var(--pS1)","var(--pS2)","var(--pS3)","var(--pS4)","var(--pS5)"];
+  const parts=[[P.M,P.S&&!R.stuf?"Mieter (Ist-Miete)":"Mieter","l1"],[P.S,"Subvention Verkäufer","l4"],[P.F,s.steuerOn?"Steuervorteil*":"Steuervorteil",'l2'],[P.Dp,"Depot-Auszahlung","l5"],[P.D,"Du","l3"]].filter(p=>p[0]>=0.5);
+  let off=0,arcs="";
+  parts.forEach((p,i)=>{const len=P.T>0?p[0]/P.T*C:0,dl=Math.max(len-(parts.length>1?gap:0),0.1);const ci=["l1","l2","l3","l4","l5"].indexOf(p[2]);
+    arcs+=`<circle cx="100" cy="100" r="${r}" style="fill:none;stroke:${cols[ci]};stroke-width:26" stroke-dasharray="${dl.toFixed(2)} ${(C-dl).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}"/>`;off+=len;});
+  const du=P.D>=0.5;
+  const ring=`<div class="ring"><svg viewBox="0 0 200 200" aria-hidden="true"><g transform="rotate(-90 100 100)">${arcs}</g></svg><div class="c"><span>Du zahlst</span><b class="${du?"":"g"}">${eur(du?P.D:0)}</b><small>von ${eur(P.C)}</small></div></div>`;
+  const pc=v=>P.T>0?Math.round(v/P.T*100)+" %":"";
+  const list=`<ul>${parts.map(p=>`<li class="${p[2]}"><i></i><span>${p[1]}</span><b>${eur(p[0])}</b><em>${pc(p[0])}</em></li>`).join("")}</ul>`;
+  return ring+list;
+}
+function payNote(P,s){
+  if(P.T<=0)return "";
+  if(P.D<0.5)return `Von rund ${eur(P.C)} monatlichen Kosten (Bankrate, Hausgeld, Rücklage) werden im ersten Jahr rechnerisch alle von Miete${s.steuerOn?" und Steuereffekt":""} getragen${P.sur>0.5?`, es bleiben rund ${eur(P.sur)} übrig`:""}. In späteren Jahren ändert sich das.${s.steuerOn?" *Steueranteil geschätzt, vom Steuerberater zu prüfen.":""}`;
+  return `Von rund ${eur(P.C)} monatlichen Kosten (Bankrate, Hausgeld, Rücklage) trägst du im ersten Jahr rund ${eur(P.D)} selbst, also etwa ${Math.round(P.D/P.C*100)} %. In späteren Jahren ändert sich das.${s.steuerOn?" *Steueranteil geschätzt, vom Steuerberater zu prüfen.":""}`;
+}
+function monRows(R,s){
+  const y=R.yrs[0],row=(l,v,c)=>`<div class="${c||""}"><span>${l}</span><span>${smEur(v)}</span></div>`,m=(s.steuerOn?y.cfNach:y.cfVor)/12,m0=m-y.depNet/12;
+  let h=(y.subY?row(R.stuf?"Miete vom Mieter (nach 1. Erhöhung)":"Ist-Miete (Mieter)",(y.mB-y.subY)/12,"g")+row("Mietsubvention (Verkäufer)",y.subY/12,"g"):row(R.depot&&s.depotInfo?"Ist-Miete (kalt)":"Mieteinnahmen (kalt)",y.mB/12,"g"))+(y.aus?row(`Mietausfall (${pct(R.ausP,1)})`,-y.aus/12):"")+row("Bankrate",-y.rate/12,"nb")+
+    `<div class="sub"><span>davon Tilgung = Vermögensaufbau</span><span>${eur(y.tilg/12,true)}</span></div>`+
+    row("Hausgeld nicht umlagefähig",-y.verw/12)+row("Rücklagen",-y.rueck/12)+
+    (s.steuerOn?`<div class="g"><span>Steuervorteil<span class="star">*</span></span><span>${smEur(y.stEff/12)}</span></div>`:"");
+  if(y.depNet){
+    h+=`<div class="tot2 ${m0<-0.004?"r":"gg"}"><span>${m0<0?"Zuzahlung ohne Depot":"Überschuss ohne Depot"}</span><span>${smEur(m0)}</span></div>`;
+    h+=row(`Entnahme aus Depot (${pct(s.depotEntn,1)} von ${eur(R.depot)})`,y.depNet/12,"g");
+    h+=`<div class="tot ${m<-0.004?"r":"gg"}"><span>${m<0?"Neue Zuzahlung":"Neuer Überschuss"}</span><span>${smEur(m)}</span></div>`;
+  }else h+=`<div class="tot ${m<-0.004?"r":"gg"}"><span>${m<0?"Deine Zuzahlung":"Dein Überschuss"}</span><span>${smEur(m)}</span></div>`;
+  return h;
+}
+function renditeHTML(R,s){
+  const E=R.REN,row=(l,v,c)=>`<div class="${c||""}"><span>${l}</span><span>${v}</span></div>`;
+  const irrTxt=E.irr===null?(E.ownSum<1?"kein Eigenkapital nötig":"–"):(E.irr>1?"über 100 % p. a.":pct(E.irr*100,1)+" p. a.");
+  return `<div class="tc"><h3>Deine Eigenkapitalrendite · ${E.HZ} Jahre</h3><div class="rows">
+   ${row("Eigenkapital zu Beginn",eur(R.ek))}
+   ${row(`Zuzahlungen in ${E.HZ} Jahren${s.steuerOn?" (nach Steuern)":""}`,smEur(-(E.ownSum-R.ek),false))}
+   ${E.inSum>0.5?row(`Überschüsse in ${E.HZ} Jahren`,smEur(E.inSum,false),"g"):""}
+   ${row("Dein eigener Einsatz gesamt",eur(E.ownSum))}
+   ${row(`Vermögen nach ${E.HZ} Jahren${R.depot?" (inkl. Depot)":""}`,eur(r100(E.endV)),"g")}
+   ${E.mult?row("Aus 1 € Einsatz werden",nf2.format(E.mult)+" €","g"):""}
+   <div class="tot gg"><span>Eigenkapitalrendite</span><span>${irrTxt}</span></div></div>
+   <div class="note">Interner Zinsfuß über ${E.HZ} Jahre: jede Zuzahlung zählt als Einsatz in ihrem Jahr, am Ende steht das rechnerische Vermögen (Immobilienwert minus Restschuld${R.depot?" plus Depot":""}) vor Verkaufskosten und Steuern. ${R.knkVerk?"Kaufnebenkosten trägt laut Annahme der Verkäufer. ":""}Annahmen, keine Garantie.</div></div>`;
+}
+function depotHTML(R,s,paper){
+  if(!R.depot)return "";
+  const h=10,yh=R.yrs[h-1],im=yh.verm,d=R.depSim[h-1];
+  const rows=R.depSim.map(r=>`<tr><td>${r.y}</td><td>${eur(r.start)}</td><td class="vg">${eur(r.g)}</td><td>${r.tx?eur(-r.tx):"0 €"}</td><td>${eur(-r.E)}</td><td class="vg">${eur(r.K)}</td><td>${eur(r.cum)}</td></tr>`).join("");
+  return `<div class="two">
+   <div class="tc"><h3>Vermögen nach 10 Jahren</h3><div class="rows">
+    <div><span>Immobilienwert (${pct(s.wert,1)} p. a.)</span><span>${eur(r100(yh.wert))}</span></div>
+    <div><span>– Restschuld</span><span>${smEur(-r100(yh.rs),false)}</span></div>
+    <div class="g"><span>= Immobilienvermögen</span><span>${eur(r100(im))}</span></div>
+    <div class="g"><span>+ Depotstand nach 10 Jahren</span><span>${eur(r100(d.K))}</span></div>
+    <div class="tot gg"><span>Gesamt nach 10 Jahren</span><span>${eur(r100(im+d.K))}</span></div></div>
+    <div class="note">Zusätzlich entnimmst du in 10 Jahren rund ${eur(r100(d.cum))}. Dieses Geld senkt laufend deine Zuzahlung und ist deshalb hier nicht noch einmal addiert.</div></div>
+   <div class="tc"><h3>Depot-Simulation · 10 Jahre</h3><div style="padding:6px 10px 10px"><table class="dense"><thead><tr><th>Jahr</th><th>Start</th><th>Ertrag</th><th>Steuer</th><th>Entnahme</th><th>Ende</th><th>Entn. gesamt</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="note">${s.depotInfo?esc(s.depotInfo)+". ":""}Ertrag ${pct(s.depotZins,1)} p. a. (Annahme), Entnahme ${pct(s.depotEntn,1)} vom Startkapital = ${eur(R.depot*s.depotEntn/100/12)} pro Monat. Abgeltungsteuer 26,375 % über dem Sparerpauschbetrag (${R.joint?"2.000":"1.000"} €), aus dem Depot bezahlt. Keine Garantie.</div></div>
+  </div>`;
+}
+function monNote(R,s){
+  const y=R.yrs[0];let t=s.steuerOn?`* ${R.flat?`Pauschal mit ${pct(R.grenz,1)} Grenzsteuersatz`:`Geschätzt nach Tarif 2026 bei zvE ca. ${eur(R.ZB.zve)}`}, vom Steuerberater zu prüfen. Vor Steuern: ${smEur(y.cfVor/12)}.`:"";
+
+  if(Number(s.zusBetrag)>0)t+=` Nicht eingerechnet: ${esc(s.zusText)} ${eur(s.zusBetrag)}/Monat${s.zusNotar?" (notariell vereinbart)":" (nicht notariell vereinbart)"}.`;
+  return t;
+}
+function finRows(R,s){
+  const row=(l,v)=>`<div><span>${l}</span><span>${v}</span></div>`;
+  return row("Eigenkapital",eur(R.ek))+row(R.ek<R.knk-1?"Darlehen (inkl. Nebenkosten)":"Darlehen",eur(R.darlehen))+(R.kfw?row("davon Förderdarlehen",eur(R.kfw)):"")+row("Sollzins",pct(s.zins))+`<div class="g"><span>Anfängliche Tilgung</span><span>${pct(s.tilg)} · ${eur(R.yrs[0].tilg/12)} mtl.</span></div>`+
+    (R.pro?row("Zinsbindung / danach",R.zb+" J. / "+pct(s.anschlusszins)):"")+row("Kaufnebenkosten",R.knkVerk?`${eur(R.knkTot)} · trägt Verkäufer`:eur(R.knk))+
+    `<div class="tot"><span>Schuldenfrei nach</span><span>${R.payoff?"ca. "+R.payoff+" Jahren":"über 60 Jahren"}</span></div>`;
+}
+/* wealth chart: value vs. debt, filled gap, pills at 10/20/30 */
+function wealthChart(R,o){
+  const W=o.w||760,H=o.h||380,pl=o.pl||64,pr=o.pr||30,pt=16,pb=34,N=30,fs=o.fs||12;
+  const wert=[R.KP].concat(R.yrs.slice(0,N).map(r=>r.wert)),rs=[R.darlehen].concat(R.yrs.slice(0,N).map(r=>r.rs)),vm=[R.v0].concat(R.yrs.slice(0,N).map(r=>r.verm));
+  const mx=niceMax(Math.max(...wert,...rs)*1.04);
+  const X=i=>pl+(W-pl-pr)*i/N,Y=v=>pt+(H-pt-pb)*(1-Math.max(v,0)/mx);
+  let g=`<defs><linearGradient id="${o.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:${o.c.fillA};stop-opacity:.42"/><stop offset="1" style="stop-color:${o.c.fillA};stop-opacity:.10"/></linearGradient></defs>`;
+  for(let i=0;i<=4;i++){const v=mx*i/4;g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:${o.c.grid};stroke-width:1"/><text x="${pl-10}" y="${Y(v)+4}" text-anchor="end" style="fill:${o.c.txt};font-size:${fs}px;font-family:Lato,Arial,sans-serif">${nf0.format(v/1000)} T€</text>`;}
+  for(let i=0;i<=N;i+=5)g+=`<text x="${X(i)}" y="${H-10}" text-anchor="middle" style="fill:${o.c.txt};font-size:${fs}px;font-family:Lato,Arial,sans-serif">${i===0?"Heute":"Jahr "+i}</text>`;
+  const pw=wert.map((v,i)=>`${X(i).toFixed(1)} ${Y(v).toFixed(1)}`),pd=rs.map((v,i)=>`${X(i).toFixed(1)} ${Y(v).toFixed(1)}`);
+  g+=`<path d="M${pw.join(" L")} L${pd.slice().reverse().join(" L")} Z" style="fill:url(#${o.id});stroke:none"/>`;
+  g+=`<path d="M${pd.join(" L")}" style="fill:none;stroke:${o.c.rs};stroke-width:${o.lw||3.2};stroke-linejoin:round;stroke-linecap:round"/>`;
+  g+=`<path d="M${pw.join(" L")}" style="fill:none;stroke:${o.c.wert};stroke-width:${o.lw||3.2};stroke-linejoin:round;stroke-linecap:round"/>`;
+  const marks=[10,20,30];if(o.hz&&!marks.includes(o.hz))marks.push(o.hz);
+  marks.forEach(m=>{const x=X(m),a=Y(wert[m]),b=Y(rs[m]),hl=m===o.hz&&![10,20,30].includes(m);
+    g+=`<line x1="${x}" x2="${x}" y1="${a}" y2="${b}" style="stroke:${o.c.pill};stroke-width:1.4;stroke-dasharray:3 3"/>`;
+    const t=eur(r100(vm[m])),tw=t.length*fs*0.6+fs*1.6,th=fs*2.1,cy=(a+b)/2,cx=Math.min(Math.max(x,pl+tw/2),W-tw/2-2);
+    g+=`<rect x="${(cx-tw/2).toFixed(1)}" y="${(cy-th/2).toFixed(1)}" width="${tw.toFixed(1)}" height="${th.toFixed(1)}" rx="${(th/2).toFixed(1)}" style="fill:${o.c.pill};${hl?"stroke:#E8922A;stroke-width:2":""}"/><text x="${cx.toFixed(1)}" y="${(cy+fs*0.36).toFixed(1)}" text-anchor="middle" style="fill:${o.c.pillT};font-size:${fs}px;font-weight:900;font-family:Lato,Arial,sans-serif">${t}</text>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Vermögensaufbau: Immobilienwert, Restschuld und Vermögen über 30 Jahre">${g}</svg>`;
+}
+const WC_APP={wert:"var(--c-wert)",rs:"var(--c-rs)",fillA:"var(--c-verm)",grid:"var(--line)",txt:"var(--muted)",pill:"var(--pill)",pillT:"var(--pill-t)"};
+const WC_PAP={wert:"#1F2D4D",rs:"#C0392F",fillA:"#2E9A63",grid:"#E6E8ED",txt:"#5E6779",pill:"#17804F",pillT:"#FFFFFF"};
+
+function render(){
+  save();R=compute(S);const s=S,y1=R.yrs[0],h=horizon(s);
+  SLIDERS.forEach(x=>{const o=document.getElementById("o-"+x.k);if(o)o.textContent=x.f(Number(s[x.k])||0);});
+  document.getElementById("exampleTag").hidden=s.kunde!=="Beispielkunde";
+  document.getElementById("hTitle").innerHTML=heroTitle(s);
+  document.getElementById("hSub").textContent=heroSub(s,R)+(s.kunde&&s.kunde!=="Beispielkunde"?" · für "+s.kunde:"");
+  document.getElementById("kpis").innerHTML=kpisHTML(R,s);document.getElementById("kfoot").textContent=kfoot(s);
+  const P=payParts(R,s);document.getElementById("pay").innerHTML=payHTML(P,s);document.getElementById("payNote").textContent=payNote(P,s);
+  document.getElementById("mon").innerHTML=monRows(R,s);document.getElementById("monNote").innerHTML=monNote(R,s);
+  document.getElementById("finT").innerHTML=finRows(R,s);
+  document.getElementById("vChart").innerHTML=wealthChart(R,{id:"gA",c:WC_APP,hz:h,w:860,h:400,fs:13})+(R.depot?`<p class="sub" style="margin:8px 0 0">Grafik zeigt nur die Immobilie. Zusätzlich: Depot aus der Renovierungsrückstellung ${eur(R.depot)} (Kapital bleibt bei ${pct(s.depotZins,1)} Entnahme rechnerisch konstant).</p>`:"");
+  renderTable();
+  document.getElementById("fine").innerHTML=riskSmall(s,R)+`<h4>Rechtliche Hinweise</h4>`+fineHTML(s,R);
+  document.getElementById("dKnk").innerHTML=`<span>Nebenkosten: <b>${pct(R.knkPct)} = ${eur(R.knkTot)}</b>${R.knkVerk?" (trägt Verkäufer)":""}</span><span>Gesamtinvestition: <b>${eur(R.invest)}</b></span>`;
+  document.getElementById("dMiete").innerHTML=`<span>Bruttomietrendite: <b>${pct(R.brutto)}</b></span><span>Kaufpreisfaktor: <b>${nf2.format(R.faktor)}</b></span>`;
+  document.getElementById("dFin").innerHTML=`<span>Darlehen: <b>${eur(R.darlehen)}</b>${R.kfw?` (davon Förderung ${eur(R.kfw)})`:""}</span><span>Rate anfangs: <b>${eur(R.rate1,true)}</b> / Monat</span><span>Getilgt: <b>${R.payoff?"nach "+R.payoff+" Jahren":"nicht innerhalb 60 J."}</b></span>`;
+  document.getElementById("dSan").innerHTML=(R.san||R.moeb)?`${R.san?`<span>Sanierung: <b>${eur(R.san/R.sanJ)}</b> / Jahr, Jahre 1–${R.sanJ}</span>`:""}${R.moeb?`<span>Möbel: <b>${eur(R.moeb/R.moebJ)}</b> / Jahr, Jahre 1–${R.moebJ}</span>`:""}<span>Steuervorteil Jahr 1: <b>${sEur(y1.stEff/12)}</b> / Monat</span><span>Gebäude-AfA-Basis: <b>${eur(R.basis)}</b></span>`:(s.modus==="pro"?"<span>Betrag eintragen, wenn im Kaufpreis Sanierung oder Möbel ausgewiesen sind.</span>":"");
+  document.getElementById("dDep").innerHTML=R.depot?`<span>Entnahme: <b>${eur(R.depot*s.depotEntn/100/12)}</b> / Monat</span><span>Depot nach 10 J.: <b>${eur(R.depSim[9].K)}</b></span>${R.depEnd?`<span>aufgebraucht ca. Jahr <b>${R.depEnd}</b></span>`:""}`:"";
+  document.getElementById("dTax").innerHTML=R.flat?`<span>Pauschaler Grenzsteuersatz: <b>${pct(R.grenz,1)}</b></span><span>ohne Soli, Kirchensteuer und Progression</span>`:`<span>zvE geschätzt: <b>${eur(R.ZB.zve)}</b></span><span>Steuerlast ohne Immobilie: <b>${eur(R.tax0.tot)}</b></span><span>Grenzsteuersatz: <b>${pct(R.grenz,1)}</b> · Ø <b>${pct(R.ZB.zve?R.tax0.tot/R.ZB.zve*100:0,1)}</b></span>`;
+  document.getElementById("taxWrap").hidden=!s.steuerOn;document.getElementById("depWrap").hidden=!R.depot;document.getElementById("depBox").innerHTML=depotHTML(R,s);document.getElementById("renBox").innerHTML=renditeHTML(R,s);
+  document.getElementById("taxSub").textContent=R.flat?`Pauschaler Grenzsteuersatz ${pct(R.grenz,1)} wie in der Vorlage. Vereinfachte Rechnung ohne Progression, vom Steuerberater zu prüfen.`:`Einkommensteuertarif 2026, ${R.joint?"Zusammenveranlagung (Splitting)":"Einzelveranlagung"}, Solidaritätszuschlag${R.kist?", Kirchensteuer "+R.kist+" %":""}. Vereinfachte Schätzung, vom Steuerberater zu prüfen.`;
+  document.getElementById("taxTbl").innerHTML=taxTable(R,s);
+  document.getElementById("dAfa").innerHTML=`<span>AfA-Basis (Gebäudeanteil inkl. Nebenkosten): <b>${eur(R.basis)}</b></span><span>AfA Jahr 1: <b>${eur(y1.afa)}</b>${y1.sonder?` (davon Sonder-AfA ${eur(y1.sonder)})`:""}</span>${R.afaEnd?`<span>AfA verbraucht ab Jahr <b>${R.afaEnd}</b></span>`:""}`;
+}
+function rowsJahr(R,s,lim){
+  return R.yrs.slice(0,lim).map(r=>`<tr class="${r.y===R.zb?"zb":""}${r.y===Number(s.horizon)?" mark":""}"><td>${r.y}</td><td>${eur(r.miete/12)}</td><td>${eur(r.rate/12)}</td><td>${eur((r.verw+r.rueck)/12)}</td><td class="${cls(r.cfVor)}">${sEur(r.cfVor/12)}</td>${s.steuerOn?`<td>${sEur(r.stEff/12)}</td><td class="${cls(r.cfNach)}">${sEur(r.cfNach/12)}</td>`:""}<td>${eur(r.wert)}</td><td>${eur(r.rs)}</td><td class="${r.verm>0?"vg":"neg"}">${eur(r.verm)}</td></tr>`).join("");
+}
+function headJahr(s){return `<tr><th>Jahr</th><th>Miete/M.</th><th>Rate/M.</th><th>Kosten/M.</th><th>vor St./M.</th>${s.steuerOn?"<th>Steuer/M.</th><th>nach St./M.</th>":""}<th>Wert</th><th>Restschuld</th><th>Vermögen</th></tr>`;}
+function rowsTilg(R,lim){const out=[`<tr><td>0</td><td></td><td></td><td></td><td>${eur(R.darlehen,true)}</td><td>${eur(0,true)}</td></tr>`];let c=0;
+  for(const f of R.fin){if(f.y>lim)break;c+=f.tilg;out.push(`<tr class="${f.y===R.zb?"zb":""}"><td>${f.y}</td><td>${eur(f.rate,true)}</td><td>${eur(f.zins,true)}</td><td class="vg">${eur(f.tilg,true)}</td><td>${eur(f.rs,true)}</td><td>${eur(c,true)}</td></tr>`);if(f.rs<=0.01)break;}return out.join("");}
+const headTilg=`<tr><th>Jahr</th><th>Rate p. a.</th><th>Zins</th><th>Tilgung</th><th>Restschuld</th><th>Tilgung gesamt</th></tr>`;
+function rowsSt(R,lim){return R.yrs.slice(0,lim).map(r=>`<tr><td>${r.y}</td><td>${eur(r.miete)}</td><td>${eur(-r.zins)}</td><td>${eur(-r.verw)}</td><td>${eur(-r.afa)}</td>${R.san||R.moeb?`<td>${eur(-(r.sanY+r.moebY))}</td>`:""}<td class="${cls(r.stErg)}">${eur(r.stErg)}</td><td>${R.flat?"–":eur(r.tax1.zve)}</td><td>${R.flat?"–":eur(R.tax0.tot)}</td><td>${R.flat?"–":eur(r.tax1.tot)}</td><td class="${cls(r.stEff)}">${sEur(r.stEff)}</td></tr>`).join("");}
+const headSt0=`<tr><th>Jahr</th><th>Mieteinnahmen</th><th>Zinsen</th><th>Hausgeld</th><th>AfA</th>__SAN__<th>Ergebnis V+V</th><th>zvE mit Immobilie</th><th>Steuer ohne</th><th>Steuer mit</th><th>Steuereffekt</th></tr>`;
+const headStF=()=>headSt0.replace("__SAN__",R&&(R.san||R.moeb)?"<th>Sanierung/Möbel</th>":"");
+function taxTable(R,s){
+  if(R.flat){const y=R.yrs[0],r=(l,v,c)=>`<tr class="${c||""}"><td>${l}</td><td>${v}</td></tr>`;
+    return `<table><thead><tr><th>Position (Jahr 1)</th><th>Betrag</th></tr></thead><tbody>${r("Mieteinnahmen (steuerlich)",eur(y.stMiete))}${r("./. Zinsen",eur(-y.zins))}${r("./. Abschreibung Gebäude",eur(-y.afa))}${y.sanY?r(`./. Sanierung (verteilt auf ${R.sanJ} J.)`,eur(-y.sanY)):""}${y.moebY?r(`./. AfA Möbel (${R.moebJ} J.)`,eur(-y.moebY)):""}${r("./. absetzbare Kosten",eur(-y.verw))}${Number(s.finNK)?r("./. Finanzierungsnebenkosten",eur(-s.finNK)):""}${r("Ergebnis Vermietung & Verpachtung",eur(y.stErg),"mark")}${r("× Grenzsteuersatz pauschal",pct(R.grenz,1))}${r("Steuervorteil p. a.",sEur(y.stEff),"mark")}${r("Steuervorteil monatlich",sEur(y.stEff/12))}</tbody></table>`;}
+  const a=R.tax0,b=R.yrs[0].tax1,P=R.ZB.parts;
+  const row=(l,x,y,d)=>`<tr><td>${l}</td><td>${x}</td><td>${y}</td><td class="${d!=null?cls(d):""}">${d!=null?sEur(d):""}</td></tr>`;
+  let h="";
+  if(P)h+=row("Bruttoeinkommen",eur(P.br),eur(P.br))+row("– Arbeitnehmer-Pauschbetrag",eur(-P.an),eur(-P.an))+row("– Sozialversicherung (pauschal)",eur(-P.sv),eur(-P.sv))+row("– Sonderausgaben-Pauschbetrag",eur(-P.sa),eur(-P.sa));
+  h+=row("Einkünfte Vermietung (V+V)","–",eur(R.yrs[0].stErg));
+  h+=`<tr class="mark">${row("Zu versteuerndes Einkommen",eur(a.zve),eur(b.zve)).slice(4,-5)}</tr>`;
+  h+=row("Einkommensteuer",eur(a.e),eur(b.e),a.e-b.e)+row("Solidaritätszuschlag",eur(a.soli),eur(b.soli),a.soli-b.soli)+(R.kist?row("Kirchensteuer "+R.kist+" %",eur(a.ks),eur(b.ks),a.ks-b.ks):"");
+  h+=`<tr class="mark">${row("Steuerlast gesamt",eur(a.tot),eur(b.tot),a.tot-b.tot).slice(4,-5)}</tr>`;
+  return `<table><thead><tr><th>Position</th><th>ohne Immobilie</th><th>mit Immobilie</th><th>Ersparnis</th></tr></thead><tbody>${h}</tbody></table>`;
+}
+function renderTable(){
+  const s=S,el=document.getElementById("tbl");
+  document.querySelectorAll("[data-tab]").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===tab)));
+  if(tab==="jahr")el.innerHTML=`<table><thead>${headJahr(s)}</thead><tbody>${rowsJahr(R,s,30)}</tbody></table>`;
+  else if(tab==="tilg")el.innerHTML=`<table><thead>${headTilg}</thead><tbody>${rowsTilg(R,60)}</tbody></table>`;
+  else el.innerHTML=`<table><thead>${headStF()}</thead><tbody>${rowsSt(R,30)}</tbody></table>`;
+}
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;renderTable();}));
+
+function fineHTML(s,R){
+  const q=String(s.quelle).trim()?esc(s.quelle):"(nicht angegeben)";
+  return `<ol>
+<li><b>Unverbindliche Musterberechnung.</b> Alle Werte sind gerundete Circa-Werte auf Basis der genannten Annahmen. Sie sind keine Zusicherung, Garantie oder Prognose tatsächlicher Ergebnisse. Für die Richtigkeit der Annahmen wird keine Haftung übernommen.</li>
+<li><b>Keine Steuerberatung.</b> ${R.flat?`Die Steuerwirkung ist vereinfacht mit einem pauschalen Grenzsteuersatz von ${pct(R.grenz,1)} auf das Ergebnis aus Vermietung berechnet, ohne Progression, Solidaritätszuschlag und Kirchensteuer.`:""} ${R.flat?"<!--":""}Die Steuerwirkung ist vereinfacht nach dem Einkommensteuertarif 2026 (§ 32a EStG) inklusive Solidaritätszuschlag${R.kist?" und Kirchensteuer":""} berechnet. Das zu versteuernde Einkommen (ca. ${eur(R.ZB.zve)}) ist ${R.ZB.parts?"aus dem Bruttoeinkommen pauschal geschätzt (Arbeitnehmer-Pauschbetrag, Sozialversicherungsbeiträge pauschal, ohne weitere Werbungskosten, Sonderausgaben, Kinderfreibeträge oder andere Einkünfte)":"vom Berater übernommen"} und für alle Jahre gleichbleibend angenommen.${R.flat?"-->":""} Persönliche Verhältnisse können zu anderen Ergebnissen führen. Ob und in welcher Höhe Abschreibungen zulässig sind (Kaufpreisaufteilung, Restnutzungsdauer-Gutachten, Voraussetzungen der Sonder- bzw. degressiven AfA), <b>muss vor der Kaufentscheidung von einem Steuerberater geprüft werden.</b> Der Berater ist zur Steuerberatung nicht befugt.</li>
+<li><b>Objektdaten.</b> Kaufpreis, Miete, Hausgeld, Wohnfläche und förderrelevante Angaben stammen aus den Unterlagen von: <b>${q}</b>. Sie wurden auf Plausibilität, nicht auf Richtigkeit geprüft.</li>
+<li><b>Finanzierung.</b> ${R.pro?`Zins und Tilgung gelten nur für die Zinsbindung von ${R.zb} Jahren. Danach ist ein Anschlusszins von ${pct(s.anschlusszins)} angenommen.`:"Der Sollzins ist vereinfacht für die gesamte Laufzeit angesetzt, gilt tatsächlich aber nur für die vereinbarte Zinsbindung."} Der tatsächliche Zins kann deutlich höher liegen. Verbindliche Konditionen nennt ausschließlich die finanzierende Bank.</li>
+<li><b>Miete und Kosten.</b> Leerstand, Mietausfall, Sonderumlagen, Instandhaltung über die Rücklage hinaus und Kostensteigerungen können das Ergebnis verschlechtern. Mieterhöhungen sind rechtlich begrenzt und nicht garantiert.</li>
+<li><b>Wertentwicklung.</b> Die Wertsteigerung von ${pct(s.wert)} p. a. ist eine Annahme. Immobilienwerte können auch fallen. Das Vermögen ist rechnerisch (Immobilienwert minus Restschuld), vor Verkaufskosten und Steuern.</li>
+<li><b>Zusagen Dritter.</b> Zusagen von Bauträgern oder Vertriebsgesellschaften (z. B. Zinsübernahmen, Mietgarantien) sind in dieser Berechnung nicht enthalten, sofern sie nicht ausdrücklich gesondert ausgewiesen sind. Verbindlich sind sie nur, wenn sie im notariellen Kaufvertrag vereinbart sind.</li>
+${R.subM||R.depot?`<li><b>Subvention und Depot.</b> Mietsubventionen des Verkäufers sind zeitlich und betragsmäßig begrenzt und nur verbindlich, wenn sie vertraglich vereinbart sind. Depotanlagen unterliegen Kursschwankungen; die angenommene Entnahme ist keine Garantie.</li>`:""}<li>Diese Berechnung ersetzt keine Rechts-, Steuer- oder Finanzierungsberatung.</li></ol>`;
+}
+
+/* ---------- logo ---------- */
+function embSVG(){return `<svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true"><circle cx="50" cy="50" r="47" fill="#1F2D4D" stroke="#F39C2C" stroke-width="3"/><path d="M50 30 L14 22 L14 30 Z M50 30 L86 22 L86 30 Z" fill="#F39C2C" opacity=".55"/><path d="M44 36 L56 36 L60 80 L40 80 Z" fill="#FFFFFF"/><path d="M42.6 50 L57.4 50 L58.2 58 L41.8 58 Z M41.2 66 L58.8 66 L59.5 74 L40.5 74 Z" fill="#F39C2C"/><rect x="43" y="25" width="14" height="10" rx="1.5" fill="#F39C2C"/><path d="M41 25 L50 17 L59 25 Z" fill="#FFFFFF"/><rect x="40" y="35" width="20" height="2.5" fill="#FFFFFF"/><path d="M22 84 Q36 78 50 84 T78 84" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity=".8"/></svg>`;}
+let logoURL=null;try{logoURL=localStorage.getItem("zl-immorechner-logo");}catch(e){}if(CL)logoURL=CL.logo||null;
+function logoHTML(){return logoURL?`<img src="${logoURL}" alt="Zukunftslotsen">`:embSVG();}
+function paintLogo(){document.getElementById("embApp").innerHTML=logoHTML();}
+document.getElementById("btnLogo").onclick=()=>document.getElementById("logoFile").click();
+document.getElementById("logoFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{logoURL=rd.result;try{localStorage.setItem("zl-immorechner-logo",logoURL);}catch(err){}paintLogo();toast("Logo hinterlegt");};rd.readAsDataURL(f);};
+
+/* ---------- photo ---------- */
+let photoURL=null;try{photoURL=localStorage.getItem(KEY+"-photo");}catch(e){}
+try{if(!localStorage.getItem(KEY)&&!photoURL)photoURL=GF_PHOTO;}catch(e){if(!photoURL)photoURL=GF_PHOTO;}if(CL)photoURL=CL.photo||null;
+
+function paintPhoto(){const b=document.getElementById("photoBox");b.hidden=!photoURL;if(photoURL)document.getElementById("photoImg").src=photoURL;}
+document.getElementById("btnPhoto").onclick=()=>document.getElementById("photoFile").click();
+/* ---------- Exposé ---------- */
+let expoURL=null,expoName="",expoBlobURL=null;
+function idb(mode,fn){return new Promise((res,rej)=>{try{const r=indexedDB.open("zl-immorechner",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onerror=()=>rej(r.error);r.onsuccess=()=>{try{const tx=r.result.transaction("kv",mode);const q=fn(tx.objectStore("kv"));tx.oncomplete=()=>res(q&&q.result);tx.onerror=()=>rej(tx.error);}catch(e){rej(e);}};}catch(e){rej(e);}});}
+function dataToBlob(d){const i=d.indexOf(",");const bin=atob(d.slice(i+1));const u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);return new Blob([u],{type:"application/pdf"});}
+function paintExpo(){const a=document.getElementById("expoLink");if(expoBlobURL){URL.revokeObjectURL(expoBlobURL);expoBlobURL=null;}a.hidden=!expoURL;if(expoURL){try{expoBlobURL=URL.createObjectURL(dataToBlob(expoURL));a.href=expoBlobURL;}catch(e){a.hidden=true;}a.setAttribute("download",expoName||"Expose.pdf");if(CL)a.removeAttribute("download");}}
+function setExpo(url,name){expoURL=url;expoName=name||"";paintExpo();if(CL)return;idb("readwrite",st=>url?st.put({url:url,name:expoName},KEY+"-expo"):st.delete(KEY+"-expo")).catch(()=>{});}
+if(CL){expoURL=CL.expo||null;expoName=CL.expoName||"";}else{idb("readonly",st=>st.get(KEY+"-expo")).then(v=>{if(v&&v.url&&!expoURL){expoURL=v.url;expoName=v.name||"";paintExpo();}}).catch(()=>{});}
+let pdfjsP=null;
+function loadPdfjs(){if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);if(!pdfjsP)pdfjsP=new Promise((res,rej)=>{const sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";sc.onload=()=>{const l=window.pdfjsLib;if(!l)return rej(new Error("pdfjs"));l.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";res(l);};sc.onerror=()=>{pdfjsP=null;rej(new Error("pdfjs"));};document.head.appendChild(sc);});return pdfjsP;}
+async function pdfCover(buf){const l=await loadPdfjs();const doc=await l.getDocument({data:buf}).promise;const pg=await doc.getPage(1);const v0=pg.getViewport({scale:1});const sc=Math.min(3,1400/Math.max(v0.width,v0.height));const v=pg.getViewport({scale:sc});const c=document.createElement("canvas");c.width=Math.round(v.width);c.height=Math.round(v.height);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:x,viewport:v}).promise;doc.destroy&&doc.destroy();return c.toDataURL("image/jpeg",0.82);}
+function setPhoto(u){photoURL=u;try{u?localStorage.setItem(KEY+"-photo",u):localStorage.removeItem(KEY+"-photo");}catch(err){}paintPhoto();}
+function readAs(f,how){return new Promise((res,rej)=>{const rd=new FileReader();rd.onload=()=>res(rd.result);rd.onerror=()=>rej(rd.error);rd["readAs"+how](f);});}
+document.getElementById("photoFile").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+  if(f.type==="application/pdf"||/\.pdf$/i.test(f.name)){
+    toast("Exposé wird gelesen …");
+    try{const url=await readAs(f,"DataURL");setExpo(url,f.name);
+      try{setPhoto(await pdfCover(await f.arrayBuffer()));toast(f.size>15e6?"Exposé hinzugefügt – Achtung, große Datei ("+Math.round(f.size/1e6)+" MB)":"Exposé hinzugefügt");}
+      catch(err){console.error(err);toast("Exposé hinzugefügt (Titelbild konnte nicht gelesen werden)");}
+    }catch(err){toast("Exposé konnte nicht gelesen werden");}
+    return;}
+  const im=new Image();im.onload=()=>{const sc=Math.min(1,1400/Math.max(im.width,im.height));const c=document.createElement("canvas");c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);c.getContext("2d").drawImage(im,0,0,c.width,c.height);setPhoto(c.toDataURL("image/jpeg",0.82));toast("Foto hinzugefügt");};im.src=await readAs(f,"DataURL");};
+document.getElementById("photoDel").onclick=()=>{setPhoto(null);setExpo(null,"");toast("Exposé und Foto entfernt");};
+
+/* ---------- presentation ---------- */
+document.getElementById("btnPresent").onclick=function(){const on=document.body.classList.toggle("present");this.setAttribute("aria-pressed",String(on));this.textContent=on?"Berateransicht":"Kundenansicht";};
+
+/* ---------- PDF ---------- */
+function rpHead(n,label,title,sub){return `<div class="rh"><div class="top"><div class="emb">${logoHTML()}</div><div><div class="wm">ZUKUNFTSL<b class="dia">◆</b>TSEN</div><div class="claim">Immobilien · Kapitalanlage</div></div><span class="tag">Seite ${n} · ${label}</span></div><h1>${title}</h1>${sub?`<p>${esc(sub)}</p>`:""}</div>`;}
+function rpFoot(i,n){return `<div class="rf"><div class="d">Unverbindliche Musterberechnung. Keine Garantie, keine Steuer- oder Rechtsberatung. Steuerliche Angaben sind vom Steuerberater zu prüfen. Zusagen Dritter sind nur bei notarieller Vereinbarung verbindlich.</div><div style="white-space:nowrap">Seite ${i} von ${n}</div></div>`;}
+function tcard(title,rows,tot){return `<div class="tc"><h3>${title}</h3><div class="rows">${rows.map(r=>`<div><span>${r[0]}</span><span>${r[1]}</span></div>`).join("")}${tot?`<div class="tot"><span>${tot[0]}</span><span>${tot[1]}</span></div>`:""}</div></div>`;}
+function buildReport(){
+  const s=S,y1=R.yrs[0],h=horizon(s),sub=heroSub(s,R),T=s.steuerOn;
+  const pages=[];
+  /* 1 · Übersicht */
+  pages.push(["Übersicht",heroTitle(s),sub,`
+   ${photoURL?`<div class="ph"><img src="${photoURL}" alt=""></div>`:""}
+   <div class="who"><div><div class="k">Erstellt für</div><div class="n">${esc(s.kunde||"")}</div></div><div style="text-align:right;color:#5E6779;font-size:10.5px">Berater: <b style="color:#151F36">${esc(s.berater||"")}</b><br>Stand: ${dDE(s.datum)}<br>Objektdaten laut: ${esc(s.quelle||"nicht angegeben")}</div></div>
+   <div class="two">${tcard("Objekt & Miete",[["Kaufpreis",eur(R.KP,true)],["Wohnfläche",s.wfl?nf0.format(s.wfl)+" m²":"–"],["Preis pro m²",R.qm?eur(R.qm):"–"],["Kaltmiete / Monat",eur(s.miete,true)],["Hausgeld nicht umlagef. / Monat",eur(s.verw,true)],["Rücklage / Monat",eur(s.rueck,true)],["Mieterhöhung",R.stuf?`${s.stufN} × ${pct(s.stufP,1)}, alle ${s.stufMon} Mon.`:(Number(s.mInt)>0?pct(s.mInc,1)+" alle "+s.mInt+" J.":"keine")],...(R.subM?[["Ist-Miete / Monat",eur(s.istMiete,true)],["Subvention gesamt",eur(R.stuf?R.subPot:s.subBetrag,true)],["Subvention reicht bis",`ca. ${Math.floor(R.subMonths)} Monate`]]:[]),...(R.depot?[["Depot (Rückstellung)",eur(R.depot)+" · "+pct(s.depotZins,1)+" Ertrag / "+pct(s.depotEntn,1)+" Entn."]]:[]),...(R.pro?[["Mietausfall",pct(R.ausP,1)],["Kostensteigerung p. a.",pct(R.kstP,1)]]:[])],["Bruttomietrendite",pct(R.brutto)])}
+   ${tcard("Kaufnebenkosten",R.knkRows.map(r=>[r[0].replace("Grunderwerbsteuer","Grunderwerbst.")+" · "+pct(r[1]),eur(R.KP*r[1]/100,true)]).concat([["Summe · "+pct(R.knkPct),eur(R.knkTot,true)]].concat(R.knkVerk?[["davon trägt Verkäufer",eur(-R.knkTot,true)]]:[])),["Gesamtinvestition",eur(R.invest)])}</div>
+   <div class="two">${tcard("Steuerliche Annahmen*",[R.flat?["Steuersatz","pauschal "+pct(R.grenz,1)]:["zvE geschätzt",T?eur(R.ZB.zve):"nicht ausgewiesen"],["Grenzsteuersatz",T?pct(R.grenz,1):"–"],["Veranlagung",R.joint?"Zusammen":"Einzeln"],["Gebäudeanteil",pct(s.geb,0)],["AfA-Methode",s.afaTyp==="degressiv"?"degressiv 5 %":"linear "+pct(s.afa)],["Sonder-AfA § 7b",s.sonderOn?"ja, Jahre 1–4":"nein"],...(R.san?[["Sanierung",eur(R.san)+" über "+R.sanJ+" J."]]:[]),...(R.moeb?[["Möbel",eur(R.moeb)+" über "+R.moebJ+" J."]]:[])])}
+   ${tcard("Entwicklung",[["Wertsteigerung p. a.",pct(s.wert)],["Rechenmodus",R.pro?"Erweitert":"Standard"],["Zins",R.pro?pct(s.zins)+" für "+R.zb+" J., dann "+pct(s.anschlusszins):pct(s.zins)+" konstant"],[`Vermögen nach 10 J.${R.depot?" inkl. Depot":""}`,eur(r100(R.yrs[9].verm+R.yrs[9].depCap))],[`Vermögen nach 20 J.${R.depot?" inkl. Depot":""}`,eur(r100(R.yrs[19].verm+R.yrs[19].depCap))],[`Vermögen nach 30 J.${R.depot?" inkl. Depot":""}`,eur(r100(R.yrs[29].verm+R.yrs[29].depCap))]])}</div>
+   <div style="font-size:8.5px;color:#5E6779">* vom Steuerberater zu prüfen</div>`]);
+  /* 2 · Kapitalanlage (Kernblatt) */
+  const P=payParts(R,s);
+  pages.push(["Kapitalanlage",heroTitle(s),sub,`
+   <div class="kpis">${kpisHTML(R,s)}</div><div class="kfoot">${kfoot(s)}</div>
+   <div class="sec">Wer bezahlt deine Immobilie?</div>
+   <div class="pay4">${payHTML(P,s,true)}</div><div class="paynote">${esc(payNote(P,s))}</div>
+   <div class="two"><div class="tc"><h3>Monatliche Betrachtung</h3><div class="rows">${monRows(R,s)}</div></div><div class="tc"><h3>Finanzierung</h3><div class="rows">${finRows(R,s)}</div></div></div>
+   <div class="sec">Dein Vermögensaufbau</div>
+   <div class="card"><div class="legend"><span><i style="background:#1F2D4D"></i>Immobilienwert</span><span><i style="background:#C0392F"></i>Restschuld</span><span><i style="background:#2E9A63"></i>dein Vermögen${R.depot?` (nur Immobilie, zzgl. Depot ${eur(R.depot)})`:""}</span></div>${wealthChart(R,{id:"gP",c:WC_PAP,hz:h,w:720,h:(R.subM||R.depot)?150:235,fs:10.5,pl:52,lw:2.8})}</div>`]);
+  if(R.depot)pages.push(["Depot","Dein <i>Depot</i>","Renovierungsrückstellung als Einmalzahlung · Simulation über 10 Jahre",depotHTML(R,s,true).replace('<div class="two">','<div style="display:grid;gap:12px">')+renditeHTML(R,s)]);
+  /* 4 · Steuer */
+  if(T)pages.push(["Steuer","Deine <i>Steuerwirkung</i>","Vereinfachte Schätzung nach Einkommensteuertarif 2026 · vom Steuerberater zu prüfen",`
+   <div class="card">${taxTable(R,s)}</div>
+   <div class="sec">Einkünfte aus Vermietung und Steuereffekt</div>
+   <div class="card"><table class="dense"><thead>${headStF()}</thead><tbody>${rowsSt(R,30)}</tbody></table></div>`]);
+  if(!R.depot)pages.push(["Rendite","Deine <i>Rendite</i>","Eigenkapitalrendite über "+R.REN.HZ+" Jahre",renditeHTML(R,s)]);
+  /* 5 · Entwicklung */
+  pages.push(["Entwicklung","Deine <i>Vermögensentwicklung</i>","Jahr für Jahr, Durchschnittswerte pro Monat",`
+   <div class="card"><table class="dense"><thead>${headJahr(s)}</thead><tbody>${rowsJahr(R,s,30)}</tbody></table></div>`]);
+  /* 6 · Tilgung */
+  const lim=Math.min(R.payoff||40,40),zt=R.fin.slice(0,lim).map(f=>({v:[f.zins,f.tilg],lab:(f.y%5===0||f.y===1)?String(f.y):""}));
+  pages.push(["Finanzierung","Dein <i>Tilgungsplan</i>","Annuitätendarlehen · Zins und Tilgung pro Jahr",`
+   <div class="card"><div class="legend"><span><i style="background:#1F2D4D"></i>Zins</span><span><i style="background:#2E9A63"></i>Tilgung</span></div>${barChart(zt,Object.assign({w:720,h:105,fs:9,c:["#1F2D4D","#2E9A63"],mark:R.pro&&R.zb<lim?R.zb:null,markL:"Ende Zinsbindung"},PAP))}</div>
+   <div class="card"><table class="dense xs"><thead>${headTilg}</thead><tbody>${rowsTilg(R,lim)}</tbody></table>${(R.payoff||61)>40?`<div style="font-size:8.5px;color:#5E6779;margin-top:4px">Darstellung bis Jahr 40.${R.payoff?" Vollständig getilgt nach "+R.payoff+" Jahren.":""}</div>`:""}</div>`]);
+  /* 7 · Hinweise */
+  pages.push(["Hinweise","Wichtige <i>Hinweise</i>","Bitte sorgfältig lesen",`
+   <div class="card fineP">${riskSmall(s,R)}<h4>Rechtliche Hinweise</h4>${fineHTML(s,R)}</div>
+   ${Number(s.zusBetrag)>0?`<div class="rk"><div class="${s.zusNotar?"":"crit"}"><b>Gesondert ausgewiesen</b>${esc(s.zusText)}: ${eur(s.zusBetrag)} pro Monat für ${s.zusDauer} Jahre, ${s.zusNotar?"laut Angabe notariell vereinbart":"nicht notariell vereinbart"}. In der Berechnung nicht enthalten.</div></div>`:""}
+   <div class="card" style="font-size:10.5px">Ich habe diese Berechnung einschließlich der Hinweise erhalten und zur Kenntnis genommen. Mir ist bekannt, dass die steuerlichen Angaben von meinem Steuerberater zu prüfen sind.</div>
+   <div class="sig"><div>Ort, Datum</div><div>Unterschrift Kunde</div><div>Unterschrift Berater</div></div>`]);
+  const n=pages.length;
+  const el=document.getElementById("report");
+  el.innerHTML=pages.map((p,i)=>`<div class="rp">${rpHead(i+1,p[0],p[1],p[2])}<div class="rb">${p[3]}</div>${rpFoot(i+1,n)}</div>`).join("");
+  return el;
+}
+let pdfBusy=false;
+document.getElementById("btnPdf").onclick=async function(){
+  if(pdfBusy)return;pdfBusy=true;const b=this;b.disabled=true;b.textContent="PDF wird erstellt…";
+  try{
+    if(!window.html2canvas||!window.jspdf)throw new Error("libs");
+    if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+    const el=buildReport();const pdf=new window.jspdf.jsPDF({unit:"mm",format:"a4",compress:true});
+    const pages=el.querySelectorAll(".rp");
+    for(let i=0;i<pages.length;i++){const c=await html2canvas(pages[i],{scale:2.2,backgroundColor:"#ffffff",useCORS:true,logging:false});if(i)pdf.addPage();pdf.addImage(c.toDataURL("image/jpeg",0.9),"JPEG",0,0,210,297);}
+    const blob=pdf.output("blob");const name=`Immobilien-Kalkulation_${(S.kunde||"Kunde").replace(/[^\wäöüÄÖÜß-]+/g,"_")}_${S.datum||""}.pdf`;
+    el.innerHTML="";
+    let dl=null;try{dl=window.claude&&window.claude.use?await window.claude.use("downloads"):null;}catch(e){dl=null;}
+    if(dl){try{await dl.save({filename:name,data:blob});toast("PDF gespeichert");}catch(e){toast(e&&e.code==="declined"?"Speichern abgebrochen":"PDF konnte nicht gespeichert werden");}}
+    else{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);toast("PDF erstellt");}
+  }catch(e){console.error(e);toast("PDF konnte nicht erstellt werden. Bitte Seite neu laden.");}
+  finally{pdfBusy=false;b.disabled=false;b.textContent="PDF erstellen";}
+};
+
+let tt;function toast(m){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t);}t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600);}
+
+/* ---------- Kundenversion ---------- */
+const CLIENT_CSS="body.client #btnPresent,body.client #btnLogo,body.client #btnPhoto,body.client #btnClient,body.client #photoDel,body.client #exampleTag,body.client #inputs{display:none!important}";
+function buildClientHTML(){
+  const a=SRC.indexOf("\nconst LOU=Object"),b=a<0?-1:SRC.indexOf("\nconst KEY=",a);
+  if(!SRC||!PRISTINE)throw new Error("src");
+  const js=(a<0||b<0)?SRC:SRC.slice(0,a)+"\nconst GF=Object.assign({},DEFAULTS),GF_PHOTO=null,PRESETS={};"+SRC.slice(b);
+  const css=Array.from(document.querySelectorAll("style")).map(x=>x.textContent).join("\n")+"\n"+CLIENT_CSS;
+  const data=JSON.stringify({S:S,photo:photoURL||null,logo:logoURL||null,expo:expoURL||null,expoName:expoName||""}).replace(/</g,"\\u003c");
+  const title="Immobilien-Kalkulation"+(S.kunde?" für "+S.kunde:"")+(S.ort?" · "+S.ort:"");
+  const sc="scr"+"ipt";
+  return "<!doctype html>\n<html lang=\"de\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>"+esc(title)+"</title>"
+   +"<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Lato:wght@400;700;900&family=Caveat:wght@500;700&display=swap\">"
+   +"<style>"+css+"</style></head><body class=\"present client\">\n"+PRISTINE+"\n"
+   +"<"+sc+" src=\"https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js\"></"+sc+">"
+   +"<"+sc+" src=\"https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js\"></"+sc+">"
+   +"<"+sc+">window.ZL_CLIENT="+data+";</"+sc+">\n"
+   +"<"+sc+">"+js.replace(/<\/(script)/gi,"<\\/$1")+"</"+sc+">\n</body></html>";
+}
+document.getElementById("btnClient").onclick=async function(){
+  const b=this;if(b.disabled)return;b.disabled=true;
+  try{
+    const html=buildClientHTML();
+    const clean=t=>String(t||"").replace(/[^\wäöüÄÖÜß-]+/g,"_").replace(/^_+|_+$/g,"");
+    const name="Kalkulation_"+(clean(S.kunde)||"Kunde")+(S.ort?"_"+clean(S.ort):"")+".html";
+    const blob=new Blob([html],{type:"text/html"});
+    let dl=null;try{dl=window.claude&&window.claude.use?await window.claude.use("downloads"):null;}catch(e){dl=null;}
+    if(dl){try{await dl.save({filename:name,data:blob});toast("Kundenversion gespeichert");}catch(e){toast(e&&e.code==="declined"?"Speichern abgebrochen":"Kundenversion konnte nicht gespeichert werden");}}
+    else{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);toast("Kundenversion erstellt");}
+  }catch(e){console.error(e);toast("Kundenversion konnte nicht erstellt werden");}
+  finally{b.disabled=false;}
+};
+
+window.__compute=compute;window.__buildReport=()=>{R=compute(S);return buildReport();};
+if(CL)document.body.classList.add("present","client");
+buildInputs();paintLogo();paintPhoto();paintExpo();syncControls(true);render();
+})();
+</script>
+
+</body></html>
