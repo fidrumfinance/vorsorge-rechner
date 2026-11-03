@@ -986,7 +986,20 @@ document.getElementById("btnPdf").onclick=async function(){
 let tt;function toast(m){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t);}t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600);}
 
 /* ---------- Kundenversion ---------- */
-const CLIENT_CSS="body.client #btnPresent,body.client #btnLogo,body.client #btnPhoto,body.client #btnClient,body.client #photoDel,body.client #exampleTag,body.client #inputs{display:none!important}";
+function snapshot(){
+  const parts=[];
+  ["header.band",".wrap"].forEach(q=>{const o=document.querySelector(q);if(!o)return;const c=o.cloneNode(true);
+    const oi=o.querySelectorAll("input,select"),ci=c.querySelectorAll("input,select");
+    ci.forEach((el,i)=>{const src=oi[i];if(!src)return;if(el.tagName==="SELECT"){Array.from(el.options).forEach((op,k)=>{if(k===src.selectedIndex)op.setAttribute("selected","");else op.removeAttribute("selected");});}else if(el.type==="checkbox"){src.checked?el.setAttribute("checked",""):el.removeAttribute("checked");}else el.setAttribute("value",src.value);});
+    const inp=c.querySelector("#inputs");if(inp)inp.innerHTML="";
+    const ex=c.querySelector("#expoLink");if(ex){ex.setAttribute("hidden","");ex.setAttribute("href","#");}
+    c.querySelectorAll(".toast").forEach(t=>t.remove());
+    parts.push(c.outerHTML);});
+  const rp=document.createElement("div");rp.id="report";rp.setAttribute("aria-hidden","true");parts.push(rp.outerHTML);
+  return parts.join("\n");
+}
+const NOJS_NOTE='<div id="nojsNote" style="background:#FBEEDC;color:#1F2D4D;font:700 13px/1.4 Lato,Arial,sans-serif;padding:10px 16px;text-align:center">Tipp: Am Computer oder Android-Handy im Browser öffnen, dann lassen sich die Schieberegler bewegen und das Exposé öffnen.</div>';
+const CLIENT_CSS="body.client #btnPresent,body.client #btnLogo,body.client #btnPhoto,body.client #btnClient,body.client #photoDel,body.client #exampleTag,body.client #inputs,body.client:not(.js) #btnPdf{display:none!important}";
 function buildClientHTML(){
   const a=SRC.indexOf("\nconst LOU=Object"),b=a<0?-1:SRC.indexOf("\nconst KEY=",a);
   if(!SRC||!PRISTINE)throw new Error("src");
@@ -997,7 +1010,7 @@ function buildClientHTML(){
   const sc="scr"+"ipt";
   return "<!doctype html>\n<html lang=\"de\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>"+esc(title)+"</title>"
    +"<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Lato:wght@400;700;900&family=Caveat:wght@500;700&display=swap\">"
-   +"<style>"+css+"</style></head><body class=\"present client\">\n"+PRISTINE+"\n"
+   +"<style>"+css+"</style></head><body class=\"present client\">\n"+NOJS_NOTE+snapshot()+"\n"
    +"<"+sc+" src=\"https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js\"></"+sc+">"
    +"<"+sc+" src=\"https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js\"></"+sc+">"
    +"<"+sc+">window.ZL_CLIENT="+data+";</"+sc+">\n"
@@ -1018,7 +1031,7 @@ document.getElementById("btnClient").onclick=async function(){
 };
 
 window.__compute=compute;window.__buildReport=()=>{R=compute(S);return buildReport();};
-if(CL)document.body.classList.add("present","client");
+if(CL){document.body.classList.add("present","client","js");const nj=document.getElementById("nojsNote");if(nj)nj.remove();}
 buildInputs();paintLogo();paintPhoto();paintExpo();syncControls(true);render();
 })();
 </script>
