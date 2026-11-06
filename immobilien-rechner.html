@@ -149,21 +149,6 @@ details.grp[open]>summary::after{content:"–"}
 .tc .rows>div.sub span:first-child{padding-left:14px}
 .tc .rows>div.tot2{font-weight:700;background:var(--surface-2)}.tc .rows>div.tot2.r span:last-child{color:var(--nred)}.tc .rows>div.tot2.gg span:last-child{color:var(--grn)}
 .tc .rows>div.tot.r{background:var(--soft);color:var(--soft-ink)}.tc .rows>div.tot.r span:last-child{color:var(--nred)}.tc .rows>div.tot.gg{background:var(--grn-soft);color:var(--grn)}
-.gw{overflow-x:auto}
-.gtab{width:100%;border-collapse:collapse;font-size:13.5px}
-.gtab th{position:static;background:var(--surface-2);color:var(--muted);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;text-align:right;padding:9px 8px;border-bottom:1px solid var(--line)}
-.gtab td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.gtab th:first-child,.gtab td:first-child{text-align:left;white-space:normal;padding-left:18px;min-width:96px}
-.gtab th:last-child,.gtab td:last-child{padding-right:18px}
-.gtab td:first-child .mo{font-size:11px}
-.gtab td.p{color:var(--grn)}.gtab td.n{color:var(--nred)}
-.gtab .mo{display:block;font-size:11px;color:var(--muted);margin-top:1px}
-.gtab tr.sum td{font-weight:700;color:var(--grn);background:var(--grn-soft)}
-.gtab tr.tot td{background:var(--soft);color:var(--soft-ink);font-family:var(--font-d);font-weight:800;font-size:clamp(14px,1.5vw,17px);border-bottom:0}
-.gtab tr.tot td.p{color:var(--grn)}.gtab tr.tot td.n{color:var(--nred)}
-.gtab tr.x td{font-size:12.5px;color:var(--muted)}
-@media (max-width:480px){.gtab{font-size:11.5px}.gtab td,.gtab th{padding:8px 3px}.gtab th:first-child,.gtab td:first-child{padding-left:10px;min-width:70px}.gtab th:last-child,.gtab td:last-child{padding-right:12px}.gtab .mo{font-size:10px}.gtab th{letter-spacing:.03em}.gtab tr.tot td{font-size:12.5px}}
-.rp .gtab{font-size:10.5px}.rp .gtab th{background:#F5F6F9;color:#5E6779;font-size:7.6px;padding:5px 8px;border-bottom:1px solid #E6E8ED}.rp .gtab td{padding:5px 8px;border-bottom:1px solid #E6E8ED;color:#151F36}.rp .gtab th:first-child,.rp .gtab td:first-child{padding-left:14px}.rp .gtab td.p{color:#17804F}.rp .gtab td.n{color:#F2475A}.rp .gtab .mo{font-size:8px;color:#5E6779}.rp .gtab tr.sum td{background:#E2F2E9;color:#17804F}.rp .gtab tr.tot td{background:#FBEEDC;color:#1F2D4D;font-size:13px}.rp .gtab tr.tot td.p{color:#17804F}.rp .gtab tr.tot td.n{color:#F2475A}.rp .gtab tr.x td{font-size:9px;color:#5E6779}
 .tc .note{font-size:11.5px;color:var(--muted);padding:10px 20px 14px}
 .card{background:var(--surface);border-radius:16px;padding:20px;min-width:0;box-shadow:0 1px 2px #1F2D4D14,0 8px 20px -14px #1F2D4D30}
 .card .sub{color:var(--muted);font-size:13px;margin:0 0 12px}
@@ -348,7 +333,7 @@ td.vg{color:var(--grn);font-weight:700}
     </section>
 
     <h2 class="sec" style="margin-bottom:-6px">Deine Rendite</h2>
-    <div class="two"><div id="renBox"></div><div id="geldBox"></div></div>
+    <div class="two"><div id="renBox"></div><div></div></div>
 
     <div id="depWrap">
       <h2 class="sec" style="margin-bottom:14px">Dein Depot aus der Renovierungsrückstellung</h2>
@@ -769,26 +754,6 @@ function renditeHTML(R,s){
    <div class="tot gg"><span>Eigenkapitalrendite</span><span>${irrTxt}</span></div></div>
    <div class="note">Interner Zinsfuß über ${E.HZ} Jahre: jede Zuzahlung zählt als Einsatz in ihrem Jahr, am Ende steht das rechnerische Vermögen (Immobilienwert minus Restschuld${R.depot?" plus Depot":""}) vor Verkaufskosten und Steuern. ${R.knkVerk?"Kaufnebenkosten trägt laut Annahme der Verkäufer. ":""}Annahmen, keine Garantie.</div></div>`;
 }
-function geldHTML(R,s){
-  const Y=[1,5,10].filter(y=>y<=R.yrs.length),T=s.steuerOn;
-  const cols=Y.map(y=>{const r=R.yrs[y-1],w0=y>1?R.yrs[y-2].wert:R.KP,d=R.depot&&R.depSim&&R.depSim[y-1]?R.depSim[y-1]:null;
-    const cf=T?r.cfNach:r.cfVor,tilg=r.tilg,wst=r.wert-w0,dep=d?d.g-d.tx:0,zu=tilg+wst+dep;return {y,cf,tilg,wst,dep,zu,net:zu+cf};});
-  const smEur=(x)=>(x<-0.5?"−":x>0.5?"+":"")+nf0.format(Math.abs(x))+" €";
-  const v=(x,cls)=>`<td class="${cls||(x>0.5?"p":x<-0.5?"n":"")}">${smEur(x,false)}</td>`;
-  const tr=(l,f,c)=>`<tr${c?` class="${c}"`:""}><td>${l}</td>${cols.map(f).join("")}</tr>`;
-  const anyNeg=cols.some(c=>c.cf<-0.5);
-  let h=`<div class="tc"><h3>So entwickelt sich dein Geld · pro Jahr</h3><div class="gw"><table class="gtab"><thead><tr><th></th>${cols.map(c=>`<th>${c.y}. Jahr</th>`).join("")}</tr></thead><tbody>`;
-  h+=tr(anyNeg?`Deine Zuzahlung${T?`<span class="mo">nach Steuern</span>`:""}`:`Überschuss${T?`<span class="mo">nach Steuern</span>`:""}`,c=>`<td class="${c.cf<-0.5?"n":c.cf>0.5?"p":""}">${smEur(c.cf,false)}<span class="mo">${smEur(c.cf/12,false)} mtl.</span></td>`);
-  h+=tr("Tilgung",c=>v(c.tilg));
-  h+=tr(`Wertsteigerung<span class="mo">${pct(s.wert)} p. a.</span>`,c=>v(c.wst));
-  if(R.depot)h+=tr(`Depot-Ertrag<span class="mo">nach Steuer</span>`,c=>v(c.dep));
-  h+=tr("Vermögens&shy;aufbau",c=>v(c.zu,"p"),"sum");
-  h+=tr("Dein Plus",c=>v(c.net),"tot");
-  if(anyNeg)h+=tr("Aus 1 € Zuzahlung werden",c=>`<td>${c.cf<-0.5?nf2.format(c.zu/-c.cf)+" €":"–"}</td>`,"x");
-  h+=`</tbody></table></div><div class="note">Die Miete steigt${n0(s.mInt)?` ${n0(s.mInt)===1?"jedes Jahr":"alle "+n0(s.mInt)+" Jahre"} um ${pct(s.mInc,0)}`:" nicht (Annahme)"}. Mit jeder Rate wird der Zinsanteil kleiner und die Tilgung größer.${T?" Weniger Zinsen bedeuten allerdings auch einen kleineren Steuervorteil.":""}${R.depot?" Entnahmen aus dem Depot stecken bereits in der Zuzahlung.":""}${R.ek>0.5?` Dazu einmalig zu Beginn: ${eur(R.ek)} Eigenkapital.`:""} Vermögen rechnerisch, vor Verkaufskosten und Steuern. Annahmen, keine Garantie.</div></div>`;
-  return h;
-}
-function n0(x){return Number(x)||0;}
 function depotHTML(R,s,paper){
   if(!R.depot)return "";
   const h=10,yh=R.yrs[h-1],im=yh.verm,d=R.depSim[h-1];
@@ -859,7 +824,7 @@ function render(){
   document.getElementById("dSan").innerHTML=(R.san||R.moeb)?`${R.san?`<span>Sanierung: <b>${eur(R.san/R.sanJ)}</b> / Jahr, Jahre 1–${R.sanJ}</span>`:""}${R.moeb?`<span>Möbel: <b>${eur(R.moeb/R.moebJ)}</b> / Jahr, Jahre 1–${R.moebJ}</span>`:""}<span>Steuervorteil Jahr 1: <b>${sEur(y1.stEff/12)}</b> / Monat</span><span>Gebäude-AfA-Basis: <b>${eur(R.basis)}</b></span>`:(s.modus==="pro"?"<span>Betrag eintragen, wenn im Kaufpreis Sanierung oder Möbel ausgewiesen sind.</span>":"");
   document.getElementById("dDep").innerHTML=R.depot?`<span>Entnahme: <b>${eur(R.depot*s.depotEntn/100/12)}</b> / Monat</span><span>Depot nach 10 J.: <b>${eur(R.depSim[9].K)}</b></span>${R.depEnd?`<span>aufgebraucht ca. Jahr <b>${R.depEnd}</b></span>`:""}`:"";
   document.getElementById("dTax").innerHTML=R.flat?`<span>Pauschaler Grenzsteuersatz: <b>${pct(R.grenz,1)}</b></span><span>ohne Soli, Kirchensteuer und Progression</span>`:`<span>zvE geschätzt: <b>${eur(R.ZB.zve)}</b></span><span>Steuerlast ohne Immobilie: <b>${eur(R.tax0.tot)}</b></span><span>Grenzsteuersatz: <b>${pct(R.grenz,1)}</b> · Ø <b>${pct(R.ZB.zve?R.tax0.tot/R.ZB.zve*100:0,1)}</b></span>`;
-  document.getElementById("taxWrap").hidden=!s.steuerOn;document.getElementById("depWrap").hidden=!R.depot;document.getElementById("depBox").innerHTML=depotHTML(R,s);document.getElementById("renBox").innerHTML=renditeHTML(R,s);document.getElementById("geldBox").innerHTML=geldHTML(R,s);
+  document.getElementById("taxWrap").hidden=!s.steuerOn;document.getElementById("depWrap").hidden=!R.depot;document.getElementById("depBox").innerHTML=depotHTML(R,s);document.getElementById("renBox").innerHTML=renditeHTML(R,s);
   document.getElementById("taxSub").textContent=R.flat?`Pauschaler Grenzsteuersatz ${pct(R.grenz,1)} wie in der Vorlage. Vereinfachte Rechnung ohne Progression, vom Steuerberater zu prüfen.`:`Einkommensteuertarif 2026, ${R.joint?"Zusammenveranlagung (Splitting)":"Einzelveranlagung"}, Solidaritätszuschlag${R.kist?", Kirchensteuer "+R.kist+" %":""}. Vereinfachte Schätzung, vom Steuerberater zu prüfen.`;
   document.getElementById("taxTbl").innerHTML=taxTable(R,s);
   document.getElementById("dAfa").innerHTML=`<span>AfA-Basis (Gebäudeanteil inkl. Nebenkosten): <b>${eur(R.basis)}</b></span><span>AfA Jahr 1: <b>${eur(y1.afa)}</b>${y1.sonder?` (davon Sonder-AfA ${eur(y1.sonder)})`:""}</span>${R.afaEnd?`<span>AfA verbraucht ab Jahr <b>${R.afaEnd}</b></span>`:""}`;
@@ -980,8 +945,7 @@ function buildReport(){
    <div class="card">${taxTable(R,s)}</div>
    <div class="sec">Einkünfte aus Vermietung und Steuereffekt</div>
    <div class="card"><table class="dense"><thead>${headStF()}</thead><tbody>${rowsSt(R,30)}</tbody></table></div>`]);
-  if(!R.depot)pages.push(["Rendite","Deine <i>Rendite</i>","Eigenkapitalrendite über "+R.REN.HZ+" Jahre und Entwicklung deines Geldes",renditeHTML(R,s)+geldHTML(R,s)]);
-  else pages.push(["Geld","Dein <i>Geld</i>","Zuzahlung und Vermögensaufbau im 1., 5. und 10. Jahr",geldHTML(R,s)]);
+  if(!R.depot)pages.push(["Rendite","Deine <i>Rendite</i>","Eigenkapitalrendite über "+R.REN.HZ+" Jahre",renditeHTML(R,s)]);
   /* 5 · Entwicklung */
   pages.push(["Entwicklung","Deine <i>Vermögensentwicklung</i>","Jahr für Jahr, Durchschnittswerte pro Monat",`
    <div class="card"><table class="dense"><thead>${headJahr(s)}</thead><tbody>${rowsJahr(R,s,30)}</tbody></table></div>`]);
