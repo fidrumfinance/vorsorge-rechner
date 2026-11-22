@@ -158,3 +158,32 @@ revoke execute on function public.enforce_invite() from public, anon, authentica
 revoke execute on function public.handle_new_user() from public, anon, authenticated;
 revoke execute on function public.touch_last_seen() from public, anon;
 grant execute on function public.touch_last_seen() to authenticated;
+
+-- ---------- Branding pro Partner (per E-Mail, auch vor dem ersten Login setzbar) ----------
+create table if not exists public.brandings (
+  email       text primary key check (email = lower(email)),
+  name        text,
+  short       text check (short is null or char_length(short) <= 3),
+  claim       text,
+  logo        text check (logo is null or char_length(logo) <= 400000),
+  primary_color text check (primary_color is null or primary_color ~ '^#[0-9a-fA-F]{6}$'),
+  accent_color  text check (accent_color  is null or accent_color  ~ '^#[0-9a-fA-F]{6}$'),
+  contact     text,
+  booking     text check (booking is null or booking ~ '^https://'),
+  updated_at  timestamptz not null default now()
+);
+alter table public.brandings enable row level security;
+create or replace function public.my_email() returns text
+language sql stable as $$ select lower(coalesce(auth.jwt() ->> 'email', '')) $$;
+drop policy if exists brandings_own_select on public.brandings;
+create policy brandings_own_select on public.brandings for select
+  using ((email = public.my_email() and public.is_member()) or public.is_admin());
+drop policy if exists brandings_own_insert on public.brandings;
+create policy brandings_own_insert on public.brandings for insert
+  with check ((email = public.my_email() and public.is_member()) or public.is_admin());
+drop policy if exists brandings_own_update on public.brandings;
+create policy brandings_own_update on public.brandings for update
+  using ((email = public.my_email() and public.is_member()) or public.is_admin())
+  with check ((email = public.my_email() and public.is_member()) or public.is_admin());
+drop policy if exists brandings_admin_delete on public.brandings;
+create policy brandings_admin_delete on public.brandings for delete using (public.is_admin());

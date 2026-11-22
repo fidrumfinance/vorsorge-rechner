@@ -105,6 +105,27 @@
   .actions.left { justify-content: flex-start; margin-top: 8px; }
   .progress { font-size: 13px; color: var(--muted); margin-top: 10px; white-space: pre-line; }
 
+  /* Branding */
+  .brand-grid { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: 14px; align-items: start; }
+  @media (max-width: 820px) { .brand-grid { grid-template-columns: minmax(0,1fr); } }
+  .logo-prev { width: 48px; height: 48px; border-radius: 10px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; color: var(--light); font-size: 11px; }
+  .logo-prev img { width: 100%; height: 100%; object-fit: contain; }
+  input[type=color] { width: 46px; height: 42px; border: 1px solid var(--border); border-radius: var(--rs); padding: 3px; background: #fff; cursor: pointer; }
+  .pv { border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; background: #f4f6f9; }
+  .pv-head { background: var(--p); color: var(--onp); display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+  .pv-logo { width: 36px; height: 36px; border-radius: 8px; background: var(--a); color: var(--ona); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; overflow: hidden; flex-shrink: 0; }
+  .pv-logo.img { background: transparent; }
+  .pv-logo img { width: 100%; height: 100%; object-fit: contain; }
+  .pv-title { font-size: 14px; font-weight: 600; }
+  .pv-sub { font-size: 11px; opacity: .65; }
+  .pv-badge { margin-left: auto; background: var(--a); color: var(--ona); font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+  .pv-body { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px; }
+  .pv-kpi { background: var(--p); color: var(--onp); border-radius: 8px; padding: 12px; text-align: center; font-weight: 700; font-size: 17px; }
+  .pv-kpi small { display: block; font-size: 10px; font-weight: 600; opacity: .7; text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+  .pv-kpi.acc { background: var(--a); color: var(--ona); }
+  .pv-cta { margin: 0 14px 12px; background: var(--a); color: var(--ona); border-radius: 8px; padding: 9px; text-align: center; font-weight: 700; font-size: 13px; }
+  .pv-foot { text-align: center; font-size: 11px; color: var(--light); padding: 0 14px 12px; }
+
   @media (max-width: 720px) {
     .kpis { grid-template-columns: 1fr 1fr; }
     .grid2 { grid-template-columns: 1fr; }
@@ -125,6 +146,7 @@
   <nav class="nav" id="nav" hidden>
     <span class="who" id="who"></span>
     <button id="navLib" class="on">Rechner</button>
+    <button id="navBrand">Mein Branding</button>
     <button id="navAdmin" hidden>Admin</button>
     <button id="navOut">Abmelden</button>
   </nav>
@@ -194,6 +216,55 @@
     </div>
     <div id="viewMsg"></div>
     <iframe class="frame" id="frame" title="Rechner" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals allow-downloads"></iframe>
+  </section>
+
+  <!-- Branding -->
+  <section id="vBrand" hidden>
+    <h1>Branding</h1>
+    <p class="lead">So erscheinen die Rechner für deine Kunden: mit deinem Logo, deinen Farben und deinem Kontakt.</p>
+    <div id="brandMsg"></div>
+    <div class="card" id="brandWhoBox" hidden>
+      <div class="field" style="margin:0"><label for="brandWho">Branding bearbeiten für</label><select class="input" id="brandWho"></select></div>
+    </div>
+    <div class="brand-grid">
+      <div class="card">
+        <div class="label">Angaben</div>
+        <form id="fBrand" autocomplete="off">
+          <div class="grid2">
+            <div class="field"><label for="bName">Firmenname</label><input class="input" id="bName" maxlength="60" placeholder="z. B. Muster Finanz GmbH"></div>
+            <div class="field"><label for="bShort">Kürzel (falls kein Logo)</label><input class="input" id="bShort" maxlength="3" placeholder="MF"></div>
+          </div>
+          <div class="field"><label for="bClaim">Slogan (optional)</label><input class="input" id="bClaim" maxlength="80"></div>
+          <div class="field"><label>Logo</label>
+            <div class="row"><div class="logo-prev" id="bLogoPrev">–</div>
+              <input type="file" id="bLogoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden>
+              <button type="button" class="btn ghost sm" id="bLogoPick">Logo hochladen</button>
+              <button type="button" class="btn danger sm" id="bLogoDel">Entfernen</button></div>
+            <span class="small">Quadratisches Logo wirkt am besten. Es wird automatisch verkleinert.</span></div>
+          <div class="grid2">
+            <div class="field"><label for="bPrimaryHex">Hauptfarbe</label><div class="row" style="flex-wrap:nowrap"><input type="color" id="bPrimary" value="#1a2e4a" aria-label="Hauptfarbe wählen"><input class="input" id="bPrimaryHex" maxlength="7" placeholder="#1a2e4a"></div></div>
+            <div class="field"><label for="bAccentHex">Akzentfarbe</label><div class="row" style="flex-wrap:nowrap"><input type="color" id="bAccent" value="#f5a623" aria-label="Akzentfarbe wählen"><input class="input" id="bAccentHex" maxlength="7" placeholder="#f5a623"></div></div>
+          </div>
+          <div class="field"><label for="bContact">Kontakt in der Fußzeile</label><input class="input" id="bContact" maxlength="100" placeholder="E-Mail oder Telefon"></div>
+          <div class="field"><label for="bBooking">Link für „Termin buchen“ (optional)</label><input class="input" id="bBooking" placeholder="https://calendly.com/…"></div>
+          <div class="row"><button class="btn gold" type="submit" id="bSave">Branding speichern</button><button class="btn ghost" type="button" id="bReset">Alles leeren</button></div>
+        </form>
+      </div>
+      <div>
+        <div class="card"><div class="label">Vorschau</div>
+          <div class="pv" id="pv">
+            <div class="pv-head"><div class="pv-logo" id="pvLogo"></div><div><div class="pv-title">Sparplan-Timeline</div><div class="pv-sub" id="pvName"></div></div><span class="pv-badge">8,0 % p.a.</span></div>
+            <div class="pv-body"><div class="pv-kpi">127.200 €<small>Eingezahlt</small></div><div class="pv-kpi acc">1.944.556 €<small>Endkapital</small></div></div>
+            <div class="pv-cta" id="pvCta">Termin buchen</div>
+            <div class="pv-foot" id="pvFoot"></div>
+          </div>
+        </div>
+        <div class="card"><div class="label">Mit echtem Rechner testen</div>
+          <p class="small" style="margin-bottom:10px">Öffnet einen Rechner mit dem Branding von links, auch ohne Speichern.</p>
+          <div class="row" style="flex-wrap:nowrap"><select class="input" id="bTestCalc"></select><button class="btn" type="button" id="bTest">Testen</button></div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- Admin -->
@@ -307,14 +378,14 @@
   document.title = (C.PORTAL_TITLE || 'Rechner-Bibliothek') + ' – ' + (C.BRAND_NAME || '');
   document.querySelectorAll('#contactLink, .contact').forEach((a) => { a.textContent = C.CONTACT_EMAIL || ''; a.href = 'mailto:' + (C.CONTACT_EMAIL || ''); });
 
-  const views = ['vSetup', 'vLoading', 'vLogin', 'vBlocked', 'vLib', 'vView', 'vAdmin'];
+  const views = ['vSetup', 'vLoading', 'vLogin', 'vBlocked', 'vLib', 'vView', 'vBrand', 'vAdmin'];
   function show(id) { views.forEach((v) => { $(v).hidden = v !== id; }); window.scrollTo(0, 0); }
   function flash(el, text, kind) { $(el).innerHTML = text ? '<div class="msg ' + (kind || 'info') + '">' + esc(text) + '</div>' : ''; }
 
   if (!C.SUPABASE_URL || C.SUPABASE_URL.indexOf('__') === 0 || !window.supabase) { show('vSetup'); return; }
   const sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 
-  let me = null, profile = null, calcs = [], currentCalc = null, blobUrl = null;
+  let me = null, profile = null, calcs = [], currentCalc = null, blobUrl = null, myBrand = null, testBrand;
 
   // ---------- Login ----------
   let loginEmail = '';
@@ -358,20 +429,24 @@
     $('nav').hidden = false;
     $('who').textContent = profile.full_name || profile.email;
     $('navAdmin').hidden = profile.role !== 'admin';
-    await loadCalcs();
+    await Promise.all([loadCalcs(), loadMyBrand()]);
     route();
   }
   sb.auth.onAuthStateChange((_evt, session) => { setTimeout(() => onSession(session), 0); });
 
   // ---------- Navigation ----------
-  function setNav(which) { $('navLib').classList.toggle('on', which === 'lib'); $('navAdmin').classList.toggle('on', which === 'admin'); }
+  function setNav(which) { $('navLib').classList.toggle('on', which === 'lib'); $('navBrand').classList.toggle('on', which === 'brand'); $('navAdmin').classList.toggle('on', which === 'admin'); }
   $('navLib').addEventListener('click', () => { location.hash = ''; });
+  $('navBrand').addEventListener('click', () => { location.hash = '#branding'; });
   $('navAdmin').addEventListener('click', () => { location.hash = '#admin'; });
   window.addEventListener('hashchange', route);
   function route() {
     if (!profile) return;
     const h = location.hash;
+    if (!/^#r\//.test(h)) testBrand = undefined;
     if (h === '#admin' && profile.role === 'admin') { setNav('admin'); show('vAdmin'); loadAdmin(); return; }
+    const bm = h.match(/^#branding(?:\/(.+))?$/);
+    if (bm) { setNav('brand'); show('vBrand'); openBrandEditor(bm[1] && profile.role === 'admin' ? decodeURIComponent(bm[1]) : me.email); return; }
     const m = h.match(/^#r\/(.+)$/);
     if (m) { const c = calcs.find((x) => x.slug === decodeURIComponent(m[1])); if (c) { setNav('lib'); openCalc(c); return; } }
     setNav('lib'); closeViewer(); renderLib(); show('vLib');
@@ -403,16 +478,127 @@
     $('frame').srcdoc = '<p style="font-family:sans-serif;color:#5a6a7e;padding:24px">Rechner wird geladen …</p>';
     const { data, error } = await sb.storage.from('rechner').download(c.file_path);
     if (error || !data) { flash('viewMsg', 'Der Rechner konnte nicht geladen werden.', 'err'); return; }
-    const html = await data.text();
+    const html = injectBrand(await data.text(), testBrand !== undefined ? testBrand : rbFromRow(myBrand, profile.role === 'admin'));
     if (currentCalc !== c) return;
     $('frame').srcdoc = html;
     if (blobUrl) URL.revokeObjectURL(blobUrl);
     blobUrl = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
-    sb.from('usage_events').insert({ user_id: me.id, calculator_id: c.id }).then(() => {}, () => {});
+    if (testBrand === undefined) sb.from('usage_events').insert({ user_id: me.id, calculator_id: c.id }).then(() => {}, () => {});
   }
   function closeViewer() { currentCalc = null; $('frame').srcdoc = ''; }
-  $('bClose').addEventListener('click', () => { location.hash = ''; });
+  $('bClose').addEventListener('click', () => { location.hash = testBrand !== undefined ? (brandFor && brandFor !== me.email ? '#branding/' + encodeURIComponent(brandFor) : '#branding') : ''; });
   $('bNewTab').addEventListener('click', () => { if (blobUrl) window.open(blobUrl, '_blank', 'noopener'); });
+
+  // ---------- Branding ----------
+  const NEUTRAL = { name: '', short: '', claim: '', logo: '', contact: '', booking: '' };
+  let brandFor = null, logoData = '';
+  async function loadMyBrand() {
+    const { data } = await sb.from('brandings').select('*').eq('email', (me.email || '').toLowerCase()).maybeSingle();
+    myBrand = data || null;
+  }
+  // Ohne eigenes Branding: Admin sieht den Fidrum-Standard, Partner eine neutrale Version
+  function rbFromRow(row, isAdmin) {
+    if (!row) return isAdmin ? null : NEUTRAL;
+    return { name: row.name || '', short: row.short || '', claim: row.claim || '', logo: row.logo || '',
+      primary: row.primary_color || '', accent: row.accent_color || '', contact: row.contact || '', booking: row.booking || '' };
+  }
+  function injectBrand(html, rb) {
+    if (!rb) return html;
+    const tag = '<script>window.RECHNER_BRAND=' + JSON.stringify(rb).replace(/</g, '\\u003c') + ';<\/script>';
+    return html.indexOf('<!--RB-STANDARD-->') >= 0 ? html.replace('<!--RB-STANDARD-->', tag + '<!--RB-STANDARD-->') : tag + html;
+  }
+  const HEX = /^#[0-9a-fA-F]{6}$/;
+  function lum(h) { const n = parseInt(h.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; }
+  function formBrand() {
+    const p = $('bPrimaryHex').value.trim(), a = $('bAccentHex').value.trim();
+    return { name: $('bName').value.trim(), short: $('bShort').value.trim().toUpperCase(), claim: $('bClaim').value.trim(), logo: logoData,
+      primary: HEX.test(p) ? p : '', accent: HEX.test(a) ? a : '', contact: $('bContact').value.trim(), booking: $('bBooking').value.trim() };
+  }
+  function renderPreview() {
+    const b = formBrand(), p = b.primary || '#1a2e4a', a = b.accent || '#f5a623', pv = $('pv');
+    pv.style.setProperty('--p', p); pv.style.setProperty('--a', a);
+    pv.style.setProperty('--onp', lum(p) > 0.6 ? '#1a2e4a' : '#fff'); pv.style.setProperty('--ona', lum(a) > 0.55 ? '#1a2e4a' : '#fff');
+    const L = $('pvLogo'); L.innerHTML = ''; L.classList.toggle('img', !!b.logo); L.hidden = !b.logo && !b.short;
+    if (b.logo) { const i = new Image(); i.src = b.logo; i.alt = ''; L.appendChild(i); } else L.textContent = b.short;
+    $('pvName').textContent = b.name || '(ohne Firmenname)';
+    $('pvCta').hidden = !/^https:\/\//.test(b.booking);
+    $('pvFoot').textContent = 'Modellrechnung' + (b.name ? ' · ' + b.name : '') + (b.contact ? ' · ' + b.contact : '');
+    const lp = $('bLogoPrev'); lp.innerHTML = b.logo ? '' : '–'; if (b.logo) { const i = new Image(); i.src = b.logo; lp.appendChild(i); }
+    $('bLogoDel').hidden = !b.logo;
+  }
+  function fillBrandForm(row) {
+    row = row || {};
+    $('bName').value = row.name || ''; $('bShort').value = row.short || ''; $('bClaim').value = row.claim || '';
+    $('bContact').value = row.contact || ''; $('bBooking').value = row.booking || ''; logoData = row.logo || '';
+    $('bPrimaryHex').value = row.primary_color || ''; $('bAccentHex').value = row.accent_color || '';
+    $('bPrimary').value = row.primary_color || '#1a2e4a'; $('bAccent').value = (row.accent_color || '#f5a623').toLowerCase();
+    renderPreview();
+  }
+  async function openBrandEditor(email) {
+    brandFor = (email || '').toLowerCase(); flash('brandMsg', '');
+    $('bTestCalc').innerHTML = calcs.filter((c) => c.active).map((c) => '<option value="' + esc(c.slug) + '">' + esc(c.title) + '</option>').join('');
+    const isAdmin = profile.role === 'admin';
+    $('brandWhoBox').hidden = !isAdmin;
+    if (isAdmin) {
+      const [p, i] = await Promise.all([sb.from('profiles').select('email, full_name, company'), sb.from('invites').select('email, full_name, company')]);
+      const seen = {}, opts = [];
+      [].concat(p.data || [], i.data || []).forEach((x) => { if (!seen[x.email]) { seen[x.email] = 1; opts.push(x); } });
+      if (!seen[brandFor]) opts.push({ email: brandFor });
+      $('brandWho').innerHTML = opts.map((x) => '<option value="' + esc(x.email) + '"' + (x.email === brandFor ? ' selected' : '') + '>' +
+        esc((x.email === me.email ? 'Ich (Standard: ' + (C.BRAND_NAME || '') + ')' : (x.full_name || x.email) + (x.company ? ' · ' + x.company : ''))) + '</option>').join('');
+    }
+    const { data, error } = await sb.from('brandings').select('*').eq('email', brandFor).maybeSingle();
+    if (error) flash('brandMsg', 'Branding konnte nicht geladen werden: ' + error.message, 'err');
+    fillBrandForm(data);
+    if (!data) flash('brandMsg', brandFor === me.email && isAdmin ? 'Noch kein eigenes Branding: Die Rechner zeigen den Standard (' + (C.BRAND_NAME || '') + ').' : 'Noch kein Branding hinterlegt: Die Rechner erscheinen neutral, ohne Logo und Firmennamen.', 'info');
+  }
+  $('brandWho').addEventListener('change', () => { location.hash = $('brandWho').value === me.email ? '#branding' : '#branding/' + encodeURIComponent($('brandWho').value); });
+  ['bName', 'bShort', 'bClaim', 'bContact', 'bBooking'].forEach((id) => $(id).addEventListener('input', renderPreview));
+  [['bPrimary', 'bPrimaryHex'], ['bAccent', 'bAccentHex']].forEach(([c, h]) => {
+    $(c).addEventListener('input', () => { $(h).value = $(c).value; renderPreview(); });
+    $(h).addEventListener('input', () => { if (HEX.test($(h).value.trim())) $(c).value = $(h).value.trim().toLowerCase(); renderPreview(); });
+  });
+  $('bLogoPick').addEventListener('click', () => $('bLogoFile').click());
+  $('bLogoDel').addEventListener('click', () => { logoData = ''; renderPreview(); });
+  $('bLogoFile').addEventListener('change', async () => {
+    const file = $('bLogoFile').files[0]; $('bLogoFile').value = ''; if (!file) return;
+    try {
+      const url = await new Promise((res, rej) => {
+        const r = new FileReader(); r.onerror = rej;
+        r.onload = () => {
+          if (file.type === 'image/svg+xml') { res(r.result); return; }
+          const img = new Image(); img.onerror = rej;
+          img.onload = () => { const m = 256, k = Math.min(1, m / Math.max(img.width, img.height)), cv = document.createElement('canvas');
+            cv.width = Math.max(1, Math.round(img.width * k)); cv.height = Math.max(1, Math.round(img.height * k));
+            cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); res(cv.toDataURL('image/png')); };
+          img.src = r.result;
+        };
+        r.readAsDataURL(file);
+      });
+      if (url.length > 400000) { flash('brandMsg', 'Das Logo ist zu groß. Bitte eine kleinere Datei verwenden.', 'err'); return; }
+      logoData = url; renderPreview();
+    } catch (e) { flash('brandMsg', 'Das Logo konnte nicht gelesen werden.', 'err'); }
+  });
+  $('bReset').addEventListener('click', () => { fillBrandForm(null); flash('brandMsg', 'Felder geleert. Erst mit „Branding speichern“ wird es übernommen.', 'info'); });
+  $('fBrand').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const b = formBrand();
+    if (b.booking && !/^https:\/\/\S+$/.test(b.booking)) { flash('brandMsg', 'Der Buchungslink muss mit https:// beginnen.', 'err'); return; }
+    if (($('bPrimaryHex').value.trim() && !b.primary) || ($('bAccentHex').value.trim() && !b.accent)) { flash('brandMsg', 'Farben bitte als Hex-Wert angeben, z. B. #1a2e4a.', 'err'); return; }
+    const row = { email: brandFor, name: b.name || null, short: b.short || null, claim: b.claim || null, logo: b.logo || null,
+      primary_color: b.primary || null, accent_color: b.accent || null, contact: b.contact || null, booking: b.booking || null, updated_at: new Date().toISOString() };
+    $('bSave').disabled = true;
+    const { error } = await sb.from('brandings').upsert(row, { onConflict: 'email' });
+    $('bSave').disabled = false;
+    if (error) { flash('brandMsg', 'Speichern fehlgeschlagen: ' + error.message, 'err'); return; }
+    if (brandFor === (me.email || '').toLowerCase()) myBrand = row;
+    flash('brandMsg', 'Gespeichert. Alle Rechner erscheinen ab sofort mit diesem Branding.', 'ok');
+  });
+  $('bTest').addEventListener('click', () => {
+    const c = calcs.find((x) => x.slug === $('bTestCalc').value); if (!c) return;
+    testBrand = formBrand();
+    history.pushState(null, '', '#r/' + encodeURIComponent(c.slug)); setNav('lib'); openCalc(c);
+  });
 
   // ---------- Admin ----------
   document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
@@ -470,8 +656,9 @@
           const status = r.kind === 'i' ? '<span class="badge b-wait">Eingeladen</span>' : r.active ? '<span class="badge b-ok">Aktiv</span>' : '<span class="badge b-off">Gesperrt</span>';
           const role = r.role === 'admin' ? ' <span class="badge b-admin">Admin</span>' : '';
           let act = '';
-          if (r.kind === 'i') act = '<button class="btn ghost sm" data-act="text" data-email="' + esc(r.email) + '">Einladungstext</button><button class="btn danger sm" data-act="revoke" data-email="' + esc(r.email) + '">Zurückziehen</button>';
-          else if (r.id !== me.id) act = r.active ? '<button class="btn danger sm" data-act="block" data-id="' + r.id + '">Sperren</button>' : '<button class="btn ghost sm" data-act="unblock" data-id="' + r.id + '">Freischalten</button>';
+          act = '<button class="btn ghost sm" data-act="brand" data-email="' + esc(r.email) + '">Branding</button>';
+          if (r.kind === 'i') act += '<button class="btn ghost sm" data-act="text" data-email="' + esc(r.email) + '">Einladungstext</button><button class="btn danger sm" data-act="revoke" data-email="' + esc(r.email) + '">Zurückziehen</button>';
+          else if (r.id !== me.id) act += r.active ? '<button class="btn danger sm" data-act="block" data-id="' + r.id + '">Sperren</button>' : '<button class="btn ghost sm" data-act="unblock" data-id="' + r.id + '">Freischalten</button>';
           return '<tr><td>' + esc(r.name || '–') + role + '</td><td>' + esc(r.company || '–') + '</td><td>' + esc(r.email) + '</td><td>' + status + '</td><td>' + (r.kind === 'p' ? fmtDate(r.last) : '–') + '</td><td class="num">' + (r.kind === 'p' ? r.uses : '–') + '</td><td><div class="actions">' + act + '</div></td></tr>';
         }).join('') + '</tbody></table>'
       : '<div class="empty">Noch keine Partner eingeladen.</div>';
@@ -509,6 +696,7 @@
   $('partnerTbl').addEventListener('click', async (e) => {
     const b = e.target.closest('button[data-act]'); if (!b) return;
     const act = b.dataset.act;
+    if (act === 'brand') { location.hash = b.dataset.email === me.email ? '#branding' : '#branding/' + encodeURIComponent(b.dataset.email); return; }
     if (act === 'text') { const inv = A.invites.find((i) => i.email === b.dataset.email); showInviteText(b.dataset.email, inv && inv.full_name); $('inviteOut').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
     if (act === 'revoke') { if (!confirm('Einladung für ' + b.dataset.email + ' zurückziehen?')) return; await sb.from('invites').delete().eq('email', b.dataset.email); }
     if (act === 'block') { if (!confirm('Zugang sperren? Der Partner kann die Rechner dann nicht mehr öffnen.')) return; await sb.from('profiles').update({ active: false }).eq('id', b.dataset.id); }
