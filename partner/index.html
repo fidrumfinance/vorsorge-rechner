@@ -102,6 +102,7 @@
   .bar { height: 8px; background: var(--gold); border-radius: 4px; min-width: 2px; }
   .copybox { background: var(--bg); border: 1px dashed var(--border); border-radius: var(--rs); padding: 12px; font-size: 13px; white-space: pre-wrap; line-height: 1.5; margin: 10px 0; }
   .actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .actions.left { justify-content: flex-start; margin-top: 8px; }
   .progress { font-size: 13px; color: var(--muted); margin-top: 10px; white-space: pre-line; }
 
   @media (max-width: 720px) {
@@ -523,13 +524,13 @@
     const cats = Array.from(new Set(CATS.concat(calcs.map((c) => c.category))));
     $('catList').innerHTML = cats.map((c) => '<option value="' + esc(c) + '">').join('');
     $('calcTbl').innerHTML = calcs.length
-      ? '<table><thead><tr><th>Titel</th><th>Kategorie</th><th class="num">Reihenf.</th><th>Status</th><th>Geändert</th><th></th></tr></thead><tbody>' +
-        calcs.map((c) => '<tr><td><b>' + esc(c.title) + '</b><div class="small">' + esc(c.description || '') + '</div></td><td>' + esc(c.category) + '</td><td class="num">' + c.sort_order + '</td><td>' +
-          (c.active ? '<span class="badge b-ok">Sichtbar</span>' : '<span class="badge b-off">Ausgeblendet</span>') + '</td><td>' + fmtDate(c.updated_at) + '</td><td><div class="actions">' +
+      ? '<table><thead><tr><th>Rechner</th><th>Kategorie</th><th class="num">Reihenf.</th><th>Status</th><th>Geändert</th></tr></thead><tbody>' +
+        calcs.map((c) => '<tr><td><b>' + esc(c.title) + '</b><div class="small">' + esc(c.description || '') + '</div><div class="actions left">' +
           '<button class="btn ghost sm" data-c="view" data-id="' + c.id + '">Ansehen</button>' +
           '<button class="btn ghost sm" data-c="edit" data-id="' + c.id + '">Bearbeiten</button>' +
           '<button class="btn ghost sm" data-c="toggle" data-id="' + c.id + '">' + (c.active ? 'Ausblenden' : 'Einblenden') + '</button>' +
-          '<button class="btn danger sm" data-c="del" data-id="' + c.id + '">Löschen</button></div></td></tr>').join('') + '</tbody></table>'
+          '<button class="btn danger sm" data-c="del" data-id="' + c.id + '">Löschen</button></div></td><td>' + esc(c.category) + '</td><td class="num">' + c.sort_order + '</td><td>' +
+          (c.active ? '<span class="badge b-ok">Sichtbar</span>' : '<span class="badge b-off">Ausgeblendet</span>') + '</td><td class="small">' + fmtDate(c.updated_at) + '</td></tr>').join('') + '</tbody></table>'
       : '<div class="empty">Noch keine Rechner. Übernimm die öffentlichen Rechner oder lade eine HTML-Datei hoch.</div>';
   }
   function resetCalcForm() {
