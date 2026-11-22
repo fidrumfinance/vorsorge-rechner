@@ -245,6 +245,14 @@ legend{font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:1
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:start}
 label{display:grid;gap:3px;font-size:13px;color:var(--muted)}
 label .hint{font-size:11.5px;color:var(--muted);opacity:.8}
+.lbl{display:grid;gap:3px;font-size:13px;color:var(--muted)}
+.lbl .hint{font-size:11.5px;color:var(--muted);opacity:.8}
+.seg{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line-soft);border-radius:var(--rb-radius-sm);overflow:hidden;background:var(--field)}
+.seg button{border:0;border-left:1px solid var(--line-soft);background:transparent;padding:8px 0;font:inherit;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed=true]{background:var(--rb-primary);color:var(--rb-on-primary)}
+.rstate{font-size:12.5px;padding:8px 10px;border-radius:var(--rb-radius-sm);background:var(--rb-soft);color:var(--ink);margin:0 0 12px}
+tr.sel td{background:var(--rb-accent-pale)}
 input,select{font:inherit;font-size:15px;color:var(--ink);background:var(--field);border:1px solid var(--line-soft);border-radius:5px;padding:7px 9px;width:100%;font-variant-numeric:tabular-nums}
 input:hover,select:hover{border-color:var(--line)}
 input::placeholder{color:var(--muted);opacity:.7}
@@ -336,14 +344,21 @@ footer:not(.rb-footer) .claim{letter-spacing:.22em;text-transform:uppercase;colo
     <fieldset>
       <legend>Bestehender Riester-Vertrag</legend>
       <label class="check"><input id="rOn" type="checkbox" checked> Riester-Guthaben ins Altersvorsorgedepot übertragen</label>
+      <span class="hint" style="font-size:11.5px;color:var(--muted);margin-top:-4px">Ohne Haken bleibt das Guthaben im Riester-Vertrag.</span>
       <div id="rBox" style="display:grid;gap:10px">
         <div class="row2">
           <label>Aktuelles Guthaben € <input id="rGut" type="number" min="0" step="500" value="14500"><span class="hint">laut Standmitteilung</span></label>
-          <label>Rendite bei Verbleib % <input id="rRend" type="number" min="-2" max="10" step="0.1" value="1.5"><span class="hint">nach Kosten, beitragsfrei</span></label>
+          <label>Beitragsgarantie € <input id="rGar" type="number" min="0" step="500" placeholder="optional"><span class="hint">Beiträge + Zulagen bisher</span></label>
+        </div>
+        <div class="lbl">Zins, wenn das Geld im Riester bleibt
+          <input id="rRend" type="hidden" value="2">
+          <div class="seg" id="rRendSeg" role="group" aria-label="Zins bei Verbleib im Riester">
+            <button type="button" data-v="1">1 %</button><button type="button" data-v="1.5">1,5 %</button><button type="button" data-v="2">2 %</button><button type="button" data-v="2.5">2,5 %</button><button type="button" data-v="3">3 %</button>
+          </div>
+          <span class="hint">beitragsfrei gestellt, nach Kosten</span>
         </div>
         <div class="row2">
-          <label>Beitragsgarantie € <input id="rGar" type="number" min="0" step="500" placeholder="optional"><span class="hint">Beiträge + Zulagen bisher</span></label>
-          <label>Wechselkosten € <input id="rKost" type="number" min="0" max="300" step="10" value="0"><span class="hint">meist 0, max. 150 € je Anbieter</span></label>
+          <label id="rKostLbl">Wechselkosten € <input id="rKost" type="number" min="0" max="300" step="10" value="0"><span class="hint">meist 0, max. 150 € je Anbieter</span></label>
         </div>
       </div>
     </fieldset>
@@ -406,7 +421,8 @@ footer:not(.rb-footer) .claim{letter-spacing:.22em;text-transform:uppercase;colo
     </div>
 
     <div class="panel" id="rPanel">
-      <h2>Riester-Übertragung</h2>
+      <h2>Riester-Guthaben: behalten oder übertragen?</h2>
+      <p class="rstate" id="rState"></p>
       <div class="split">
         <table id="tRUe"></table>
         <table id="tRVgl"></table>
@@ -510,9 +526,12 @@ function simulate(p, renditeOverride){
   const pay=[]; let Rr=R;
   for(let a=p.rente;a<=p.bis;a++){pay.push({age:a,total:Math.max(0,Rr)});for(let k=0;k<12;k++)Rr=Rr*(1+ra)-pmt;}
   // Riester-Guthaben allein: im AVD vs. beitragsfrei im Riester
-  const rueAVD=RU.wert*Math.pow(1+rNet,years);
-  const rueKeep=p.r.on?p.r.gut*Math.pow(1+p.r.rend/100,years):0;
-  return {RU,rueAVD,rueKeep,startAge,years,V,Vg,Vu,T,rows,path,pay,tk,pmt,net:pmt-taxM,tkNet:tk*(1-p.st*(shareG+shareU*gainFracU*.5))};
+  const wertT=Math.max(0,p.r.gut-Math.max(0,p.r.kost));
+  const rueAVD=wertT*Math.pow(1+rNet,years);
+  const keepAt=z=>p.r.gut*Math.pow(1+z/100,years);
+  const rueKeep=keepAt(p.r.rend);
+  const pmtOf=K=>ra>0?K*ra/(1-Math.pow(1+ra,-n)):K/n;
+  return {RU,rueAVD,rueKeep,keepAt,pmtOf,wertT,startAge,years,V,Vg,Vu,T,rows,path,pay,tk,pmt,net:pmt-taxM,tkNet:tk*(1-p.st*(shareG+shareU*gainFracU*.5))};
 }
 
 function riesterUe(p){
@@ -595,23 +614,32 @@ function update(){
   $('kRA').textContent=p.rente;
   $('kDepot').textContent=eur(r.V);
   $('kDepotSub').textContent='Eingezahlt: '+eur(r.T.eigen)+(r.RU.wert>0?' · Riester-Übertrag: '+eur(r.RU.wert):'');
-  $('rBox').hidden=!p.r.on; $('rPanel').hidden=!p.r.on; $('lgR').hidden=!p.r.on;
-  if(p.r.on){
-    const U=r.RU;
+  const hasR=p.r.gut>0;
+  $('rPanel').hidden=!hasR; $('lgR').hidden=!p.r.on;
+  $('rKostLbl').style.opacity=p.r.on?1:.45; $('rKost').disabled=!p.r.on;
+  $('rRendSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===p.r.rend)));
+  if(hasR){
+    const diff=r.rueAVD-r.rueKeep, Y=p.rente;
+    $('rState').innerHTML=p.r.on
+      ?'Eingerechnet ist die <b>Übertragung</b>: '+eur(r.wertT)+' fließen '+p.start+' ins Altersvorsorgedepot und sind im Depotwert oben enthalten.'
+      :'Eingerechnet ist der <b>Verbleib im Riester</b>: Das Guthaben ist im Depotwert oben nicht enthalten und wächst beitragsfrei mit '+pct(p.r.rend)+' weiter.';
     $('tRUe').innerHTML=
-      `<tr><th>Übertragungswert</th><th></th></tr>`+
-      `<tr><td>Riester-Guthaben</td><td>${eur(U.gut)}</td></tr>`+
-      `<tr><td>− Wechselkosten</td><td>${eur(U.kost)}</td></tr>`+
-      `<tr class="sum"><td>Übertrag ins Depot ${p.start}</td><td>${eur(U.wert)}</td></tr>`;
-    const diff=r.rueAVD-r.rueKeep;
+      `<tr><th>Wenn das Geld im Riester bleibt</th><th></th></tr>`+
+      `<tr><td>Guthaben heute</td><td>${eur(p.r.gut)}</td></tr>`+
+      `<tr><td>Zins bis zur Rente (beitragsfrei)</td><td>${pct(p.r.rend)}</td></tr>`+
+      `<tr class="sum"><td>Wert mit ${Y}</td><td>${eur(r.rueKeep)}</td></tr>`+
+      `<tr><td>als Auszahlung bis ${p.bis} ca.</td><td>${eur(r.pmtOf(r.rueKeep))} / Monat</td></tr>`+
+      `<tr><td>Ertrag bis zur Rente</td><td>+ ${eur(r.rueKeep-p.r.gut)}</td></tr>`+
+      (p.r.gar!=null?`<tr><td>Beitragsgarantie</td><td>${eur(p.r.gar)} bleibt</td></tr>`:'');
+    const rows=[1,2,3].map(z=>`<tr${z===p.r.rend?' class="sel"':''}><td>Im Riester mit ${pct(z)}</td><td>${eur(r.keepAt(z))}</td></tr>`).join('')+
+      ([1,2,3].includes(p.r.rend)?'':`<tr class="sel"><td>Im Riester mit ${pct(p.r.rend)}</td><td>${eur(r.rueKeep)}</td></tr>`);
     $('tRVgl').innerHTML=
-      `<tr><th>Guthaben mit ${p.rente}</th><th></th></tr>`+
-      `<tr><td>Im Riester (beitragsfrei, ${pct(p.r.rend)})</td><td>${eur(r.rueKeep)}</td></tr>`+
+      `<tr><th>Guthaben mit ${Y}</th><th></th></tr>`+rows+
       `<tr><td>Im Altersvorsorgedepot (${pct(p.rendite-p.kosten)} netto)</td><td>${eur(r.rueAVD)}</td></tr>`+
-      `<tr class="sum"><td>${diff>=0?'Mehrwert durch Übertragung':'Minderwert durch Übertragung'}</td><td class="${diff>=0?'good':''}" style="${diff<0?'color:var(--warn)':''}">${diff>=0?'+':'−'} ${eur(Math.abs(diff))}</td></tr>`+
-      (p.r.gar!=null?`<tr><td>Beitragsgarantie im Riester (entfällt)</td><td>${eur(p.r.gar)}</td></tr>`:'');
+      `<tr class="sum"><td>${diff>=0?'Vorteil Übertragung':'Vorteil Riester'}</td><td class="${diff>=0?'good':''}" style="${diff<0?'color:var(--warn)':''}">+ ${eur(Math.abs(diff))}</td></tr>`+
+      `<tr><td>entspricht monatlich ca.</td><td>${diff>=0?'+':'−'} ${eur(Math.abs(r.pmtOf(r.rueAVD)-r.pmtOf(r.rueKeep)))}</td></tr>`;
     const vors=simulate(p,p.rendite-2).rueAVD;
-    let n='Nur das bestehende Guthaben wird verglichen. Die neuen Beiträge laufen in beiden Fällen ins Altersvorsorgedepot.';
+    let n='Verglichen wird nur das bestehende Riester-Guthaben. Die neuen Beiträge laufen in beiden Fällen ins Altersvorsorgedepot. Auszahlung jeweils als Auszahlplan bis '+p.bis+' mit '+pct(p.rendAus)+' Verzinsung, vor Steuern.';
     if(p.r.gar!=null&&vors<p.r.gar) n+=' <b style="color:var(--warn)">Achtung:</b> Im vorsichtigen Szenario ('+pct(p.rendite-2)+') liegt der übertragene Betrag mit '+eur(vors)+' unter der bisherigen Garantie.';
     if(r.years<12) n+=' Bei weniger als 12 Jahren bis zur Rente wiegt der Verlust der Garantie schwerer.';
     $('rNote').innerHTML=n;
@@ -666,6 +694,7 @@ function update(){
 function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
 $('nk').addEventListener('change',()=>{renderKids();update();});
+$('rRendSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;$('rRend').value=b.dataset.v;update();});
 $('f').addEventListener('input',update);
 $('f').addEventListener('change',update);
 $('f').addEventListener('submit',e=>e.preventDefault());
