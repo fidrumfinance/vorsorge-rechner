@@ -3,46 +3,229 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Effektivkosten-Vergleich zweier Policen | Zukunftslotsen</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<title>Effektivkosten-Vergleich</title>
+<!--RB-STANDARD-->
+<style id="rb-standard">
+/* ===== Rechner-Standard: gemeinsames Design aller Rechner =====
+   Quelle: standard/rechner-standard.css – wird per tools/build_standard.py
+   in jeden Rechner eingebaut. Nicht in den Rechnern selbst ändern. */
+:root {
+  --rb-primary: #1a2e4a;
+  --rb-primary-2: #2e4d78;
+  --rb-accent: #F5A623;
+  --rb-accent-pale: #fef6e7;
+  --rb-on-primary: #ffffff;
+  --rb-on-accent: #1a2e4a;
+  --rb-pos: #1D9E75;
+  --rb-pos-pale: #e6f7f1;
+  --rb-neg: #D85A30;
+  --rb-neg-pale: #fdf0eb;
+  --rb-info: #3b6fb6;
+  --rb-bg: #f4f6f9;
+  --rb-card: #ffffff;
+  --rb-text: #1a2e4a;
+  --rb-muted: #5a6a7e;
+  --rb-light: #8fa0b3;
+  --rb-border: #dde3ea;
+  --rb-soft: #eef1f5;
+  --rb-radius: 12px;
+  --rb-radius-sm: 8px;
+  --rb-font: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --rb-shadow: 0 1px 2px rgba(26,46,74,.04);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--rb-bg); color: var(--rb-text);
+  font-family: var(--rb-font); font-size: 15px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+
+/* Header */
+.rb-header {
+  background: var(--rb-primary); color: var(--rb-on-primary);
+  padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+}
+.rb-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.rb-logo {
+  width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  background: var(--rb-accent); color: var(--rb-on-accent); font-weight: 700; font-size: 13px;
+}
+.rb-logo.has-img { background: transparent; }
+.rb-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.rb-title { font-size: 15px; font-weight: 600; line-height: 1.25; color: var(--rb-on-primary); }
+.rb-sub { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 1px; }
+.rb-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.rb-badge {
+  background: var(--rb-accent); color: var(--rb-on-accent); font-size: 10px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px; letter-spacing: .04em; white-space: nowrap;
+}
+.rb-header .rb-hbtn {
+  background: transparent; border: 1px solid rgba(255,255,255,.25); color: var(--rb-on-primary);
+  border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.rb-header .rb-hbtn.accent { background: var(--rb-accent); border-color: var(--rb-accent); color: var(--rb-on-accent); }
+
+/* Seitenaufbau */
+.rb-main { max-width: 1040px; margin: 0 auto; padding: 20px 16px 48px; }
+.rb-intro { margin: 0 0 18px; }
+.rb-intro h1 { font-size: 24px; line-height: 1.2; margin: 0 0 6px; font-weight: 700; color: var(--rb-text); }
+.rb-intro h1 em, .rb-hl { font-style: normal; color: var(--rb-accent); }
+.rb-intro p { margin: 0; color: var(--rb-muted); font-size: 14px; max-width: 720px; }
+
+/* Karten & Abschnittslabel */
+.rb-card {
+  background: var(--rb-card); border: 1px solid var(--rb-border); border-radius: var(--rb-radius);
+  padding: 18px; margin-bottom: 14px; box-shadow: var(--rb-shadow);
+}
+.rb-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--rb-muted);
+  margin: 0 0 14px; display: flex; align-items: center; gap: 8px;
+}
+.rb-label::before { content: ''; width: 3px; height: 13px; background: var(--rb-accent); border-radius: 2px; flex-shrink: 0; }
+
+/* Kennzahlen */
+.rb-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.rb-kpi { background: var(--rb-primary); color: var(--rb-on-primary); border-radius: var(--rb-radius-sm); padding: 14px 12px; text-align: center; }
+.rb-kpi.accent { background: var(--rb-accent); color: var(--rb-on-accent); }
+.rb-kpi.light { background: var(--rb-soft); color: var(--rb-text); }
+.rb-kpi-label { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .7; margin-bottom: 4px; }
+.rb-kpi-value { font-size: 22px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.rb-kpi-sub { font-size: 11px; opacity: .65; margin-top: 3px; }
+
+/* Formularelemente */
+.rb-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.rb-field > label, .rb-flabel { font-size: 12px; color: var(--rb-muted); font-weight: 500; }
+.rb-main input[type=text], .rb-main input[type=number], .rb-main input[type=date], .rb-main input[type=email], .rb-main input[type=tel],
+.rb-main select, .rb-main textarea {
+  border: 1px solid var(--rb-border); border-radius: var(--rb-radius-sm); background: #fff; color: var(--rb-text);
+  padding: 8px 10px; min-height: 40px; font-size: 14px; outline: none;
+}
+.rb-main input:focus, .rb-main select:focus, .rb-main textarea:focus { border-color: var(--rb-accent); box-shadow: 0 0 0 2px var(--rb-accent-pale); }
+.rb-main input[type=range] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--rb-border);
+  border-radius: 4px; outline: none; cursor: pointer; margin: 10px 0; padding: 0; border: none; min-height: 0; box-shadow: none;
+}
+.rb-main input[type=range]::-webkit-slider-runnable-track { height: 4px; background: transparent; border-radius: 4px; }
+.rb-main input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 22px; height: 22px; margin-top: -9px; border-radius: 50%;
+  background: var(--rb-primary); border: 3px solid var(--rb-accent); cursor: pointer; box-shadow: 0 2px 5px rgba(26,46,74,.2);
+}
+.rb-main input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--rb-primary); border: 3px solid var(--rb-accent); cursor: pointer; }
+.rb-main input[type=range]::-moz-range-track { height: 4px; background: var(--rb-border); border-radius: 4px; }
+.rb-main input[type=checkbox], .rb-main input[type=radio] { accent-color: var(--rb-primary); width: 16px; height: 16px; }
+
+/* Buttons */
+.rb-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px;
+  padding: 8px 16px; border-radius: var(--rb-radius-sm); border: 1px solid transparent; cursor: pointer;
+  font-size: 14px; font-weight: 600; background: var(--rb-primary); color: var(--rb-on-primary); text-decoration: none;
+}
+.rb-btn.accent { background: var(--rb-accent); color: var(--rb-on-accent); }
+.rb-btn.ghost { background: #fff; color: var(--rb-primary); border-color: var(--rb-border); }
+.rb-btn.sm { min-height: 32px; padding: 5px 10px; font-size: 12px; }
+
+/* Tabellen */
+.rb-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.rb-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.rb-table th { text-align: left; padding: 8px 10px; background: var(--rb-primary); color: rgba(255,255,255,.88); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.rb-table td { padding: 8px 10px; border-bottom: 1px solid var(--rb-border); }
+.rb-table tr:nth-child(even) td { background: #f9fafc; }
+
+/* Hinweise, Badges */
+.rb-note { padding: 12px 14px; background: var(--rb-accent-pale); border-left: 3px solid var(--rb-accent); border-radius: 0 var(--rb-radius-sm) var(--rb-radius-sm) 0; font-size: 13px; line-height: 1.5; color: var(--rb-text); }
+.rb-pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+.rb-pos { color: var(--rb-pos); } .rb-neg { color: var(--rb-neg); }
+
+/* Fußzeile */
+.rb-footer { max-width: 1040px; margin: 0 auto; padding: 8px 16px 32px; text-align: center; font-size: 11px; line-height: 1.6; color: var(--rb-light); }
+.rb-footer [data-rb="contact"]:not(:empty)::before { content: ' · '; }
+
+@media (max-width: 640px) {
+  .rb-header { padding: 10px 14px; }
+  .rb-badge { display: none; }
+  .rb-intro h1 { font-size: 20px; }
+  .rb-main { padding: 14px 12px 40px; }
+}
+@media print {
+  .rb-header { position: static; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .rb-card, .rb-kpi { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+<script id="rb-brand">
+/* ===== Rechner-Standard: Branding =====
+   Quelle: standard/rechner-brand.js – wird per tools/build_standard.py eingebaut.
+   Standard ist Fidrum Finance. Ein Partner-Portal kann vor diesem Skript
+   window.RECHNER_BRAND = { name, short, logo, primary, accent, contact, claim }
+   setzen; gesetzte Felder ersetzen den Standard (leerer String = ausblenden). */
+(function () {
+  var DEFAULT = {
+    name: 'Fidrum Finance',
+    short: 'FF',
+    claim: 'Vertrauen schafft Vermögen',
+    logo: 'data:image/png;base64,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',
+    primary: '#1a2e4a',
+    accent: '#F5A623',
+    contact: 'info@fidrumfinance.com'
+  };
+  var override = (window.RECHNER_BRAND && typeof window.RECHNER_BRAND === 'object') ? window.RECHNER_BRAND : {};
+  var B = {};
+  for (var k in DEFAULT) B[k] = Object.prototype.hasOwnProperty.call(override, k) ? override[k] : DEFAULT[k];
+  window.RB = B;
+
+  function hex(c) { var m = /^#?([0-9a-f]{6})$/i.exec((c || '').trim()); return m ? [parseInt(m[1].slice(0, 2), 16), parseInt(m[1].slice(2, 4), 16), parseInt(m[1].slice(4), 16)] : null; }
+  function mix(c, w, t) { return '#' + c.map(function (v) { return Math.round(v + (w - v) * t).toString(16).padStart(2, '0'); }).join(''); }
+  function lum(c) { return (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255; }
+  var root = document.documentElement.style, p = hex(B.primary), a = hex(B.accent);
+  if (p) { root.setProperty('--rb-primary', B.primary); root.setProperty('--rb-primary-2', mix(p, 255, 0.22)); root.setProperty('--rb-text', lum(p) < 0.35 ? B.primary : '#1a2e4a'); root.setProperty('--rb-on-primary', lum(p) > 0.6 ? '#1a2e4a' : '#ffffff'); }
+  if (a) { root.setProperty('--rb-accent', B.accent); root.setProperty('--rb-accent-pale', mix(a, 255, 0.88)); root.setProperty('--rb-on-accent', lum(a) > 0.55 ? '#1a2e4a' : '#ffffff'); }
+
+  window.rbColor = function (name, alpha) {
+    var v = getComputedStyle(document.documentElement).getPropertyValue('--rb-' + name).trim();
+    var c = hex(v); if (alpha == null || !c) return v;
+    return 'rgba(' + c.join(',') + ',' + alpha + ')';
+  };
+
+  function apply() {
+    document.querySelectorAll('[data-rb="name"]').forEach(function (e) { e.textContent = B.name || ''; e.hidden = !B.name; });
+    document.querySelectorAll('[data-rb="claim"]').forEach(function (e) { e.textContent = B.claim || ''; e.hidden = !B.claim; });
+    document.querySelectorAll('[data-rb="contact"]').forEach(function (e) { e.textContent = B.contact || ''; });
+    document.querySelectorAll('[data-rb="logo"]').forEach(function (e) {
+      e.innerHTML = ''; e.classList.remove('has-img');
+      if (B.logo) { var i = document.createElement('img'); i.src = B.logo; i.alt = B.name || ''; e.appendChild(i); e.classList.add('has-img'); e.hidden = false; }
+      else if (B.short) { e.textContent = B.short; e.hidden = false; }
+      else e.hidden = true;
+    });
+    var t = document.querySelector('.rb-title');
+    if (t && !document.body.hasAttribute('data-rb-titled')) { document.title = t.textContent.trim() + (B.name ? ' – ' + B.name : ''); document.body.setAttribute('data-rb-titled', ''); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply); else apply();
+})();
+</script>
+<!--/RB-STANDARD-->
 <style>
 :root{
-  --navy:#14264A; --navy-deep:#0C1A36; --gold:#C29B40; --gold-soft:#F3EAD3;
-  --bg:#F4F6FA; --surface:#FFFFFF; --ink:#1C2433; --muted:#5B6577; --line:#D9DEE7;
-  --etf:#14264A; --pol:#C29B40; --paid:#9AA3B2; --good:#1F7A4D; --warn:#9A5B00; --warn-bg:#FFF4E0;
-  --head-font:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
-  --body-font:Calibri,Carlito,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#0E1628; --surface:#16213A; --ink:#E8ECF3; --muted:#A3AEC2; --line:#2A3858;
-    --etf:#8FB1F0; --pol:#D9B660; --paid:#6E7A91; --gold-soft:#2C2A22; --good:#5CC592; --warn:#F0B35A; --warn-bg:#2E2615;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#0E1628; --surface:#16213A; --ink:#E8ECF3; --muted:#A3AEC2; --line:#2A3858;
-  --etf:#8FB1F0; --pol:#D9B660; --paid:#6E7A91; --gold-soft:#2C2A22; --good:#5CC592; --warn:#F0B35A; --warn-bg:#2E2615;
+  --navy:var(--rb-primary); --navy-deep:var(--rb-primary); --gold:var(--rb-accent); --gold-soft:var(--rb-accent-pale);
+  --bg:var(--rb-bg); --surface:var(--rb-card); --ink:var(--rb-text); --muted:var(--rb-muted); --line:var(--rb-border);
+  --etf:var(--rb-primary); --pol:var(--rb-accent); --paid:var(--rb-light); --good:var(--rb-pos); --warn:#9A5B00; --warn-bg:var(--rb-accent-pale);
+  --head-font:var(--rb-font);
+  --body-font:var(--rb-font);
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body-font);font-size:16px;line-height:1.45}
-h1,h2,h3{font-family:var(--head-font);font-weight:600;margin:0;line-height:1.1}
-.top{background:var(--navy-deep);color:#fff;border-bottom:4px solid var(--gold)}
-.top-in{max-width:1180px;margin:0 auto;padding:22px 20px 26px}
-.brand{font-family:var(--head-font);font-size:1.25rem;font-weight:600;color:var(--gold);letter-spacing:.02em}
-.brand small{display:block;font-family:var(--body-font);font-size:.85rem;color:#C9D2E3;font-weight:400;letter-spacing:0}
-.top h1{font-size:clamp(2rem,5vw,3.1rem);margin-top:14px}
-.top p{margin:6px 0 0;color:#C9D2E3;max-width:64ch}
-main{max-width:1180px;margin:0 auto;padding:24px 20px 40px;display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start}
-@media (max-width:900px){main{grid-template-columns:1fr}}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+body{font-size:15px}
+h1,h2,h3{font-family:var(--head-font);font-weight:700;margin:0;line-height:1.15}
+.rb-intro{max-width:1180px;margin:0 auto;padding:22px 20px 0}
+main.rb-main{max-width:1180px;margin:0 auto;padding:18px 20px 40px;display:grid;grid-template-columns:340px minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:900px){main.rb-main{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--rb-radius)}
 aside.panel{padding:18px 18px 8px;position:sticky;top:12px}
 @media (max-width:900px){aside.panel{position:static}}
 fieldset{border:0;margin:0 0 14px;padding:0}
-legend{font-family:var(--head-font);font-size:1.2rem;font-weight:600;color:var(--navy);padding:0 0 6px;border-bottom:2px solid var(--gold);width:100%;margin-bottom:10px}
-:root[data-theme="dark"] legend{color:var(--pol)}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) legend{color:var(--pol)}}
+legend{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 0 8px;border-bottom:1px solid var(--line);width:100%;margin-bottom:12px}
 .f{margin-bottom:11px}
 .f label{display:flex;justify-content:space-between;gap:8px;font-size:.93rem;margin-bottom:3px}
 .f label span{color:var(--muted);font-size:.85rem}
@@ -58,28 +241,28 @@ button.reset{background:none;border:1px solid var(--line);color:var(--muted);pad
 button.reset:hover{color:var(--ink);border-color:var(--muted)}
 
 .result{padding:22px}
-.verdict{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.verdict{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:0;border:1px solid var(--line);border-radius:var(--rb-radius-sm);overflow:hidden}
 @media (max-width:640px){.verdict{grid-template-columns:1fr}}
 .v{padding:16px 18px}
 .v + .v{border-left:1px solid var(--line)}
 @media (max-width:640px){.v + .v{border-left:0;border-top:1px solid var(--line)}}
 .v .lbl{font-size:.9rem;color:var(--muted)}
-.v .num{font-family:var(--head-font);font-size:2.1rem;font-weight:600;line-height:1.1;margin-top:2px}
+.v .num{font-family:var(--head-font);font-size:1.75rem;font-weight:700;line-height:1.1;margin-top:2px}
 .v.etf .num{color:var(--etf)} .v.pol .num{color:var(--pol)}
-.v.diff{background:var(--navy);color:#fff}
+.v.diff{background:var(--navy);color:var(--rb-on-primary)}
 .v.diff .lbl{color:#C9D2E3}
-.v.diff .num{font-size:2.6rem;color:var(--gold)}
+.v.diff .num{font-size:2.1rem;color:var(--gold)}
 .v.diff .sub{font-size:.88rem;color:#C9D2E3;margin-top:2px}
 .warn{background:var(--warn-bg);color:var(--warn);border-radius:4px;padding:8px 12px;font-size:.9rem;margin-top:12px}
 .warn:empty{display:none}
 
 section.block{margin-top:26px}
-section.block h2{font-size:1.5rem;color:var(--ink);margin-bottom:10px}
+section.block h2{font-size:1.15rem;color:var(--ink);margin-bottom:10px}
 .tw{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
 th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
 th:first-child,td:first-child{text-align:left;white-space:normal}
-thead th{font-family:var(--head-font);font-size:1.1rem;font-weight:600;border-bottom:2px solid var(--gold)}
+thead th{font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--gold)}
 thead th.etf{color:var(--etf)} thead th.pol{color:var(--pol)}
 tr.sum td{font-weight:700;border-top:2px solid var(--ink)}
 tr.sub td{color:var(--muted);font-size:.92rem}
@@ -95,9 +278,9 @@ svg.chart{width:100%;height:auto;display:block}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .fact{border-left:3px solid var(--gold);padding:4px 0 4px 12px}
 .fact .k{font-size:.88rem;color:var(--muted)}
-.fact .val{font-family:var(--head-font);font-size:1.35rem;font-weight:600}
+.fact .val{font-size:1.2rem;font-weight:700}
 details{margin-top:26px}
-summary{cursor:pointer;font-family:var(--head-font);font-size:1.3rem;font-weight:600}
+summary{cursor:pointer;font-size:1rem;font-weight:700}
 details .tw{max-height:420px;overflow:auto;margin-top:10px}
 details thead th{position:sticky;top:0;background:var(--surface)}
 tr.sw td{background:var(--gold-soft)}
@@ -110,22 +293,24 @@ legend .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin
 .v .sub2{font-size:.88rem;color:var(--muted);margin-top:2px}
 .v.diff .sub2{color:#C9D2E3}
 tr.hl td{background:var(--gold-soft);font-weight:700}
-td.neg{color:#B03A2E} td.pos{color:var(--good)}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) td.neg{color:#F08C80}}
-:root[data-theme="dark"] td.neg{color:#F08C80}
+td.neg{color:var(--rb-neg)} td.pos{color:var(--good)}
 .lesart{border-left:3px solid var(--gold);padding:6px 0 6px 14px;margin:18px 0 0;max-width:78ch}
 </style>
 </head>
 <body>
-<header class="top">
-  <div class="top-in">
-    <div class="brand">Zukunftslotsen<small>Unabhängige Finanz- und Versicherungsberatung</small></div>
-    <h1>Was kosten Zehntelprozente?</h1>
-    <p>Zwei Policen, gleiche Beiträge, gleiche Rendite – nur die Effektivkosten unterscheiden sich. Tragen Sie beide Angebote ein und sehen Sie, wie viel Kapital der Unterschied bis zum Rentenbeginn ausmacht.</p>
+<header class="rb-header">
+  <div class="rb-brand">
+    <div class="rb-logo" data-rb="logo"></div>
+    <div><div class="rb-title">Effektivkosten-Vergleich</div><div class="rb-sub" data-rb="name"></div></div>
   </div>
+  <div class="rb-header-right"><div class="rb-badge">Vermögen aufbauen</div></div>
 </header>
+<div class="rb-intro">
+  <h1>Was kosten Zehntelprozente?</h1>
+  <p>Zwei Policen, gleiche Beiträge, gleiche Rendite – nur die Effektivkosten unterscheiden sich. Tragen Sie beide Angebote ein und sehen Sie, wie viel Kapital der Unterschied bis zum Rentenbeginn ausmacht.</p>
+</div>
 
-<main>
+<main class="rb-main">
   <aside class="panel" aria-label="Eingaben">
     <fieldset>
       <legend>Gemeinsame Annahmen</legend>
@@ -207,8 +392,8 @@ td.neg{color:#B03A2E} td.pos{color:var(--good)}
 <div class="disclaimer">
   <p><strong>Unverbindliche Modellrechnung.</strong> Keine Anlageberatung. Maßgeblich sind ausschließlich die Angebotsunterlagen, das Basisinformationsblatt und die Versicherungsbedingungen der jeweiligen Gesellschaft.</p>
   <p>Rechenweg: Nettorendite = Bruttorendite minus Effektivkosten, gleichmäßig über die Laufzeit; Umrechnung auf einen gleichwertigen Monatszins, Beitrag jeweils zum Monatsende. Eine konstante Rendite ist eine Rechenannahme, keine Prognose. Steuern bei Auszahlung sind nicht berücksichtigt.</p>
-  <p>Zukunftslotsen – Unabhängige Finanz- und Versicherungsberatung, Lingen (Ems)</p>
 </div>
+<footer class="rb-footer">Modellrechnung · Keine Anlage-, Steuer- oder Versicherungsberatung · <span data-rb="name"></span><span data-rb="contact"></span></footer>
 
 <script>
 (function(){

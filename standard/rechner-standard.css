@@ -1,0 +1,149 @@
+/* ===== Rechner-Standard: gemeinsames Design aller Rechner =====
+   Quelle: standard/rechner-standard.css – wird per tools/build_standard.py
+   in jeden Rechner eingebaut. Nicht in den Rechnern selbst ändern. */
+:root {
+  --rb-primary: #1a2e4a;
+  --rb-primary-2: #2e4d78;
+  --rb-accent: #F5A623;
+  --rb-accent-pale: #fef6e7;
+  --rb-on-primary: #ffffff;
+  --rb-on-accent: #1a2e4a;
+  --rb-pos: #1D9E75;
+  --rb-pos-pale: #e6f7f1;
+  --rb-neg: #D85A30;
+  --rb-neg-pale: #fdf0eb;
+  --rb-info: #3b6fb6;
+  --rb-bg: #f4f6f9;
+  --rb-card: #ffffff;
+  --rb-text: #1a2e4a;
+  --rb-muted: #5a6a7e;
+  --rb-light: #8fa0b3;
+  --rb-border: #dde3ea;
+  --rb-soft: #eef1f5;
+  --rb-radius: 12px;
+  --rb-radius-sm: 8px;
+  --rb-font: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --rb-shadow: 0 1px 2px rgba(26,46,74,.04);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--rb-bg); color: var(--rb-text);
+  font-family: var(--rb-font); font-size: 15px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+
+/* Header */
+.rb-header {
+  background: var(--rb-primary); color: var(--rb-on-primary);
+  padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+}
+.rb-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.rb-logo {
+  width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  background: var(--rb-accent); color: var(--rb-on-accent); font-weight: 700; font-size: 13px;
+}
+.rb-logo.has-img { background: transparent; }
+.rb-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.rb-title { font-size: 15px; font-weight: 600; line-height: 1.25; color: var(--rb-on-primary); }
+.rb-sub { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 1px; }
+.rb-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.rb-badge {
+  background: var(--rb-accent); color: var(--rb-on-accent); font-size: 10px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px; letter-spacing: .04em; white-space: nowrap;
+}
+.rb-header .rb-hbtn {
+  background: transparent; border: 1px solid rgba(255,255,255,.25); color: var(--rb-on-primary);
+  border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.rb-header .rb-hbtn.accent { background: var(--rb-accent); border-color: var(--rb-accent); color: var(--rb-on-accent); }
+
+/* Seitenaufbau */
+.rb-main { max-width: 1040px; margin: 0 auto; padding: 20px 16px 48px; }
+.rb-intro { margin: 0 0 18px; }
+.rb-intro h1 { font-size: 24px; line-height: 1.2; margin: 0 0 6px; font-weight: 700; color: var(--rb-text); }
+.rb-intro h1 em, .rb-hl { font-style: normal; color: var(--rb-accent); }
+.rb-intro p { margin: 0; color: var(--rb-muted); font-size: 14px; max-width: 720px; }
+
+/* Karten & Abschnittslabel */
+.rb-card {
+  background: var(--rb-card); border: 1px solid var(--rb-border); border-radius: var(--rb-radius);
+  padding: 18px; margin-bottom: 14px; box-shadow: var(--rb-shadow);
+}
+.rb-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--rb-muted);
+  margin: 0 0 14px; display: flex; align-items: center; gap: 8px;
+}
+.rb-label::before { content: ''; width: 3px; height: 13px; background: var(--rb-accent); border-radius: 2px; flex-shrink: 0; }
+
+/* Kennzahlen */
+.rb-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.rb-kpi { background: var(--rb-primary); color: var(--rb-on-primary); border-radius: var(--rb-radius-sm); padding: 14px 12px; text-align: center; }
+.rb-kpi.accent { background: var(--rb-accent); color: var(--rb-on-accent); }
+.rb-kpi.light { background: var(--rb-soft); color: var(--rb-text); }
+.rb-kpi-label { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .7; margin-bottom: 4px; }
+.rb-kpi-value { font-size: 22px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.rb-kpi-sub { font-size: 11px; opacity: .65; margin-top: 3px; }
+
+/* Formularelemente */
+.rb-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.rb-field > label, .rb-flabel { font-size: 12px; color: var(--rb-muted); font-weight: 500; }
+.rb-main input[type=text], .rb-main input[type=number], .rb-main input[type=date], .rb-main input[type=email], .rb-main input[type=tel],
+.rb-main select, .rb-main textarea {
+  border: 1px solid var(--rb-border); border-radius: var(--rb-radius-sm); background: #fff; color: var(--rb-text);
+  padding: 8px 10px; min-height: 40px; font-size: 14px; outline: none;
+}
+.rb-main input:focus, .rb-main select:focus, .rb-main textarea:focus { border-color: var(--rb-accent); box-shadow: 0 0 0 2px var(--rb-accent-pale); }
+.rb-main input[type=range] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--rb-border);
+  border-radius: 4px; outline: none; cursor: pointer; margin: 10px 0; padding: 0; border: none; min-height: 0; box-shadow: none;
+}
+.rb-main input[type=range]::-webkit-slider-runnable-track { height: 4px; background: transparent; border-radius: 4px; }
+.rb-main input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 22px; height: 22px; margin-top: -9px; border-radius: 50%;
+  background: var(--rb-primary); border: 3px solid var(--rb-accent); cursor: pointer; box-shadow: 0 2px 5px rgba(26,46,74,.2);
+}
+.rb-main input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--rb-primary); border: 3px solid var(--rb-accent); cursor: pointer; }
+.rb-main input[type=range]::-moz-range-track { height: 4px; background: var(--rb-border); border-radius: 4px; }
+.rb-main input[type=checkbox], .rb-main input[type=radio] { accent-color: var(--rb-primary); width: 16px; height: 16px; }
+
+/* Buttons */
+.rb-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px;
+  padding: 8px 16px; border-radius: var(--rb-radius-sm); border: 1px solid transparent; cursor: pointer;
+  font-size: 14px; font-weight: 600; background: var(--rb-primary); color: var(--rb-on-primary); text-decoration: none;
+}
+.rb-btn.accent { background: var(--rb-accent); color: var(--rb-on-accent); }
+.rb-btn.ghost { background: #fff; color: var(--rb-primary); border-color: var(--rb-border); }
+.rb-btn.sm { min-height: 32px; padding: 5px 10px; font-size: 12px; }
+
+/* Tabellen */
+.rb-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.rb-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.rb-table th { text-align: left; padding: 8px 10px; background: var(--rb-primary); color: rgba(255,255,255,.88); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.rb-table td { padding: 8px 10px; border-bottom: 1px solid var(--rb-border); }
+.rb-table tr:nth-child(even) td { background: #f9fafc; }
+
+/* Hinweise, Badges */
+.rb-note { padding: 12px 14px; background: var(--rb-accent-pale); border-left: 3px solid var(--rb-accent); border-radius: 0 var(--rb-radius-sm) var(--rb-radius-sm) 0; font-size: 13px; line-height: 1.5; color: var(--rb-text); }
+.rb-pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+.rb-pos { color: var(--rb-pos); } .rb-neg { color: var(--rb-neg); }
+
+/* Fußzeile */
+.rb-footer { max-width: 1040px; margin: 0 auto; padding: 8px 16px 32px; text-align: center; font-size: 11px; line-height: 1.6; color: var(--rb-light); }
+.rb-footer [data-rb="contact"]:not(:empty)::before { content: ' · '; }
+
+@media (max-width: 640px) {
+  .rb-header { padding: 10px 14px; }
+  .rb-badge { display: none; }
+  .rb-intro h1 { font-size: 20px; }
+  .rb-main { padding: 14px 12px 40px; }
+}
+@media print {
+  .rb-header { position: static; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .rb-card, .rb-kpi { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
