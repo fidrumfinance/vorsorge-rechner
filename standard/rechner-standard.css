@@ -94,7 +94,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .rb-field > label, .rb-flabel { font-size: 12px; color: var(--rb-muted); font-weight: 500; }
 .rb-main input[type=text], .rb-main input[type=number], .rb-main input[type=date], .rb-main input[type=email], .rb-main input[type=tel],
 .rb-main select, .rb-main textarea {
-  border: 1px solid var(--rb-border); border-radius: var(--rb-radius-sm); background: #fff; color: var(--rb-text);
+  border: 1px solid var(--rb-border); border-radius: var(--rb-radius-sm); background-color: #fff; color: var(--rb-text);
   padding: 8px 10px; min-height: 40px; font-size: 14px; outline: none;
 }
 .rb-main input:focus, .rb-main select:focus, .rb-main textarea:focus { border-color: var(--rb-accent); box-shadow: 0 0 0 2px var(--rb-accent-pale); }
