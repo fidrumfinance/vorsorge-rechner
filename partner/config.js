@@ -8,6 +8,6 @@ window.PORTAL_CONFIG = {
   BRAND_NAME: "Fidrum Finance",
   BRAND_SHORT: "FF",
   PORTAL_TITLE: "Rechner-Bibliothek für Partner",
-  CONTACT_EMAIL: "finanzberatung@daniel-dinh.de",
+  CONTACT_EMAIL: "info@fidrumfinance.com",
   CATEGORIES: ["Vermögen aufbauen", "Immobilie als Kapitalanlage", "Für Ihr Kind vorsorgen", "Richtig absichern"]
 };

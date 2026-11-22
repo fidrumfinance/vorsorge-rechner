@@ -147,8 +147,8 @@ create policy rechner_admin_delete on storage.objects
 -- ---------- Erster Admin ----------
 -- E-Mail-Adresse des Admins (Kleinbuchstaben):
 insert into public.invites (email, full_name, company, role)
-values ('finanzberatung@daniel-dinh.de', 'Daniel Dinh', 'Fidrum Finance', 'admin')
+values ('info@fidrumfinance.com', 'Daniel Dinh', 'Fidrum Finance', 'admin')
 on conflict (email) do update set role = 'admin';
 -- Falls dieses Konto schon existiert, zum Admin machen:
 update public.profiles set role = 'admin', active = true
-where email = 'finanzberatung@daniel-dinh.de';
+where email = 'info@fidrumfinance.com';
