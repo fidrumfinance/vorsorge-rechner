@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Rechner-Bibliothek für Partner</title>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+  :root {
+    --navy: #1a2e4a; --navy-2: #243b5e; --gold: #F5A623; --gold-pale: #fef6e7;
+    --teal: #1D9E75; --teal-pale: #e6f7f1; --coral: #D85A30; --coral-pale: #fdf0eb;
+    --bg: #f4f6f9; --card: #fff; --text: #1a2e4a; --muted: #5a6a7e; --light: #8fa0b3;
+    --border: #dde3ea; --r: 12px; --rs: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  a { color: var(--navy); }
+  [hidden] { display: none !important; }
+
+  .header { background: var(--navy); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 50; }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .logo { width: 34px; height: 34px; background: var(--gold); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: var(--navy); flex-shrink: 0; }
+  .brand-title { color: #fff; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand-sub { color: rgba(255,255,255,.55); font-size: 11px; margin-top: 1px; }
+  .nav { display: flex; align-items: center; gap: 6px; }
+  .nav button { background: transparent; border: 1px solid rgba(255,255,255,.2); color: #fff; border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .nav button.on { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+  .nav .who { color: rgba(255,255,255,.6); font-size: 11px; margin-right: 4px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .main { max-width: 980px; margin: 0 auto; padding: 18px 16px 48px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 18px; margin-bottom: 14px; }
+  .label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .label::before { content: ''; width: 3px; height: 13px; background: var(--gold); border-radius: 2px; flex-shrink: 0; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .lead { color: var(--muted); font-size: 14px; line-height: 1.5; margin-bottom: 16px; }
+  .small { font-size: 12px; color: var(--muted); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: var(--rs); padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; background: var(--navy); color: #fff; min-height: 42px; }
+  .btn.gold { background: var(--gold); color: var(--navy); }
+  .btn.ghost { background: #fff; color: var(--navy); border-color: var(--border); }
+  .btn.danger { background: #fff; color: var(--coral); border-color: #f0d5c8; }
+  .btn.sm { padding: 6px 10px; font-size: 12px; min-height: 32px; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .field label { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .input { border: 1px solid var(--border); border-radius: var(--rs); padding: 10px 12px; background: #fff; min-height: 42px; width: 100%; }
+  .input:focus, .btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .msg { padding: 10px 12px; border-radius: var(--rs); font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
+  .msg.ok { background: var(--teal-pale); color: #0f6e56; }
+  .msg.err { background: var(--coral-pale); color: #993c1d; }
+  .msg.info { background: var(--gold-pale); color: var(--navy); }
+
+  /* Login */
+  .login-wrap { max-width: 420px; margin: 7vh auto 0; }
+  .login-wrap .card { padding: 26px; }
+
+  /* Bibliothek */
+  .search { margin-bottom: 16px; }
+  .cat { margin-bottom: 18px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .tile { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; text-align: left; transition: border-color .15s, transform .15s; }
+  .tile:hover { border-color: var(--gold); transform: translateY(-1px); }
+  .tile .t { font-size: 15px; font-weight: 700; }
+  .tile .d { font-size: 13px; color: var(--muted); line-height: 1.45; flex: 1; }
+  .tile .go { font-size: 12px; font-weight: 700; color: var(--gold); margin-top: 4px; }
+  .empty { text-align: center; color: var(--muted); padding: 30px 10px; font-size: 14px; }
+
+  /* Viewer */
+  .viewer-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .viewer-bar .vt { font-weight: 700; font-size: 15px; flex: 1; min-width: 150px; }
+  .frame { width: 100%; height: calc(100vh - 140px); min-height: 520px; border: 1px solid var(--border); border-radius: var(--r); background: #fff; }
+
+  /* Admin */
+  .tabs { display: flex; gap: 4px; background: #e9edf2; padding: 4px; border-radius: var(--rs); margin-bottom: 14px; }
+  .tab { flex: 1; padding: 9px; font-size: 13px; font-weight: 600; border: none; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; }
+  .tab.on { background: var(--navy); color: #fff; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .kpi { background: var(--navy); border-radius: var(--rs); padding: 14px 12px; text-align: center; }
+  .kpi.gold { background: var(--gold); }
+  .kpi .k { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.6); margin-bottom: 4px; }
+  .kpi.gold .k { color: rgba(26,46,74,.65); }
+  .kpi .v { font-size: 26px; font-weight: 700; color: #fff; }
+  .kpi.gold .v { color: var(--navy); }
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px 10px; background: var(--navy); color: rgba(255,255,255,.85); font-size: 11px; font-weight: 600; white-space: nowrap; }
+  th:first-child { border-radius: 6px 0 0 0; } th:last-child { border-radius: 0 6px 0 0; }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:nth-child(even) td { background: #f9fafc; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .b-ok { background: var(--teal-pale); color: #0f6e56; }
+  .b-wait { background: var(--gold-pale); color: #8a5a00; }
+  .b-off { background: var(--coral-pale); color: #993c1d; }
+  .b-admin { background: var(--navy); color: #fff; }
+  .bar { height: 8px; background: var(--gold); border-radius: 4px; min-width: 2px; }
+  .copybox { background: var(--bg); border: 1px dashed var(--border); border-radius: var(--rs); padding: 12px; font-size: 13px; white-space: pre-wrap; line-height: 1.5; margin: 10px 0; }
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .progress { font-size: 13px; color: var(--muted); margin-top: 10px; white-space: pre-line; }
+
+  @media (max-width: 720px) {
+    .kpis { grid-template-columns: 1fr 1fr; }
+    .grid2 { grid-template-columns: 1fr; }
+    .nav .who { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">
+    <div class="logo" id="brandShort">FF</div>
+    <div style="min-width:0">
+      <div class="brand-title" id="brandTitle">Rechner-Bibliothek</div>
+      <div class="brand-sub" id="brandName">Partner-Bereich</div>
+    </div>
+  </div>
+  <nav class="nav" id="nav" hidden>
+    <span class="who" id="who"></span>
+    <button id="navLib" class="on">Rechner</button>
+    <button id="navAdmin" hidden>Admin</button>
+    <button id="navOut">Abmelden</button>
+  </nav>
+</header>
+
+<main class="main">
+
+  <!-- Setup-Hinweis -->
+  <section id="vSetup" hidden>
+    <div class="card"><div class="label">Einrichtung</div>
+      <p class="lead">Das Portal ist noch nicht mit der Datenbank verbunden. In <code>config.js</code> fehlen Supabase-URL und Schlüssel.</p>
+    </div>
+  </section>
+
+  <!-- Laden -->
+  <section id="vLoading"><div class="empty">Wird geladen …</div></section>
+
+  <!-- Login -->
+  <section id="vLogin" hidden>
+    <div class="login-wrap">
+      <div class="card">
+        <div class="label">Partner-Login</div>
+        <h1 id="loginTitle">Rechner-Bibliothek</h1>
+        <p class="lead">Melde dich mit der E-Mail-Adresse an, mit der du eingeladen wurdest. Du bekommst einen Anmeldelink per E-Mail, ein Passwort brauchst du nicht.</p>
+        <div id="loginMsg"></div>
+        <form id="fEmail">
+          <div class="field"><label for="email">E-Mail-Adresse</label>
+            <input class="input" id="email" type="email" autocomplete="email" required placeholder="name@beispiel.de"></div>
+          <button class="btn gold" style="width:100%" id="bSend" type="submit">Anmeldelink senden</button>
+        </form>
+        <form id="fCode" hidden style="margin-top:14px">
+          <div class="field"><label for="code">Oder Code aus der E-Mail eingeben</label>
+            <input class="input" id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="6-stelliger Code"></div>
+          <div class="row">
+            <button class="btn" type="submit">Anmelden</button>
+            <button class="btn ghost" type="button" id="bBack">Andere E-Mail</button>
+          </div>
+        </form>
+        <p class="small" style="margin-top:16px">Noch keinen Zugang? Schreib an <a id="contactLink" href="#"></a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gesperrt -->
+  <section id="vBlocked" hidden>
+    <div class="login-wrap"><div class="card">
+      <div class="label">Kein Zugang</div>
+      <p class="lead">Dein Zugang ist derzeit nicht aktiv. Bitte wende dich an <a class="contact" href="#"></a>.</p>
+      <button class="btn ghost" id="bBlockedOut">Abmelden</button>
+    </div></div>
+  </section>
+
+  <!-- Bibliothek -->
+  <section id="vLib" hidden>
+    <h1>Rechner-Bibliothek</h1>
+    <p class="lead">Alle Rechner für deine Beratungsgespräche. Werte anpassen, Ergebnis sofort sehen.</p>
+    <input class="input search" id="q" type="search" placeholder="Rechner suchen …" aria-label="Rechner suchen">
+    <div id="libList"></div>
+  </section>
+
+  <!-- Viewer -->
+  <section id="vView" hidden>
+    <div class="viewer-bar">
+      <button class="btn ghost sm" id="bClose">← Zur Übersicht</button>
+      <div class="vt" id="viewTitle"></div>
+      <button class="btn ghost sm" id="bNewTab">In neuem Tab öffnen</button>
+    </div>
+    <div id="viewMsg"></div>
+    <iframe class="frame" id="frame" title="Rechner" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals allow-downloads"></iframe>
+  </section>
+
+  <!-- Admin -->
+  <section id="vAdmin" hidden>
+    <h1>Verwaltung</h1>
+    <p class="lead">Partner einladen, Rechner pflegen und sehen, wie die Bibliothek genutzt wird.</p>
+    <div class="tabs">
+      <button class="tab on" data-tab="aDash">Übersicht</button>
+      <button class="tab" data-tab="aPartner">Partner</button>
+      <button class="tab" data-tab="aCalc">Rechner</button>
+    </div>
+    <div id="adminMsg"></div>
+
+    <div id="aDash">
+      <div class="kpis">
+        <div class="kpi"><div class="k">Aktive Zugänge</div><div class="v" id="kActive">–</div></div>
+        <div class="kpi"><div class="k">Offene Einladungen</div><div class="v" id="kPending">–</div></div>
+        <div class="kpi"><div class="k">Rechner online</div><div class="v" id="kCalcs">–</div></div>
+        <div class="kpi gold"><div class="k">Aufrufe 30 Tage</div><div class="v" id="kUses">–</div></div>
+      </div>
+      <div class="card"><div class="label">Meistgenutzte Rechner (30 Tage)</div><div class="tbl-wrap" id="topCalcs"></div></div>
+      <div class="card"><div class="label">Letzte Aktivität</div><div class="tbl-wrap" id="recent"></div></div>
+    </div>
+
+    <div id="aPartner" hidden>
+      <div class="card">
+        <div class="label">Partner einladen</div>
+        <form id="fInvite">
+          <div class="grid2">
+            <div class="field"><label for="iEmail">E-Mail-Adresse *</label><input class="input" id="iEmail" type="email" required></div>
+            <div class="field"><label for="iName">Name</label><input class="input" id="iName"></div>
+            <div class="field"><label for="iCompany">Firma</label><input class="input" id="iCompany"></div>
+            <div class="field"><label for="iRole">Rolle</label>
+              <select class="input" id="iRole"><option value="partner">Partner (nur Rechner nutzen)</option><option value="admin">Admin (alles verwalten)</option></select></div>
+          </div>
+          <button class="btn gold" type="submit">Einladen</button>
+        </form>
+        <div id="inviteOut" hidden>
+          <p class="small" style="margin-top:14px">Freigeschaltet. Schick dem Partner diese Nachricht:</p>
+          <div class="copybox" id="inviteText"></div>
+          <div class="row"><button class="btn sm" id="bCopyInvite" type="button">Text kopieren</button><a class="btn ghost sm" id="bMailInvite" href="#">Per E-Mail senden</a></div>
+        </div>
+      </div>
+      <div class="card"><div class="label">Alle Zugänge</div><div class="tbl-wrap" id="partnerTbl"></div></div>
+    </div>
+
+    <div id="aCalc" hidden>
+      <div class="card">
+        <div class="label" id="calcFormLabel">Neuen Rechner hinzufügen</div>
+        <form id="fCalc">
+          <input type="hidden" id="cId">
+          <div class="grid2">
+            <div class="field"><label for="cTitle">Titel *</label><input class="input" id="cTitle" required></div>
+            <div class="field"><label for="cCat">Kategorie *</label><input class="input" id="cCat" list="catList" required></div>
+          </div>
+          <datalist id="catList"></datalist>
+          <div class="field"><label for="cDesc">Kurzbeschreibung</label><input class="input" id="cDesc"></div>
+          <div class="grid2">
+            <div class="field"><label for="cFile" id="cFileLabel">HTML-Datei *</label><input class="input" id="cFile" type="file" accept=".html,.htm,text/html"></div>
+            <div class="field"><label for="cOrder">Reihenfolge (kleiner = weiter oben)</label><input class="input" id="cOrder" type="number" value="100"></div>
+          </div>
+          <div class="field" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" id="cActive" checked><label for="cActive" style="font-size:13px;color:var(--text)">Für Partner sichtbar</label></div>
+          <div class="row">
+            <button class="btn gold" type="submit" id="bCalcSave">Rechner speichern</button>
+            <button class="btn ghost" type="button" id="bCalcCancel" hidden>Abbrechen</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="label">Rechner in der Bibliothek</div>
+        <div class="tbl-wrap" id="calcTbl"></div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn ghost sm" id="bImport" type="button">Rechner aus der öffentlichen Bibliothek übernehmen</button>
+        </div>
+        <div class="progress" id="importLog"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  const C = window.PORTAL_CONFIG || {};
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmtDate = (d) => d ? new Date(d).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '–';
+  const PORTAL_URL = location.origin + location.pathname;
+  const CATS = C.CATEGORIES || [];
+
+  // Rechner der öffentlichen Bibliothek (für den Import)
+  const PUBLIC_LIBRARY = [
+    ['Vermögen aufbauen', 'altersvorsorgedepot-rechner.html', 'Altersvorsorgedepot 2027', 'Staatliche Zulagen, Steuervorteil und Riester-Übertragung: Was das neue geförderte Depot bis zur Rente bringt.'],
+    ['Vermögen aufbauen', 'avd-vs-etf-police.html', 'Altersvorsorgedepot oder ETF-Police', 'Förderung gegen Flexibilität: Was bei Rente, vorzeitiger Auflösung und im Erbfall jeweils ankommt.'],
+    ['Vermögen aufbauen', 'fidrum-zinseszins-rechner.html', 'Zinseszins-Vergleich', 'Zwei Sparpläne nebeneinander: Wer früher anfängt, sieht die Schere aufgehen.'],
+    ['Vermögen aufbauen', 'sparplan-timeline.html', 'Sparplan-Timeline', 'Ein Sparplan über ein ganzes Leben – mit Entnahmen für Führerschein, erste Wohnung, Immobilie und Rente.'],
+    ['Vermögen aufbauen', 'etf-vs-police-rechner.html', 'ETF-Sparplan oder ETF-Police', 'Gleiche Rendite, andere Steuern und Kosten: Welche Variante nach Steuern vorne liegt.'],
+    ['Vermögen aufbauen', 'effektivkosten-vergleich.html', 'Effektivkosten-Vergleich', 'Zwei Policen, gleiche Beiträge: Was ein paar Zehntelprozente Kosten bis zum Rentenbeginn ausmachen.'],
+    ['Immobilie als Kapitalanlage', 'immobilien-rechner.html', 'Immobilienrechner', 'Miete, Steuervorteil und eigene Zuzahlung: Was eine vermietete Wohnung monatlich kostet und welches Vermögen sie aufbaut.'],
+    ['Für Ihr Kind vorsorgen', 'KidsSparplan.html', 'Investmentplan fürs Kind', 'Die Eltern legen heute los oder das Kind startet später selbst – der direkte Vergleich.'],
+    ['Für Ihr Kind vorsorgen', 'vorsorge-rechner.html', 'Immobilie einfacher für Kinder', 'Was 100 € im Monat für Ihr Kind bedeuten – bis hin zum Eigenkapital für die erste Immobilie.'],
+    ['Richtig absichern', 'kv-vergleichsrechner.html', 'GKV oder PKV', 'Gesetzliche und private Krankenversicherung über das ganze Leben verglichen.'],
+    ['Richtig absichern', 'pflegecheck-rechner.html', 'Pflegekosten-Check', 'Ihr voraussichtlicher Eigenanteil im Pflegeheim – nach Bundesland und Pflegegrad.'],
+    ['Richtig absichern', 'pflegevorsorge-rechner.html', 'Pflegevorsorge-Rechner', 'Was Pflegetagegeld, Pflegerente oder eine Kombination kostet – und wie viel der Pflegelücke damit gedeckt ist.']
+  ];
+
+  // Branding
+  $('brandShort').textContent = C.BRAND_SHORT || 'FF';
+  $('brandTitle').textContent = C.PORTAL_TITLE || 'Rechner-Bibliothek';
+  $('brandName').textContent = (C.BRAND_NAME || '') + ' · Partner-Bereich';
+  document.title = (C.PORTAL_TITLE || 'Rechner-Bibliothek') + ' – ' + (C.BRAND_NAME || '');
+  document.querySelectorAll('#contactLink, .contact').forEach((a) => { a.textContent = C.CONTACT_EMAIL || ''; a.href = 'mailto:' + (C.CONTACT_EMAIL || ''); });
+
+  const views = ['vSetup', 'vLoading', 'vLogin', 'vBlocked', 'vLib', 'vView', 'vAdmin'];
+  function show(id) { views.forEach((v) => { $(v).hidden = v !== id; }); window.scrollTo(0, 0); }
+  function flash(el, text, kind) { $(el).innerHTML = text ? '<div class="msg ' + (kind || 'info') + '">' + esc(text) + '</div>' : ''; }
+
+  if (!C.SUPABASE_URL || C.SUPABASE_URL.indexOf('__') === 0 || !window.supabase) { show('vSetup'); return; }
+  const sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+
+  let me = null, profile = null, calcs = [], currentCalc = null, blobUrl = null;
+
+  // ---------- Login ----------
+  let loginEmail = '';
+  $('fEmail').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginEmail = $('email').value.trim().toLowerCase();
+    $('bSend').disabled = true; flash('loginMsg', '');
+    const { error } = await sb.auth.signInWithOtp({ email: loginEmail, options: { shouldCreateUser: true, emailRedirectTo: PORTAL_URL } });
+    $('bSend').disabled = false;
+    if (error) {
+      const m = /database error|not invited|nicht eingeladen|signups not allowed/i.test(error.message)
+        ? 'Diese E-Mail-Adresse ist nicht für die Rechner-Bibliothek freigeschaltet.'
+        : /rate limit|too many/i.test(error.message) ? 'Zu viele Anfragen. Bitte versuche es in ein paar Minuten erneut.' : 'Anmeldung fehlgeschlagen: ' + error.message;
+      flash('loginMsg', m, 'err'); return;
+    }
+    flash('loginMsg', 'E-Mail ist unterwegs an ' + loginEmail + '. Klicke auf den Link darin oder gib den Code unten ein.', 'ok');
+    $('fEmail').hidden = true; $('fCode').hidden = false; $('code').focus();
+  });
+  $('fCode').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const token = $('code').value.replace(/\s/g, '');
+    if (!token) return;
+    const { error } = await sb.auth.verifyOtp({ email: loginEmail, token, type: 'email' });
+    if (error) flash('loginMsg', 'Der Code ist ungültig oder abgelaufen. Fordere einen neuen Link an.', 'err');
+  });
+  $('bBack').addEventListener('click', () => { $('fCode').hidden = true; $('fEmail').hidden = false; flash('loginMsg', ''); });
+  const logout = async () => { await sb.auth.signOut(); location.hash = ''; };
+  $('navOut').addEventListener('click', logout);
+  $('bBlockedOut').addEventListener('click', logout);
+
+  // ---------- Session ----------
+  async function onSession(session) {
+    if (!session) { me = null; profile = null; $('nav').hidden = true; show('vLogin'); return; }
+    if (me && me.id === session.user.id && profile) return;
+    me = session.user;
+    show('vLoading');
+    const { data, error } = await sb.from('profiles').select('*').eq('id', me.id).maybeSingle();
+    profile = data;
+    if (error || !profile || !profile.active) { $('nav').hidden = true; show('vBlocked'); return; }
+    sb.rpc('touch_last_seen').then(() => {}, () => {});
+    $('nav').hidden = false;
+    $('who').textContent = profile.full_name || profile.email;
+    $('navAdmin').hidden = profile.role !== 'admin';
+    await loadCalcs();
+    route();
+  }
+  sb.auth.onAuthStateChange((_evt, session) => { setTimeout(() => onSession(session), 0); });
+
+  // ---------- Navigation ----------
+  function setNav(which) { $('navLib').classList.toggle('on', which === 'lib'); $('navAdmin').classList.toggle('on', which === 'admin'); }
+  $('navLib').addEventListener('click', () => { location.hash = ''; });
+  $('navAdmin').addEventListener('click', () => { location.hash = '#admin'; });
+  window.addEventListener('hashchange', route);
+  function route() {
+    if (!profile) return;
+    const h = location.hash;
+    if (h === '#admin' && profile.role === 'admin') { setNav('admin'); show('vAdmin'); loadAdmin(); return; }
+    const m = h.match(/^#r\/(.+)$/);
+    if (m) { const c = calcs.find((x) => x.slug === decodeURIComponent(m[1])); if (c) { setNav('lib'); openCalc(c); return; } }
+    setNav('lib'); closeViewer(); renderLib(); show('vLib');
+  }
+
+  // ---------- Bibliothek ----------
+  async function loadCalcs() {
+    const { data, error } = await sb.from('calculators').select('*').order('sort_order').order('title');
+    calcs = error ? [] : (data || []);
+  }
+  function catOrder(c) { const i = CATS.indexOf(c); return i < 0 ? 99 : i; }
+  function renderLib() {
+    const q = $('q').value.trim().toLowerCase();
+    const list = calcs.filter((c) => c.active && (!q || (c.title + ' ' + (c.description || '') + ' ' + c.category).toLowerCase().includes(q)));
+    if (!list.length) { $('libList').innerHTML = '<div class="empty">' + (calcs.length ? 'Kein Rechner passt zu deiner Suche.' : 'Noch keine Rechner freigeschaltet.') + '</div>'; return; }
+    const groups = {};
+    list.forEach((c) => { (groups[c.category] = groups[c.category] || []).push(c); });
+    $('libList').innerHTML = Object.keys(groups).sort((a, b) => catOrder(a) - catOrder(b) || a.localeCompare(b)).map((cat) =>
+      '<div class="cat"><div class="label">' + esc(cat) + '</div><div class="tiles">' +
+      groups[cat].map((c) => '<button class="tile" data-slug="' + esc(c.slug) + '"><span class="t">' + esc(c.title) + '</span><span class="d">' + esc(c.description || '') + '</span><span class="go">Öffnen →</span></button>').join('') +
+      '</div></div>').join('');
+  }
+  $('q').addEventListener('input', renderLib);
+  $('libList').addEventListener('click', (e) => { const t = e.target.closest('.tile'); if (t) location.hash = '#r/' + encodeURIComponent(t.dataset.slug); });
+
+  // ---------- Viewer ----------
+  async function openCalc(c) {
+    currentCalc = c; show('vView'); $('viewTitle').textContent = c.title; flash('viewMsg', '');
+    $('frame').srcdoc = '<p style="font-family:sans-serif;color:#5a6a7e;padding:24px">Rechner wird geladen …</p>';
+    const { data, error } = await sb.storage.from('rechner').download(c.file_path);
+    if (error || !data) { flash('viewMsg', 'Der Rechner konnte nicht geladen werden.', 'err'); return; }
+    const html = await data.text();
+    if (currentCalc !== c) return;
+    $('frame').srcdoc = html;
+    if (blobUrl) URL.revokeObjectURL(blobUrl);
+    blobUrl = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+    sb.from('usage_events').insert({ user_id: me.id, calculator_id: c.id }).then(() => {}, () => {});
+  }
+  function closeViewer() { currentCalc = null; $('frame').srcdoc = ''; }
+  $('bClose').addEventListener('click', () => { location.hash = ''; });
+  $('bNewTab').addEventListener('click', () => { if (blobUrl) window.open(blobUrl, '_blank', 'noopener'); });
+
+  // ---------- Admin ----------
+  document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b));
+    ['aDash', 'aPartner', 'aCalc'].forEach((id) => { $(id).hidden = id !== b.dataset.tab; });
+    flash('adminMsg', '');
+  }));
+
+  let A = { profiles: [], invites: [], events: [] };
+  async function loadAdmin() {
+    const since = new Date(Date.now() - 30 * 864e5).toISOString();
+    const [p, i, e] = await Promise.all([
+      sb.from('profiles').select('*').order('created_at', { ascending: false }),
+      sb.from('invites').select('*').order('invited_at', { ascending: false }),
+      sb.from('usage_events').select('user_id, calculator_id, created_at').gte('created_at', since).order('created_at', { ascending: false }).limit(5000)
+    ]);
+    if (p.error || i.error || e.error) { flash('adminMsg', 'Daten konnten nicht geladen werden: ' + (p.error || i.error || e.error).message, 'err'); return; }
+    A = { profiles: p.data, invites: i.data, events: e.data };
+    await loadCalcs();
+    renderDash(); renderPartners(); renderCalcs();
+  }
+
+  function renderDash() {
+    const active = A.profiles.filter((x) => x.active).length;
+    const pending = A.invites.filter((x) => !x.accepted_at).length;
+    $('kActive').textContent = active;
+    $('kPending').textContent = pending;
+    $('kCalcs').textContent = calcs.filter((c) => c.active).length;
+    $('kUses').textContent = A.events.length.toLocaleString('de-DE');
+    const byCalc = {};
+    A.events.forEach((ev) => { byCalc[ev.calculator_id] = (byCalc[ev.calculator_id] || 0) + 1; });
+    const top = Object.entries(byCalc).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const max = top.length ? top[0][1] : 1;
+    const cName = (id) => (calcs.find((c) => c.id === id) || {}).title || 'Gelöschter Rechner';
+    $('topCalcs').innerHTML = top.length
+      ? '<table><thead><tr><th>Rechner</th><th style="width:40%"></th><th class="num">Aufrufe</th></tr></thead><tbody>' +
+        top.map(([id, n]) => '<tr><td>' + esc(cName(id)) + '</td><td><div class="bar" style="width:' + Math.round(n / max * 100) + '%"></div></td><td class="num">' + n + '</td></tr>').join('') + '</tbody></table>'
+      : '<div class="empty">Noch keine Aufrufe in den letzten 30 Tagen.</div>';
+    const pName = (id) => { const p = A.profiles.find((x) => x.id === id); return p ? (p.full_name || p.email) : 'Unbekannt'; };
+    const rec = A.events.slice(0, 12);
+    $('recent').innerHTML = rec.length
+      ? '<table><thead><tr><th>Zeit</th><th>Partner</th><th>Rechner</th></tr></thead><tbody>' +
+        rec.map((ev) => '<tr><td>' + fmtDate(ev.created_at) + '</td><td>' + esc(pName(ev.user_id)) + '</td><td>' + esc(cName(ev.calculator_id)) + '</td></tr>').join('') + '</tbody></table>'
+      : '<div class="empty">Noch keine Aktivität.</div>';
+  }
+
+  function renderPartners() {
+    const uses = {};
+    A.events.forEach((ev) => { uses[ev.user_id] = (uses[ev.user_id] || 0) + 1; });
+    const rows = A.profiles.map((p) => ({ kind: 'p', email: p.email, name: p.full_name, company: p.company, role: p.role, active: p.active, last: p.last_seen, id: p.id, uses: uses[p.id] || 0 }));
+    A.invites.filter((i) => !A.profiles.some((p) => p.email === i.email)).forEach((i) => rows.push({ kind: 'i', email: i.email, name: i.full_name, company: i.company, role: i.role, invited: i.invited_at }));
+    $('partnerTbl').innerHTML = rows.length
+      ? '<table><thead><tr><th>Name</th><th>Firma</th><th>E-Mail</th><th>Status</th><th>Zuletzt aktiv</th><th class="num">Aufrufe 30 T.</th><th></th></tr></thead><tbody>' +
+        rows.map((r) => {
+          const status = r.kind === 'i' ? '<span class="badge b-wait">Eingeladen</span>' : r.active ? '<span class="badge b-ok">Aktiv</span>' : '<span class="badge b-off">Gesperrt</span>';
+          const role = r.role === 'admin' ? ' <span class="badge b-admin">Admin</span>' : '';
+          let act = '';
+          if (r.kind === 'i') act = '<button class="btn ghost sm" data-act="text" data-email="' + esc(r.email) + '">Einladungstext</button><button class="btn danger sm" data-act="revoke" data-email="' + esc(r.email) + '">Zurückziehen</button>';
+          else if (r.id !== me.id) act = r.active ? '<button class="btn danger sm" data-act="block" data-id="' + r.id + '">Sperren</button>' : '<button class="btn ghost sm" data-act="unblock" data-id="' + r.id + '">Freischalten</button>';
+          return '<tr><td>' + esc(r.name || '–') + role + '</td><td>' + esc(r.company || '–') + '</td><td>' + esc(r.email) + '</td><td>' + status + '</td><td>' + (r.kind === 'p' ? fmtDate(r.last) : '–') + '</td><td class="num">' + (r.kind === 'p' ? r.uses : '–') + '</td><td><div class="actions">' + act + '</div></td></tr>';
+        }).join('') + '</tbody></table>'
+      : '<div class="empty">Noch keine Partner eingeladen.</div>';
+  }
+
+  function inviteMessage(name) {
+    return 'Hallo' + (name ? ' ' + name.split(' ')[0] : '') + ',\n\n' +
+      'du hast ab sofort Zugang zur Rechner-Bibliothek von ' + (C.BRAND_NAME || '') + '.\n\n' +
+      'So meldest du dich an:\n1. Öffne ' + PORTAL_URL + '\n2. Gib diese E-Mail-Adresse ein\n3. Klicke auf den Link in der Anmelde-E-Mail\n\n' +
+      'Ein Passwort brauchst du nicht. Tipp für iPad und Handy: Seite öffnen, „Teilen“ → „Zum Home-Bildschirm“.\n\nViele Grüße';
+  }
+  function showInviteText(email, name) {
+    const text = inviteMessage(name);
+    $('inviteText').textContent = text; $('inviteOut').hidden = false;
+    $('bMailInvite').href = 'mailto:' + encodeURIComponent(email) + '?subject=' + encodeURIComponent('Dein Zugang zur Rechner-Bibliothek') + '&body=' + encodeURIComponent(text);
+  }
+  $('bCopyInvite').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('inviteText').textContent); $('bCopyInvite').textContent = 'Kopiert'; setTimeout(() => { $('bCopyInvite').textContent = 'Text kopieren'; }, 1500); } catch (e) { flash('adminMsg', 'Kopieren nicht möglich. Bitte Text markieren und kopieren.', 'info'); }
+  });
+
+  $('fInvite').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = $('iEmail').value.trim().toLowerCase();
+    const row = { email, full_name: $('iName').value.trim() || null, company: $('iCompany').value.trim() || null, role: $('iRole').value, invited_by: me.id };
+    const { error } = await sb.from('invites').upsert(row, { onConflict: 'email' });
+    if (error) { flash('adminMsg', 'Einladung fehlgeschlagen: ' + error.message, 'err'); return; }
+    const existing = A.profiles.find((p) => p.email === email);
+    if (existing && !existing.active) await sb.from('profiles').update({ active: true }).eq('id', existing.id);
+    flash('adminMsg', email + ' ist freigeschaltet.', 'ok');
+    showInviteText(email, row.full_name);
+    $('fInvite').reset();
+    loadAdmin();
+  });
+
+  $('partnerTbl').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-act]'); if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'text') { const inv = A.invites.find((i) => i.email === b.dataset.email); showInviteText(b.dataset.email, inv && inv.full_name); $('inviteOut').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    if (act === 'revoke') { if (!confirm('Einladung für ' + b.dataset.email + ' zurückziehen?')) return; await sb.from('invites').delete().eq('email', b.dataset.email); }
+    if (act === 'block') { if (!confirm('Zugang sperren? Der Partner kann die Rechner dann nicht mehr öffnen.')) return; await sb.from('profiles').update({ active: false }).eq('id', b.dataset.id); }
+    if (act === 'unblock') { await sb.from('profiles').update({ active: true }).eq('id', b.dataset.id); }
+    loadAdmin();
+  });
+
+  // ----- Rechner verwalten -----
+  function slugify(s) {
+    return s.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'rechner';
+  }
+  function renderCalcs() {
+    const cats = Array.from(new Set(CATS.concat(calcs.map((c) => c.category))));
+    $('catList').innerHTML = cats.map((c) => '<option value="' + esc(c) + '">').join('');
+    $('calcTbl').innerHTML = calcs.length
+      ? '<table><thead><tr><th>Titel</th><th>Kategorie</th><th class="num">Reihenf.</th><th>Status</th><th>Geändert</th><th></th></tr></thead><tbody>' +
+        calcs.map((c) => '<tr><td><b>' + esc(c.title) + '</b><div class="small">' + esc(c.description || '') + '</div></td><td>' + esc(c.category) + '</td><td class="num">' + c.sort_order + '</td><td>' +
+          (c.active ? '<span class="badge b-ok">Sichtbar</span>' : '<span class="badge b-off">Ausgeblendet</span>') + '</td><td>' + fmtDate(c.updated_at) + '</td><td><div class="actions">' +
+          '<button class="btn ghost sm" data-c="view" data-id="' + c.id + '">Ansehen</button>' +
+          '<button class="btn ghost sm" data-c="edit" data-id="' + c.id + '">Bearbeiten</button>' +
+          '<button class="btn ghost sm" data-c="toggle" data-id="' + c.id + '">' + (c.active ? 'Ausblenden' : 'Einblenden') + '</button>' +
+          '<button class="btn danger sm" data-c="del" data-id="' + c.id + '">Löschen</button></div></td></tr>').join('') + '</tbody></table>'
+      : '<div class="empty">Noch keine Rechner. Übernimm die öffentlichen Rechner oder lade eine HTML-Datei hoch.</div>';
+  }
+  function resetCalcForm() {
+    $('fCalc').reset(); $('cId').value = ''; $('cOrder').value = 100; $('cActive').checked = true;
+    $('calcFormLabel').textContent = 'Neuen Rechner hinzufügen'; $('cFileLabel').textContent = 'HTML-Datei *'; $('bCalcCancel').hidden = true;
+  }
+  $('bCalcCancel').addEventListener('click', resetCalcForm);
+
+  $('calcTbl').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-c]'); if (!b) return;
+    const c = calcs.find((x) => x.id === b.dataset.id); if (!c) return;
+    if (b.dataset.c === 'view') { location.hash = '#r/' + encodeURIComponent(c.slug); return; }
+    if (b.dataset.c === 'edit') {
+      $('cId').value = c.id; $('cTitle').value = c.title; $('cCat').value = c.category; $('cDesc').value = c.description || '';
+      $('cOrder').value = c.sort_order; $('cActive').checked = c.active;
+      $('calcFormLabel').textContent = 'Rechner bearbeiten: ' + c.title; $('cFileLabel').textContent = 'Neue HTML-Datei (optional, ersetzt die alte)'; $('bCalcCancel').hidden = false;
+      $('fCalc').scrollIntoView({ behavior: 'smooth' }); return;
+    }
+    if (b.dataset.c === 'toggle') { await sb.from('calculators').update({ active: !c.active, updated_at: new Date().toISOString() }).eq('id', c.id); }
+    if (b.dataset.c === 'del') {
+      if (!confirm('„' + c.title + '“ endgültig löschen? Partner können ihn danach nicht mehr öffnen.')) return;
+      await sb.storage.from('rechner').remove([c.file_path]);
+      const { error } = await sb.from('calculators').delete().eq('id', c.id);
+      if (error) flash('adminMsg', 'Löschen fehlgeschlagen: ' + error.message, 'err');
+    }
+    loadAdmin();
+  });
+
+  async function uploadHtml(path, text) {
+    return sb.storage.from('rechner').upload(path, new Blob([text], { type: 'text/html' }), { upsert: true, contentType: 'text/html; charset=utf-8', cacheControl: '60' });
+  }
+
+  $('fCalc').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = $('cId').value, file = $('cFile').files[0];
+    if (!id && !file) { flash('adminMsg', 'Bitte eine HTML-Datei auswählen.', 'err'); return; }
+    $('bCalcSave').disabled = true;
+    try {
+      const meta = { title: $('cTitle').value.trim(), category: $('cCat').value.trim(), description: $('cDesc').value.trim() || null, sort_order: parseInt($('cOrder').value, 10) || 100, active: $('cActive').checked, updated_at: new Date().toISOString() };
+      let path = id ? calcs.find((c) => c.id === id).file_path : null;
+      let slug = null;
+      if (!id) {
+        slug = slugify(meta.title);
+        let n = 2; while (calcs.some((c) => c.slug === slug)) slug = slugify(meta.title) + '-' + n++;
+        path = slug + '.html';
+      }
+      if (file) {
+        const text = await file.text();
+        if (!/<html|<body|<script|<div/i.test(text)) throw new Error('Die Datei sieht nicht wie eine HTML-Seite aus.');
+        const up = await uploadHtml(path, text); if (up.error) throw up.error;
+      }
+      const res = id ? await sb.from('calculators').update(meta).eq('id', id) : await sb.from('calculators').insert(Object.assign({ slug, file_path: path }, meta));
+      if (res.error) throw res.error;
+      flash('adminMsg', '„' + meta.title + '“ gespeichert.', 'ok');
+      resetCalcForm(); loadAdmin();
+    } catch (err) { flash('adminMsg', 'Speichern fehlgeschlagen: ' + err.message, 'err'); }
+    $('bCalcSave').disabled = false;
+  });
+
+  $('bImport').addEventListener('click', async () => {
+    if (!confirm('Die ' + PUBLIC_LIBRARY.length + ' Rechner der öffentlichen Bibliothek übernehmen? Bereits vorhandene Rechner bekommen die aktuelle Datei, Titel und Beschreibung bleiben wie von dir eingestellt.')) return;
+    $('bImport').disabled = true; const log = []; const out = () => { $('importLog').textContent = log.join('\n'); };
+    for (let i = 0; i < PUBLIC_LIBRARY.length; i++) {
+      const [cat, file, title, desc] = PUBLIC_LIBRARY[i];
+      const slug = file.replace(/\.html$/, '');
+      try {
+        const r = await fetch('../' + file, { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
+        const up = await uploadHtml(file, await r.text()); if (up.error) throw up.error;
+        const ex = calcs.find((c) => c.slug === slug);
+        const res = ex ? await sb.from('calculators').update({ file_path: file, updated_at: new Date().toISOString() }).eq('id', ex.id)
+                       : await sb.from('calculators').insert({ slug, title, description: desc, category: cat, file_path: file, sort_order: (i + 1) * 10, active: true });
+        if (res.error) throw res.error;
+        log.push('✓ ' + title + (ex ? ' (Datei aktualisiert)' : ' (neu)'));
+      } catch (err) { log.push('✗ ' + title + ': ' + err.message); }
+      out();
+    }
+    $('bImport').disabled = false; loadAdmin();
+  });
+
+  // Start
+  sb.auth.getSession().then(({ data }) => onSession(data.session));
+})();
+</script>
+</body>
+</html>
