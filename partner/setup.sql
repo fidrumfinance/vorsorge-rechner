@@ -152,3 +152,9 @@ on conflict (email) do update set role = 'admin';
 -- Falls dieses Konto schon existiert, zum Admin machen:
 update public.profiles set role = 'admin', active = true
 where email = 'info@fidrumfinance.com';
+
+-- ---------- Interne Funktionen nicht von außen aufrufbar ----------
+revoke execute on function public.enforce_invite() from public, anon, authenticated;
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.touch_last_seen() from public, anon;
+grant execute on function public.touch_last_seen() to authenticated;
