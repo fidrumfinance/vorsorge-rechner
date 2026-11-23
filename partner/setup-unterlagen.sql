@@ -69,3 +69,22 @@ revoke execute on function public.can_see_material(public.materials) from public
 revoke execute on function public.can_read_material_file(text) from public, anon;
 grant execute on function public.can_see_material(public.materials) to authenticated;
 grant execute on function public.can_read_material_file(text) to authenticated;
+
+-- =====================================================================
+-- Favoriten und „Zuletzt genutzt“
+-- =====================================================================
+create table if not exists public.favorites (
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  kind text not null check (kind in ('calc','doc')),
+  item_id uuid not null,
+  created_at timestamptz not null default now(),
+  primary key (user_id, kind, item_id)
+);
+alter table public.favorites enable row level security;
+drop policy if exists favorites_own on public.favorites;
+create policy favorites_own on public.favorites for all
+  using (user_id = auth.uid() and public.is_member())
+  with check (user_id = auth.uid() and public.is_member());
+drop policy if exists usage_select_own on public.usage_events;
+create policy usage_select_own on public.usage_events for select using (user_id = auth.uid());
+create index if not exists usage_events_user_idx on public.usage_events (user_id, created_at desc);

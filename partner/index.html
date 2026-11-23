@@ -69,6 +69,14 @@
   .tile .t { font-size: 15px; font-weight: 700; }
   .tile .d { font-size: 13px; color: var(--muted); line-height: 1.45; flex: 1; }
   .tile .go { font-size: 12px; font-weight: 700; color: var(--gold); margin-top: 4px; }
+  .tw { position: relative; display: flex; }
+  .tw > .tile { flex: 1; padding-right: 48px; }
+  .fav { position: absolute; z-index: 2; top: 8px; right: 8px; width: 36px; height: 36px; border-radius: 18px; border: 0; background: transparent; cursor: pointer; font-size: 21px; line-height: 1; color: #b4bfcc; }
+  .fav:hover { background: var(--soft, #eef1f5); color: var(--gold); }
+  .fav.on { color: var(--gold); }
+  .cat.mine .label { color: var(--navy); }
+  .sep { font-size: 17px; font-weight: 700; color: var(--navy); border-top: 1px solid var(--border); padding-top: 18px; margin: 8px 0 16px; }
+  .hint { font-size: 13px; color: var(--muted); margin: -6px 0 18px; }
   .empty { text-align: center; color: var(--muted); padding: 30px 10px; font-size: 14px; }
 
   /* Viewer */
@@ -471,7 +479,7 @@
   if (!C.SUPABASE_URL || C.SUPABASE_URL.indexOf('__') === 0 || !window.supabase) { show('vSetup'); return; }
   const sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 
-  let me = null, profile = null, calcs = [], docs = [], currentCalc = null, blobUrl = null, myBrand = null, testBrand;
+  let me = null, profile = null, calcs = [], docs = [], favs = new Set(), recent = [], currentCalc = null, blobUrl = null, myBrand = null, testBrand;
 
   // ---------- Login ----------
   let loginEmail = '';
@@ -515,7 +523,7 @@
     $('nav').hidden = false;
     $('who').textContent = profile.full_name || profile.email;
     $('navAdmin').hidden = profile.role !== 'admin';
-    await Promise.all([loadCalcs(), loadDocs(), loadMyBrand()]);
+    await Promise.all([loadCalcs(), loadDocs(), loadMyBrand(), loadFavs(), loadRecent()]);
     route();
   }
   sb.auth.onAuthStateChange((_evt, session) => { setTimeout(() => onSession(session), 0); });
@@ -550,19 +558,59 @@
     calcs = error ? [] : (data || []);
   }
   function catOrder(c) { const i = CATS.indexOf(c); return i < 0 ? 99 : i; }
+  // ---------- Favoriten & zuletzt genutzt ----------
+  async function loadFavs() {
+    const { data } = await sb.from('favorites').select('kind,item_id');
+    favs = new Set((data || []).map((f) => f.kind + ':' + f.item_id));
+  }
+  async function loadRecent() {
+    const { data } = await sb.from('usage_events').select('calculator_id,material_id,created_at').eq('user_id', me.id).order('created_at', { ascending: false }).limit(80);
+    recent = data || [];
+  }
+  const isFav = (kind, id) => favs.has(kind + ':' + id);
+  async function toggleFav(kind, id) {
+    const k = kind + ':' + id, on = !favs.has(k);
+    if (on) favs.add(k); else favs.delete(k);
+    renderLib(); renderDocs();
+    const res = on ? await sb.from('favorites').insert({ user_id: me.id, kind, item_id: id })
+                   : await sb.from('favorites').delete().eq('user_id', me.id).eq('kind', kind).eq('item_id', id);
+    if (res.error) { if (on) favs.delete(k); else favs.add(k); renderLib(); renderDocs(); }
+  }
+  function favBtn(kind, item) {
+    const on = isFav(kind, item.id);
+    return '<button class="fav' + (on ? ' on' : '') + '" type="button" data-fav="' + kind + '" data-id="' + item.id + '" aria-pressed="' + on + '" title="' + (on ? 'Aus Favoriten entfernen' : 'Als Favorit merken') + '" aria-label="' + esc((on ? 'Aus Favoriten entfernen: ' : 'Als Favorit merken: ') + item.title) + '">' + (on ? '★' : '☆') + '</button>';
+  }
+  function recentOf(field, list) {
+    const seen = new Set(), out = [];
+    recent.forEach((ev) => { const id = ev[field]; if (id && !seen.has(id)) { seen.add(id); const it = list.find((x) => x.id === id && x.active); if (it) out.push(it); } });
+    return out;
+  }
+  function group(label, items, tile, cls) {
+    return '<div class="cat' + (cls ? ' ' + cls : '') + '"><div class="label">' + esc(label) + '</div><div class="tiles">' + items.map(tile).join('') + '</div></div>';
+  }
+  function calcTile(c) {
+    return '<div class="tw"><button class="tile" data-slug="' + esc(c.slug) + '"><span class="t">' + esc(c.title) + '</span><span class="d">' + esc(c.description || '') + '</span><span class="go">Öffnen →</span></button>' + favBtn('calc', c) + '</div>';
+  }
   function renderLib() {
     const q = $('q').value.trim().toLowerCase();
     const list = calcs.filter((c) => c.active && (!q || (c.title + ' ' + (c.description || '') + ' ' + c.category).toLowerCase().includes(q)));
     if (!list.length) { $('libList').innerHTML = '<div class="empty">' + (calcs.length ? 'Kein Rechner passt zu deiner Suche.' : 'Noch keine Rechner freigeschaltet.') + '</div>'; return; }
+    let html = '';
+    if (!q) {
+      const mine = calcs.filter((c) => c.active && isFav('calc', c.id));
+      const last = recentOf('calculator_id', calcs).filter((c) => !isFav('calc', c.id)).slice(0, 3);
+      if (mine.length) html += group('★ Meine Favoriten', mine, calcTile, 'mine');
+      else html += '<p class="hint">Tipp: Mit dem Stern ☆ merkst du dir Rechner als Favoriten – sie stehen dann immer hier oben.</p>';
+      if (last.length) html += group('Zuletzt genutzt', last, calcTile, 'mine');
+      if (mine.length || last.length) html += '<div class="sep">Alle Rechner</div>';
+    }
     const groups = {};
     list.forEach((c) => { (groups[c.category] = groups[c.category] || []).push(c); });
-    $('libList').innerHTML = Object.keys(groups).sort((a, b) => catOrder(a) - catOrder(b) || a.localeCompare(b)).map((cat) =>
-      '<div class="cat"><div class="label">' + esc(cat) + '</div><div class="tiles">' +
-      groups[cat].map((c) => '<button class="tile" data-slug="' + esc(c.slug) + '"><span class="t">' + esc(c.title) + '</span><span class="d">' + esc(c.description || '') + '</span><span class="go">Öffnen →</span></button>').join('') +
-      '</div></div>').join('');
+    html += Object.keys(groups).sort((a, b) => catOrder(a) - catOrder(b) || a.localeCompare(b)).map((cat) => group(cat, groups[cat], calcTile)).join('');
+    $('libList').innerHTML = html;
   }
   $('q').addEventListener('input', renderLib);
-  $('libList').addEventListener('click', (e) => { const t = e.target.closest('.tile'); if (t) location.hash = '#r/' + encodeURIComponent(t.dataset.slug); });
+  $('libList').addEventListener('click', (e) => { const f = e.target.closest('.fav'); if (f) { toggleFav(f.dataset.fav, f.dataset.id); return; } const t = e.target.closest('.tile'); if (t) location.hash = '#r/' + encodeURIComponent(t.dataset.slug); });
 
   // ---------- Viewer ----------
   let viewFrom = '';
@@ -588,7 +636,7 @@
     $('frame').srcdoc = html;
     if (blobUrl) URL.revokeObjectURL(blobUrl);
     blobUrl = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
-    if (testBrand === undefined) sb.from('usage_events').insert({ user_id: me.id, calculator_id: c.id }).then(() => {}, () => {});
+    if (testBrand === undefined) { recent.unshift({ calculator_id: c.id, created_at: new Date().toISOString() }); sb.from('usage_events').insert({ user_id: me.id, calculator_id: c.id }).then(() => {}, () => {}); }
   }
   function closeViewer() { currentCalc = null; $('frame').srcdoc = ''; }
   $('bClose').addEventListener('click', () => { location.hash = viewFrom ? viewFrom : testBrand !== undefined ? (brandFor && brandFor !== me.email ? '#branding/' + encodeURIComponent(brandFor) : '#branding') : ''; });
@@ -619,24 +667,34 @@
     const q = $('dq').value.trim().toLowerCase();
     const list = docs.filter((d) => d.active && (!q || (d.title + ' ' + (d.description || '') + ' ' + d.category + ' ' + d.file_name).toLowerCase().includes(q)));
     if (!list.length) { $('docList').innerHTML = '<div class="empty">' + (docs.some((d) => d.active) ? 'Keine Unterlage passt zu deiner Suche.' : 'Noch keine Unterlagen freigeschaltet.') + '</div>'; return; }
+    let html = '';
+    if (!q) {
+      const mine = docs.filter((d) => d.active && isFav('doc', d.id));
+      const last = recentOf('material_id', docs).filter((d) => !isFav('doc', d.id)).slice(0, 3);
+      if (mine.length) html += group('★ Meine Favoriten', mine, docTile, 'mine');
+      if (last.length) html += group('Zuletzt genutzt', last, docTile, 'mine');
+      if (mine.length || last.length) html += '<div class="sep">Alle Unterlagen</div>';
+    }
     const groups = {};
     list.forEach((d) => { (groups[d.category] = groups[d.category] || []).push(d); });
-    $('docList').innerHTML = Object.keys(groups).sort((a, b) => docCatOrder(a) - docCatOrder(b) || a.localeCompare(b)).map((cat) =>
-      '<div class="cat"><div class="label">' + esc(cat) + '</div><div class="tiles">' +
-      groups[cat].map((d) => {
-        const [cls, name] = ftype(d), pdf = cls === 'pdf', pres = cls === 'pres';
-        const go = pres ? 'Präsentieren →' : pdf ? 'Öffnen →' : canDl(d) ? 'Herunterladen ↓' : 'Nur für Ansicht freigegeben';
-        return '<button class="tile" data-doc="' + d.id + '"><span class="t"><span class="ftype ' + cls + '">' + esc(name) + '</span>' + esc(d.title) + '</span><span class="d">' + esc(d.description || '') + '</span>' +
-          '<span class="meta">' + esc(fmtSize(d.size_bytes)) + (pres ? ' · mit deinem Branding' : pdf && !d.allow_download ? ' · nur Ansicht' : '') + '</span><span class="go">' + go + '</span></button>';
-      }).join('') + '</div></div>').join('');
+    html += Object.keys(groups).sort((a, b) => docCatOrder(a) - docCatOrder(b) || a.localeCompare(b)).map((cat) => group(cat, groups[cat], docTile)).join('');
+    $('docList').innerHTML = html;
+  }
+  function docTile(d) {
+    const [cls, name] = ftype(d), pdf = cls === 'pdf', pres = cls === 'pres';
+    const go = pres ? 'Präsentieren →' : pdf ? 'Öffnen →' : canDl(d) ? 'Herunterladen ↓' : 'Nur für Ansicht freigegeben';
+    return '<div class="tw"><button class="tile" data-doc="' + d.id + '"><span class="t"><span class="ftype ' + cls + '">' + esc(name) + '</span>' + esc(d.title) + '</span><span class="d">' + esc(d.description || '') + '</span>' +
+      '<span class="meta">' + esc(fmtSize(d.size_bytes)) + (pres ? ' · mit deinem Branding' : pdf && !d.allow_download ? ' · nur Ansicht' : '') + '</span><span class="go">' + go + '</span></button>' + favBtn('doc', d) + '</div>';
   }
   $('dq').addEventListener('input', renderDocs);
   $('docList').addEventListener('click', (e) => {
+    const f = e.target.closest('.fav'); if (f) { toggleFav(f.dataset.fav, f.dataset.id); return; }
     const t = e.target.closest('.tile'); if (!t) return;
     const d = docs.find((x) => x.id === t.dataset.doc); if (!d) return;
     if (isPdf(d) || isPres(d)) location.hash = '#u/' + d.id; else if (canDl(d)) downloadDoc(d);
   });
   function logDoc(d, action) {
+    recent.unshift({ material_id: d.id, created_at: new Date().toISOString() });
     sb.from('usage_events').insert({ user_id: me.id, material_id: d.id, action }).then(() => {}, () => {});
   }
   async function fetchDoc(d) {
