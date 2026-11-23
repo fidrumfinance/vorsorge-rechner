@@ -7,7 +7,7 @@ window.PORTAL_CONFIG = {
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqaHNianN3eW94cHBkYm9ndWpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzNjMyNTksImV4cCI6MjExMDkzOTI1OX0.lxKDL5BS8If4j45fwtRCdCx6GBlxNVR6OjHzocCtiuo",
   BRAND_NAME: "Fidrum Finance",
   BRAND_SHORT: "FF",
-  PORTAL_TITLE: "Rechner-Bibliothek für Partner",
+  PORTAL_TITLE: "Partner-Bibliothek",
   CONTACT_EMAIL: "info@fidrumfinance.com",
   CATEGORIES: ["Vermögen aufbauen", "Immobilie als Kapitalanlage", "Für Ihr Kind vorsorgen", "Richtig absichern"]
 };

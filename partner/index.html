@@ -126,7 +126,32 @@
   .pv-cta { margin: 0 14px 12px; background: var(--a); color: var(--ona); border-radius: 8px; padding: 9px; text-align: center; font-weight: 700; font-size: 13px; }
   .pv-foot { text-align: center; font-size: 11px; color: var(--light); padding: 0 14px 12px; }
 
+  /* Unterlagen */
+  .ftype { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .05em; padding: 2px 7px; border-radius: 5px; color: #fff; background: var(--navy); margin-right: 6px; vertical-align: 1px; }
+  .ftype.pdf { background: #c0392b; } .ftype.ppt { background: #d35400; } .ftype.doc { background: #2b579a; } .ftype.xls { background: #1e7145; }
+  .tile .meta { font-size: 11px; color: var(--light); }
+  .doc-pages { max-width: 900px; margin: 0 auto; }
+  .doc-pages canvas { width: 100%; height: auto; display: block; margin: 0 auto 12px; background: #fff; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 2px 8px rgba(26,46,74,.06); }
+  .doc-pages.nosave canvas { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .pres { position: fixed; inset: 0; z-index: 200; background: #0e1726; display: flex; align-items: center; justify-content: center; touch-action: pan-y; }
+  .pres canvas { max-width: 100vw; max-height: 100vh; display: block; box-shadow: 0 0 40px rgba(0,0,0,.4); -webkit-touch-callout: none; user-select: none; }
+  .pres-ui { position: absolute; left: 0; right: 0; bottom: 14px; display: flex; justify-content: center; gap: 8px; align-items: center; opacity: .9; }
+  .pres-ui button { background: rgba(14,23,38,.55); color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 20px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .pres-ui span { color: #fff; background: rgba(14,23,38,.55); border-radius: 20px; padding: 6px 10px; font-size: 13px; min-width: 64px; text-align: center; font-variant-numeric: tabular-nums; }
+  .pres-close { position: absolute; top: 12px; right: 12px; background: rgba(14,23,38,.55); color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 20px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+  .who-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px 12px; max-height: 220px; overflow: auto; border: 1px solid var(--border); border-radius: var(--rs); padding: 10px; }
+  .who-list label { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text); }
+  .chk { flex-direction: row !important; align-items: center; gap: 8px !important; }
+  .chk label { font-size: 13px !important; color: var(--text) !important; }
+
+  @media (max-width: 560px) {
+    .header { padding: 10px 12px; }
+    .brand > div:last-child { display: none; }
+    .nav { gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+    .nav button { padding: 6px 8px; font-size: 11.5px; white-space: nowrap; }
+  }
   @media (max-width: 720px) {
+    .nav button { padding: 6px 9px; }
     .kpis { grid-template-columns: 1fr 1fr; }
     .grid2 { grid-template-columns: 1fr; }
     .nav .who { display: none; }
@@ -146,6 +171,7 @@
   <nav class="nav" id="nav" hidden>
     <span class="who" id="who"></span>
     <button id="navLib" class="on">Rechner</button>
+    <button id="navDocs">Unterlagen</button>
     <button id="navBrand">Mein Branding</button>
     <button id="navAdmin" hidden>Admin</button>
     <button id="navOut">Abmelden</button>
@@ -169,7 +195,7 @@
     <div class="login-wrap">
       <div class="card">
         <div class="label">Partner-Login</div>
-        <h1 id="loginTitle">Rechner-Bibliothek</h1>
+        <h1 id="loginTitle">Partner-Bibliothek</h1>
         <p class="lead">Melde dich mit der E-Mail-Adresse an, mit der du eingeladen wurdest. Du bekommst einen Anmeldelink per E-Mail, ein Passwort brauchst du nicht.</p>
         <div id="loginMsg"></div>
         <form id="fEmail">
@@ -216,6 +242,26 @@
     </div>
     <div id="viewMsg"></div>
     <iframe class="frame" id="frame" title="Rechner" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals allow-downloads"></iframe>
+  </section>
+
+  <!-- Unterlagen -->
+  <section id="vDocs" hidden>
+    <h1>Unterlagen</h1>
+    <p class="lead">Präsentationen, Gesprächsskripte und Dokumente für deine Beratung. PDFs öffnest du direkt hier und kannst sie im Vollbild präsentieren.</p>
+    <input class="input search" id="dq" type="search" placeholder="Unterlagen suchen …" aria-label="Unterlagen suchen">
+    <div id="docList"></div>
+  </section>
+
+  <!-- Unterlage ansehen -->
+  <section id="vDoc" hidden>
+    <div class="viewer-bar">
+      <button class="btn ghost sm" id="bDocClose">← Zur Übersicht</button>
+      <div class="vt" id="docTitle"></div>
+      <button class="btn gold sm" id="bPresent" hidden>Präsentieren</button>
+      <button class="btn ghost sm" id="bDocDl" hidden>Herunterladen</button>
+    </div>
+    <div id="docMsg"></div>
+    <div class="doc-pages" id="docPages"></div>
   </section>
 
   <!-- Branding -->
@@ -270,11 +316,12 @@
   <!-- Admin -->
   <section id="vAdmin" hidden>
     <h1>Verwaltung</h1>
-    <p class="lead">Partner einladen, Rechner pflegen und sehen, wie die Bibliothek genutzt wird.</p>
+    <p class="lead">Partner einladen, Rechner und Unterlagen pflegen und sehen, wie die Bibliothek genutzt wird.</p>
     <div class="tabs">
       <button class="tab on" data-tab="aDash">Übersicht</button>
       <button class="tab" data-tab="aPartner">Partner</button>
       <button class="tab" data-tab="aCalc">Rechner</button>
+      <button class="tab" data-tab="aDocs">Unterlagen</button>
     </div>
     <div id="adminMsg"></div>
 
@@ -286,6 +333,7 @@
         <div class="kpi gold"><div class="k">Aufrufe 30 Tage</div><div class="v" id="kUses">–</div></div>
       </div>
       <div class="card"><div class="label">Meistgenutzte Rechner (30 Tage)</div><div class="tbl-wrap" id="topCalcs"></div></div>
+      <div class="card"><div class="label">Meistgenutzte Unterlagen (30 Tage)</div><div class="tbl-wrap" id="topDocs"></div></div>
       <div class="card"><div class="label">Letzte Aktivität</div><div class="tbl-wrap" id="recent"></div></div>
     </div>
 
@@ -342,9 +390,46 @@
         <div class="progress" id="importLog"></div>
       </div>
     </div>
+
+    <div id="aDocs" hidden>
+      <div class="card">
+        <div class="label" id="docFormLabel">Neue Unterlage hochladen</div>
+        <form id="fDoc">
+          <input type="hidden" id="dId">
+          <div class="grid2">
+            <div class="field"><label for="dTitle">Titel *</label><input class="input" id="dTitle" required></div>
+            <div class="field"><label for="dCat">Kategorie *</label><input class="input" id="dCat" list="docCatList" required placeholder="z. B. Präsentationen"></div>
+          </div>
+          <datalist id="docCatList"></datalist>
+          <div class="field"><label for="dDesc">Kurzbeschreibung</label><input class="input" id="dDesc"></div>
+          <div class="grid2">
+            <div class="field"><label for="dFile" id="dFileLabel">Datei * (PDF, PowerPoint, Word, Excel – max. 50 MB)</label><input class="input" id="dFile" type="file" accept=".pdf,.ppt,.pptx,.key,.doc,.docx,.xls,.xlsx,.txt,.png,.jpg,.jpeg"></div>
+            <div class="field"><label for="dOrder">Reihenfolge (kleiner = weiter oben)</label><input class="input" id="dOrder" type="number" value="100"></div>
+          </div>
+          <div class="field chk"><input type="checkbox" id="dActive" checked><label for="dActive">Für Partner sichtbar</label></div>
+          <div class="field chk"><input type="checkbox" id="dDl" checked><label for="dDl">Herunterladen erlauben</label></div>
+          <p class="small" style="margin:-6px 0 12px 24px">Ohne Download können Partner PDFs nur im Portal ansehen und präsentieren. PowerPoint, Word und Excel lassen sich im Browser nicht anzeigen und brauchen den Download – lade sie als PDF hoch, wenn sie nur angesehen werden sollen.</p>
+          <div class="field"><label for="dScope">Freigabe</label>
+            <select class="input" id="dScope"><option value="all">Alle Partner</option><option value="some">Nur ausgewählte Partner</option></select></div>
+          <div class="field" id="dWhoBox" hidden><div class="who-list" id="dWho"></div></div>
+          <div class="row">
+            <button class="btn gold" type="submit" id="bDocSave">Unterlage speichern</button>
+            <button class="btn ghost" type="button" id="bDocCancel" hidden>Abbrechen</button>
+          </div>
+          <div class="progress" id="docUpLog"></div>
+        </form>
+      </div>
+      <div class="card"><div class="label">Unterlagen in der Bibliothek</div><div class="tbl-wrap" id="docTbl"></div></div>
+    </div>
   </section>
 
 </main>
+
+<div class="pres" id="pres" hidden>
+  <canvas id="presCv"></canvas>
+  <button class="pres-close" id="presClose" type="button">✕ Beenden</button>
+  <div class="pres-ui"><button id="presPrev" type="button">‹ Zurück</button><span id="presNum"></span><button id="presNext" type="button">Weiter ›</button></div>
+</div>
 
 <script>
 (function () {
@@ -379,14 +464,14 @@
   document.title = (C.PORTAL_TITLE || 'Rechner-Bibliothek') + ' – ' + (C.BRAND_NAME || '');
   document.querySelectorAll('#contactLink, .contact').forEach((a) => { a.textContent = C.CONTACT_EMAIL || ''; a.href = 'mailto:' + (C.CONTACT_EMAIL || ''); });
 
-  const views = ['vSetup', 'vLoading', 'vLogin', 'vBlocked', 'vLib', 'vView', 'vBrand', 'vAdmin'];
+  const views = ['vSetup', 'vLoading', 'vLogin', 'vBlocked', 'vLib', 'vView', 'vDocs', 'vDoc', 'vBrand', 'vAdmin'];
   function show(id) { views.forEach((v) => { $(v).hidden = v !== id; }); window.scrollTo(0, 0); }
   function flash(el, text, kind) { $(el).innerHTML = text ? '<div class="msg ' + (kind || 'info') + '">' + esc(text) + '</div>' : ''; }
 
   if (!C.SUPABASE_URL || C.SUPABASE_URL.indexOf('__') === 0 || !window.supabase) { show('vSetup'); return; }
   const sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 
-  let me = null, profile = null, calcs = [], currentCalc = null, blobUrl = null, myBrand = null, testBrand;
+  let me = null, profile = null, calcs = [], docs = [], currentCalc = null, blobUrl = null, myBrand = null, testBrand;
 
   // ---------- Login ----------
   let loginEmail = '';
@@ -398,7 +483,7 @@
     $('bSend').disabled = false;
     if (error) {
       const m = /database error|not invited|nicht eingeladen|signups not allowed/i.test(error.message)
-        ? 'Diese E-Mail-Adresse ist nicht für die Rechner-Bibliothek freigeschaltet.'
+        ? 'Diese E-Mail-Adresse ist nicht für die Partner-Bibliothek freigeschaltet.'
         : /rate limit|too many/i.test(error.message) ? 'Zu viele Anfragen. Bitte versuche es in ein paar Minuten erneut.' : 'Anmeldung fehlgeschlagen: ' + error.message;
       flash('loginMsg', m, 'err'); return;
     }
@@ -430,14 +515,15 @@
     $('nav').hidden = false;
     $('who').textContent = profile.full_name || profile.email;
     $('navAdmin').hidden = profile.role !== 'admin';
-    await Promise.all([loadCalcs(), loadMyBrand()]);
+    await Promise.all([loadCalcs(), loadDocs(), loadMyBrand()]);
     route();
   }
   sb.auth.onAuthStateChange((_evt, session) => { setTimeout(() => onSession(session), 0); });
 
   // ---------- Navigation ----------
-  function setNav(which) { $('navLib').classList.toggle('on', which === 'lib'); $('navBrand').classList.toggle('on', which === 'brand'); $('navAdmin').classList.toggle('on', which === 'admin'); }
+  function setNav(which) { $('navLib').classList.toggle('on', which === 'lib'); $('navDocs').classList.toggle('on', which === 'docs'); $('navBrand').classList.toggle('on', which === 'brand'); $('navAdmin').classList.toggle('on', which === 'admin'); }
   $('navLib').addEventListener('click', () => { location.hash = ''; });
+  $('navDocs').addEventListener('click', () => { location.hash = '#unterlagen'; });
   $('navBrand').addEventListener('click', () => { location.hash = '#branding'; });
   $('navAdmin').addEventListener('click', () => { location.hash = '#admin'; });
   window.addEventListener('hashchange', route);
@@ -445,6 +531,10 @@
     if (!profile) return;
     const h = location.hash;
     if (!/^#r\//.test(h)) testBrand = undefined;
+    if (!/^#u\//.test(h)) closeDoc();
+    if (h === '#unterlagen') { setNav('docs'); closeViewer(); renderDocs(); show('vDocs'); return; }
+    const um = h.match(/^#u\/(.+)$/);
+    if (um) { const d = docs.find((x) => x.id === um[1]); if (d) { setNav('docs'); openDoc(d); return; } }
     if (h === '#admin' && profile.role === 'admin') { setNav('admin'); show('vAdmin'); loadAdmin(); return; }
     const bm = h.match(/^#branding(?:\/(.+))?$/);
     if (bm) { setNav('brand'); show('vBrand'); openBrandEditor(bm[1] && profile.role === 'admin' ? decodeURIComponent(bm[1]) : me.email); return; }
@@ -489,6 +579,158 @@
   function closeViewer() { currentCalc = null; $('frame').srcdoc = ''; }
   $('bClose').addEventListener('click', () => { location.hash = testBrand !== undefined ? (brandFor && brandFor !== me.email ? '#branding/' + encodeURIComponent(brandFor) : '#branding') : ''; });
   $('bNewTab').addEventListener('click', () => { if (blobUrl) window.open(blobUrl, '_blank', 'noopener'); });
+
+
+  // ---------- Unterlagen ----------
+  const DOC_CATS = ['Präsentationen', 'Gesprächsskripte', 'Einwandbehandlung', 'Produktinfos', 'Vorlagen'];
+  function ftype(d) {
+    const n = (d.file_name || '').toLowerCase(), m = d.mime || '';
+    if (/\.pdf$/.test(n) || m === 'application/pdf') return ['pdf', 'PDF'];
+    if (/\.(pptx?|key)$/.test(n)) return ['ppt', 'PowerPoint'];
+    if (/\.docx?$/.test(n)) return ['doc', 'Word'];
+    if (/\.xlsx?$/.test(n)) return ['xls', 'Excel'];
+    return ['', (n.split('.').pop() || 'Datei').toUpperCase()];
+  }
+  const isPdf = (d) => ftype(d)[0] === 'pdf';
+  const fmtSize = (b) => !b ? '' : b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' KB' : (b / 1048576).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' MB';
+  const canDl = (d) => d.allow_download || (profile && profile.role === 'admin');
+  async function loadDocs() {
+    const { data, error } = await sb.from('materials').select('*').order('sort_order').order('title');
+    docs = error ? [] : (data || []);
+  }
+  function docCatOrder(c) { const i = DOC_CATS.indexOf(c); return i < 0 ? 99 : i; }
+  function renderDocs() {
+    const q = $('dq').value.trim().toLowerCase();
+    const list = docs.filter((d) => d.active && (!q || (d.title + ' ' + (d.description || '') + ' ' + d.category + ' ' + d.file_name).toLowerCase().includes(q)));
+    if (!list.length) { $('docList').innerHTML = '<div class="empty">' + (docs.some((d) => d.active) ? 'Keine Unterlage passt zu deiner Suche.' : 'Noch keine Unterlagen freigeschaltet.') + '</div>'; return; }
+    const groups = {};
+    list.forEach((d) => { (groups[d.category] = groups[d.category] || []).push(d); });
+    $('docList').innerHTML = Object.keys(groups).sort((a, b) => docCatOrder(a) - docCatOrder(b) || a.localeCompare(b)).map((cat) =>
+      '<div class="cat"><div class="label">' + esc(cat) + '</div><div class="tiles">' +
+      groups[cat].map((d) => {
+        const [cls, name] = ftype(d), pdf = cls === 'pdf';
+        const go = pdf ? 'Öffnen →' : canDl(d) ? 'Herunterladen ↓' : 'Nur für Ansicht freigegeben';
+        return '<button class="tile" data-doc="' + d.id + '"><span class="t"><span class="ftype ' + cls + '">' + esc(name) + '</span>' + esc(d.title) + '</span><span class="d">' + esc(d.description || '') + '</span>' +
+          '<span class="meta">' + esc(fmtSize(d.size_bytes)) + (pdf && !d.allow_download ? ' · nur Ansicht' : '') + '</span><span class="go">' + go + '</span></button>';
+      }).join('') + '</div></div>').join('');
+  }
+  $('dq').addEventListener('input', renderDocs);
+  $('docList').addEventListener('click', (e) => {
+    const t = e.target.closest('.tile'); if (!t) return;
+    const d = docs.find((x) => x.id === t.dataset.doc); if (!d) return;
+    if (isPdf(d)) location.hash = '#u/' + d.id; else if (canDl(d)) downloadDoc(d);
+  });
+  function logDoc(d, action) {
+    sb.from('usage_events').insert({ user_id: me.id, material_id: d.id, action }).then(() => {}, () => {});
+  }
+  async function fetchDoc(d) {
+    const { data, error } = await sb.storage.from('unterlagen').download(d.file_path);
+    if (error || !data) throw new Error('Die Datei konnte nicht geladen werden.');
+    return data;
+  }
+  async function downloadDoc(d) {
+    if (!canDl(d)) return;
+    try {
+      const blob = await fetchDoc(d), url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = d.file_name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      logDoc(d, 'download');
+    } catch (err) { alert(err.message); }
+  }
+
+  let pdfjsP = null, curDoc = null, curPdf = null, renderToken = 0;
+  function loadPdfjs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (!pdfjsP) pdfjsP = new Promise((res, rej) => {
+      const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      sc.onload = () => { const l = window.pdfjsLib; if (!l) return rej(new Error('pdfjs')); l.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; res(l); };
+      sc.onerror = () => { pdfjsP = null; rej(new Error('Die PDF-Anzeige konnte nicht geladen werden.')); };
+      document.head.appendChild(sc);
+    });
+    return pdfjsP;
+  }
+  async function drawPage(pdf, n, canvas, cssWidth, cssHeight) {
+    const page = await pdf.getPage(n), v1 = page.getViewport({ scale: 1 });
+    const k = cssHeight ? Math.min(cssWidth / v1.width, cssHeight / v1.height) : cssWidth / v1.width;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), vp = page.getViewport({ scale: k * dpr });
+    canvas.width = Math.floor(vp.width); canvas.height = Math.floor(vp.height);
+    canvas.style.width = Math.floor(vp.width / dpr) + 'px'; canvas.style.height = Math.floor(vp.height / dpr) + 'px';
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+  }
+  async function openDoc(d) {
+    closeDoc(); curDoc = d; const tok = ++renderToken;
+    show('vDoc'); $('docTitle').textContent = d.title; flash('docMsg', 'Wird geladen …', 'info');
+    $('bDocDl').hidden = !canDl(d); $('bPresent').hidden = true;
+    const box = $('docPages'); box.innerHTML = ''; box.classList.toggle('nosave', !d.allow_download);
+    try {
+      const [lib, blob] = await Promise.all([loadPdfjs(), fetchDoc(d)]);
+      const pdf = await lib.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
+      if (tok !== renderToken) { pdf.destroy(); return; }
+      curPdf = pdf; flash('docMsg', ''); $('bPresent').hidden = false; logDoc(d, 'open');
+      const w = Math.min(box.clientWidth || 860, 900);
+      for (let i = 1; i <= pdf.numPages; i++) {
+        if (tok !== renderToken) return;
+        const cv = document.createElement('canvas'); cv.setAttribute('aria-label', 'Seite ' + i);
+        cv.addEventListener('contextmenu', (e) => { if (!d.allow_download) e.preventDefault(); });
+        cv.addEventListener('click', () => startPresent(i));
+        box.appendChild(cv); await drawPage(pdf, i, cv, w);
+        cv.style.width = '100%'; cv.style.height = 'auto';
+      }
+    } catch (err) { if (tok === renderToken) flash('docMsg', err.message || 'Die Unterlage konnte nicht angezeigt werden.', 'err'); }
+  }
+  function closeDoc() {
+    renderToken++; curDoc = null; stopPresent();
+    if (curPdf) { curPdf.destroy(); curPdf = null; }
+    const box = $('docPages'); if (box) box.innerHTML = '';
+  }
+  $('bDocClose').addEventListener('click', () => { location.hash = '#unterlagen'; });
+  $('bDocDl').addEventListener('click', () => { if (curDoc) downloadDoc(curDoc); });
+
+  // Präsentationsmodus: eine Seite, bildschirmfüllend
+  let presPage = 1, presTok = 0;
+  async function showPresPage(n) {
+    if (!curPdf) return;
+    presPage = Math.max(1, Math.min(curPdf.numPages, n)); const tok = ++presTok;
+    $('presNum').textContent = presPage + ' / ' + curPdf.numPages;
+    const off = document.createElement('canvas');
+    await drawPage(curPdf, presPage, off, window.innerWidth, window.innerHeight);
+    if (tok !== presTok) return;
+    const cv = $('presCv'); cv.width = off.width; cv.height = off.height; cv.style.width = off.style.width; cv.style.height = off.style.height;
+    cv.getContext('2d').drawImage(off, 0, 0);
+  }
+  function startPresent(n) {
+    if (!curPdf) return;
+    $('pres').hidden = false;
+    const el = $('pres'), fs = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (fs) { try { const r = fs.call(el); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
+    showPresPage(n || 1);
+  }
+  function stopPresent() {
+    const p = $('pres'); if (!p || p.hidden) return;
+    p.hidden = true;
+    const fe = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fe) { const ex = document.exitFullscreen || document.webkitExitFullscreen; try { const r = ex.call(document); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
+  }
+  $('bPresent').addEventListener('click', () => startPresent(1));
+  $('presClose').addEventListener('click', (e) => { e.stopPropagation(); stopPresent(); });
+  $('presPrev').addEventListener('click', (e) => { e.stopPropagation(); showPresPage(presPage - 1); });
+  $('presNext').addEventListener('click', (e) => { e.stopPropagation(); showPresPage(presPage + 1); });
+  $('pres').addEventListener('click', (e) => { if (e.target.closest('button')) return; showPresPage(presPage + (e.clientX < window.innerWidth / 3 ? -1 : 1)); });
+  $('pres').addEventListener('contextmenu', (e) => { if (curDoc && !curDoc.allow_download) e.preventDefault(); });
+  let tx = null;
+  $('pres').addEventListener('touchstart', (e) => { tx = e.touches[0].clientX; }, { passive: true });
+  $('pres').addEventListener('touchend', (e) => { if (tx == null) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 50) { e.preventDefault(); showPresPage(presPage + (dx < 0 ? 1 : -1)); } });
+  document.addEventListener('keydown', (e) => {
+    if ($('pres').hidden) return;
+    if (e.key === 'Escape') stopPresent();
+    else if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); showPresPage(presPage + 1); }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); showPresPage(presPage - 1); }
+  });
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
+    if (!(document.fullscreenElement || document.webkitFullscreenElement) && !$('pres').hidden) { $('pres').hidden = true; }
+    else if (!$('pres').hidden) showPresPage(presPage);
+  }));
+  window.addEventListener('resize', () => { if (!$('pres').hidden) showPresPage(presPage); });
 
   // ---------- Branding ----------
   const NEUTRAL = { name: '', short: '', claim: '', logo: '', contact: '', booking: '' };
@@ -604,7 +846,7 @@
   // ---------- Admin ----------
   document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b));
-    ['aDash', 'aPartner', 'aCalc'].forEach((id) => { $(id).hidden = id !== b.dataset.tab; });
+    ['aDash', 'aPartner', 'aCalc', 'aDocs'].forEach((id) => { $(id).hidden = id !== b.dataset.tab; });
     flash('adminMsg', '');
   }));
 
@@ -614,12 +856,12 @@
     const [p, i, e] = await Promise.all([
       sb.from('profiles').select('*').order('created_at', { ascending: false }),
       sb.from('invites').select('*').order('invited_at', { ascending: false }),
-      sb.from('usage_events').select('user_id, calculator_id, created_at').gte('created_at', since).order('created_at', { ascending: false }).limit(5000)
+      sb.from('usage_events').select('user_id, calculator_id, material_id, action, created_at').gte('created_at', since).order('created_at', { ascending: false }).limit(5000)
     ]);
     if (p.error || i.error || e.error) { flash('adminMsg', 'Daten konnten nicht geladen werden: ' + (p.error || i.error || e.error).message, 'err'); return; }
     A = { profiles: p.data, invites: i.data, events: e.data };
-    await loadCalcs();
-    renderDash(); renderPartners(); renderCalcs();
+    await Promise.all([loadCalcs(), loadDocs()]);
+    renderDash(); renderPartners(); renderCalcs(); renderDocsAdmin();
   }
 
   function renderDash() {
@@ -630,7 +872,7 @@
     $('kCalcs').textContent = calcs.filter((c) => c.active).length;
     $('kUses').textContent = A.events.length.toLocaleString('de-DE');
     const byCalc = {};
-    A.events.forEach((ev) => { byCalc[ev.calculator_id] = (byCalc[ev.calculator_id] || 0) + 1; });
+    A.events.forEach((ev) => { if (ev.calculator_id) byCalc[ev.calculator_id] = (byCalc[ev.calculator_id] || 0) + 1; });
     const top = Object.entries(byCalc).sort((a, b) => b[1] - a[1]).slice(0, 10);
     const max = top.length ? top[0][1] : 1;
     const cName = (id) => (calcs.find((c) => c.id === id) || {}).title || 'Gelöschter Rechner';
@@ -638,11 +880,20 @@
       ? '<table><thead><tr><th>Rechner</th><th style="width:40%"></th><th class="num">Aufrufe</th></tr></thead><tbody>' +
         top.map(([id, n]) => '<tr><td>' + esc(cName(id)) + '</td><td><div class="bar" style="width:' + Math.round(n / max * 100) + '%"></div></td><td class="num">' + n + '</td></tr>').join('') + '</tbody></table>'
       : '<div class="empty">Noch keine Aufrufe in den letzten 30 Tagen.</div>';
+    const byDoc = {};
+    A.events.forEach((ev) => { if (ev.material_id) { const o = byDoc[ev.material_id] = byDoc[ev.material_id] || [0, 0]; o[ev.action === 'download' ? 1 : 0]++; } });
+    const dName = (id) => (docs.find((d) => d.id === id) || {}).title || 'Gelöschte Unterlage';
+    const topD = Object.entries(byDoc).sort((a, b) => (b[1][0] + b[1][1]) - (a[1][0] + a[1][1])).slice(0, 10);
+    const maxD = topD.length ? topD[0][1][0] + topD[0][1][1] : 1;
+    $('topDocs').innerHTML = topD.length
+      ? '<table><thead><tr><th>Unterlage</th><th style="width:34%"></th><th class="num">Angesehen</th><th class="num">Downloads</th></tr></thead><tbody>' +
+        topD.map(([id, n]) => '<tr><td>' + esc(dName(id)) + '</td><td><div class="bar" style="width:' + Math.round((n[0] + n[1]) / maxD * 100) + '%"></div></td><td class="num">' + n[0] + '</td><td class="num">' + n[1] + '</td></tr>').join('') + '</tbody></table>'
+      : '<div class="empty">Noch keine Unterlagen genutzt.</div>';
     const pName = (id) => { const p = A.profiles.find((x) => x.id === id); return p ? (p.full_name || p.email) : 'Unbekannt'; };
     const rec = A.events.slice(0, 12);
     $('recent').innerHTML = rec.length
-      ? '<table><thead><tr><th>Zeit</th><th>Partner</th><th>Rechner</th></tr></thead><tbody>' +
-        rec.map((ev) => '<tr><td>' + fmtDate(ev.created_at) + '</td><td>' + esc(pName(ev.user_id)) + '</td><td>' + esc(cName(ev.calculator_id)) + '</td></tr>').join('') + '</tbody></table>'
+      ? '<table><thead><tr><th>Zeit</th><th>Partner</th><th>Rechner / Unterlage</th></tr></thead><tbody>' +
+        rec.map((ev) => '<tr><td>' + fmtDate(ev.created_at) + '</td><td>' + esc(pName(ev.user_id)) + '</td><td>' + (ev.material_id ? esc(dName(ev.material_id)) + ' <span class="small">(' + (ev.action === 'download' ? 'Download' : 'angesehen') + ')</span>' : esc(cName(ev.calculator_id))) + '</td></tr>').join('') + '</tbody></table>'
       : '<div class="empty">Noch keine Aktivität.</div>';
   }
 
@@ -667,14 +918,14 @@
 
   function inviteMessage(name) {
     return 'Hallo' + (name ? ' ' + name.split(' ')[0] : '') + ',\n\n' +
-      'du hast ab sofort Zugang zur Rechner-Bibliothek von ' + (C.BRAND_NAME || '') + '.\n\n' +
+      'du hast ab sofort Zugang zur Partner-Bibliothek von ' + (C.BRAND_NAME || '') + '.\n\n' +
       'So meldest du dich an:\n1. Öffne ' + PORTAL_URL + '\n2. Gib diese E-Mail-Adresse ein\n3. Klicke auf den Link in der Anmelde-E-Mail\n\n' +
       'Ein Passwort brauchst du nicht. Tipp für iPad und Handy: Seite öffnen, „Teilen“ → „Zum Home-Bildschirm“.\n\nViele Grüße';
   }
   function showInviteText(email, name) {
     const text = inviteMessage(name);
     $('inviteText').textContent = text; $('inviteOut').hidden = false;
-    $('bMailInvite').href = 'mailto:' + encodeURIComponent(email) + '?subject=' + encodeURIComponent('Dein Zugang zur Rechner-Bibliothek') + '&body=' + encodeURIComponent(text);
+    $('bMailInvite').href = 'mailto:' + encodeURIComponent(email) + '?subject=' + encodeURIComponent('Dein Zugang zur Partner-Bibliothek') + '&body=' + encodeURIComponent(text);
   }
   $('bCopyInvite').addEventListener('click', async () => {
     try { await navigator.clipboard.writeText($('inviteText').textContent); $('bCopyInvite').textContent = 'Kopiert'; setTimeout(() => { $('bCopyInvite').textContent = 'Text kopieren'; }, 1500); } catch (e) { flash('adminMsg', 'Kopieren nicht möglich. Bitte Text markieren und kopieren.', 'info'); }
@@ -777,6 +1028,108 @@
       resetCalcForm(); loadAdmin();
     } catch (err) { flash('adminMsg', 'Speichern fehlgeschlagen: ' + err.message, 'err'); }
     $('bCalcSave').disabled = false;
+  });
+
+
+  // ----- Unterlagen verwalten -----
+  function partnerChoices() {
+    const seen = {}, out = [];
+    [].concat(A.profiles, A.invites).forEach((x) => { if (x && x.email && !seen[x.email] && x.role !== 'admin') { seen[x.email] = 1; out.push(x); } });
+    return out;
+  }
+  function renderWhoList(selected) {
+    const sel = selected || [], list = partnerChoices();
+    sel.forEach((e) => { if (!list.some((x) => x.email === e)) list.push({ email: e }); });
+    $('dWho').innerHTML = list.length ? list.map((x) => '<label><input type="checkbox" value="' + esc(x.email) + '"' + (sel.includes(x.email) ? ' checked' : '') + '>' +
+      esc((x.full_name || x.email) + (x.company ? ' · ' + x.company : '')) + '</label>').join('') : '<span class="small">Noch keine Partner eingeladen.</span>';
+  }
+  $('dScope').addEventListener('change', () => { $('dWhoBox').hidden = $('dScope').value !== 'some'; });
+  function renderDocsAdmin() {
+    const cats = Array.from(new Set(DOC_CATS.concat(docs.map((d) => d.category))));
+    $('docCatList').innerHTML = cats.map((c) => '<option value="' + esc(c) + '">').join('');
+    if (!$('dId').value) renderWhoList([]);
+    const cnt = {};
+    A.events.forEach((ev) => { if (ev.material_id) { const o = cnt[ev.material_id] = cnt[ev.material_id] || [0, 0]; o[ev.action === 'download' ? 1 : 0]++; } });
+    const who = (d) => !d.visible_to ? 'Alle Partner' : d.visible_to.length + ' Partner';
+    $('docTbl').innerHTML = docs.length
+      ? '<table><thead><tr><th>Unterlage</th><th>Kategorie</th><th>Freigabe</th><th>Status</th><th class="num">Angesehen / Downl. 30 T.</th></tr></thead><tbody>' +
+        docs.map((d) => { const [cls, name] = ftype(d), n = cnt[d.id] || [0, 0];
+          return '<tr><td><span class="ftype ' + cls + '">' + esc(name) + '</span><b>' + esc(d.title) + '</b><div class="small">' + esc(d.file_name) + ' · ' + esc(fmtSize(d.size_bytes)) + '</div><div class="actions left">' +
+          (isPdf(d) ? '<button class="btn ghost sm" data-d="view" data-id="' + d.id + '">Ansehen</button>' : '') +
+          '<button class="btn ghost sm" data-d="dl" data-id="' + d.id + '">Herunterladen</button>' +
+          '<button class="btn ghost sm" data-d="edit" data-id="' + d.id + '">Bearbeiten</button>' +
+          '<button class="btn ghost sm" data-d="toggle" data-id="' + d.id + '">' + (d.active ? 'Ausblenden' : 'Einblenden') + '</button>' +
+          '<button class="btn danger sm" data-d="del" data-id="' + d.id + '">Löschen</button></div></td><td>' + esc(d.category) + '</td><td>' + esc(who(d)) +
+          (d.allow_download ? '' : '<div class="small">nur Ansicht</div>') + '</td><td>' +
+          (d.active ? '<span class="badge b-ok">Sichtbar</span>' : '<span class="badge b-off">Ausgeblendet</span>') + '</td><td class="num">' + n[0] + ' / ' + n[1] + '</td></tr>'; }).join('') + '</tbody></table>'
+      : '<div class="empty">Noch keine Unterlagen. Lade oben die erste Präsentation oder das erste Skript hoch.</div>';
+  }
+  function resetDocForm() {
+    $('fDoc').reset(); $('dId').value = ''; $('dOrder').value = 100; $('dActive').checked = true; $('dDl').checked = true;
+    $('dScope').value = 'all'; $('dWhoBox').hidden = true; renderWhoList([]); $('docUpLog').textContent = '';
+    $('docFormLabel').textContent = 'Neue Unterlage hochladen'; $('dFileLabel').textContent = 'Datei * (PDF, PowerPoint, Word, Excel – max. 50 MB)'; $('bDocCancel').hidden = true;
+  }
+  $('bDocCancel').addEventListener('click', resetDocForm);
+  $('dFile').addEventListener('change', () => { const f = $('dFile').files[0]; if (f && !$('dTitle').value.trim()) $('dTitle').value = f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim(); });
+  $('docTbl').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-d]'); if (!b) return;
+    const d = docs.find((x) => x.id === b.dataset.id); if (!d) return;
+    const act = b.dataset.d;
+    if (act === 'view') { location.hash = '#u/' + d.id; return; }
+    if (act === 'dl') { downloadDoc(d); return; }
+    if (act === 'edit') {
+      $('dId').value = d.id; $('dTitle').value = d.title; $('dCat').value = d.category; $('dDesc').value = d.description || '';
+      $('dOrder').value = d.sort_order; $('dActive').checked = d.active; $('dDl').checked = d.allow_download;
+      $('dScope').value = d.visible_to ? 'some' : 'all'; $('dWhoBox').hidden = !d.visible_to; renderWhoList(d.visible_to || []);
+      $('docFormLabel').textContent = 'Unterlage bearbeiten: ' + d.title; $('dFileLabel').textContent = 'Neue Datei (optional, ersetzt ' + d.file_name + ')'; $('bDocCancel').hidden = false;
+      $('fDoc').scrollIntoView({ behavior: 'smooth' }); return;
+    }
+    if (act === 'toggle') await sb.from('materials').update({ active: !d.active, updated_at: new Date().toISOString() }).eq('id', d.id);
+    if (act === 'del') {
+      if (!confirm('„' + d.title + '“ endgültig löschen? Partner können die Unterlage danach nicht mehr öffnen.')) return;
+      await sb.storage.from('unterlagen').remove([d.file_path]);
+      const { error } = await sb.from('materials').delete().eq('id', d.id);
+      if (error) flash('adminMsg', 'Löschen fehlgeschlagen: ' + error.message, 'err');
+    }
+    loadAdmin();
+  });
+  function safeName(n) {
+    const ext = (n.match(/\.[A-Za-z0-9]{1,5}$/) || [''])[0].toLowerCase();
+    const base = n.slice(0, n.length - ext.length).replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/Ä/g, 'Ae').replace(/Ö/g, 'Oe').replace(/Ü/g, 'Ue').replace(/ß/g, 'ss')
+      .replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'datei';
+    return base + ext;
+  }
+  $('fDoc').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = $('dId').value, file = $('dFile').files[0], old = id ? docs.find((d) => d.id === id) : null;
+    if (!id && !file) { flash('adminMsg', 'Bitte eine Datei auswählen.', 'err'); return; }
+    if (file && file.size > 52428800) { flash('adminMsg', 'Die Datei ist größer als 50 MB. Bitte verkleinern (z. B. PDF komprimieren) und erneut hochladen.', 'err'); return; }
+    let visible = null;
+    if ($('dScope').value === 'some') {
+      visible = Array.from($('dWho').querySelectorAll('input:checked')).map((x) => x.value.toLowerCase());
+      if (!visible.length) { flash('adminMsg', 'Bitte mindestens einen Partner auswählen oder „Alle Partner“ wählen.', 'err'); return; }
+    }
+    const fname = file ? file.name : old.file_name;
+    let allow = $('dDl').checked, note = '';
+    if (!allow && !/\.pdf$/i.test(fname)) { allow = true; note = ' Hinweis: Nur PDFs lassen sich ohne Download ansehen, daher ist der Download für diese Datei erlaubt.'; }
+    $('bDocSave').disabled = true; $('docUpLog').textContent = file ? 'Wird hochgeladen … (' + fmtSize(file.size) + ')' : '';
+    try {
+      const newId = id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+      const meta = { title: $('dTitle').value.trim(), category: $('dCat').value.trim(), description: $('dDesc').value.trim() || null,
+        sort_order: parseInt($('dOrder').value, 10) || 100, active: $('dActive').checked, allow_download: allow, visible_to: visible, updated_at: new Date().toISOString() };
+      if (file) {
+        const path = newId + '/' + safeName(file.name);
+        const up = await sb.storage.from('unterlagen').upload(path, file, { upsert: true, contentType: file.type || 'application/octet-stream', cacheControl: '60' });
+        if (up.error) throw up.error;
+        Object.assign(meta, { file_path: path, file_name: file.name, mime: file.type || null, size_bytes: file.size });
+      }
+      const res = id ? await sb.from('materials').update(meta).eq('id', id) : await sb.from('materials').insert(Object.assign({ id: newId }, meta));
+      if (res.error) { if (file && !id) await sb.storage.from('unterlagen').remove([meta.file_path]); throw res.error; }
+      if (file && old && old.file_path !== meta.file_path) await sb.storage.from('unterlagen').remove([old.file_path]);
+      flash('adminMsg', '„' + meta.title + '“ gespeichert.' + note, 'ok');
+      resetDocForm(); loadAdmin();
+    } catch (err) { $('docUpLog').textContent = ''; flash('adminMsg', 'Speichern fehlgeschlagen: ' + (err.message || err), 'err'); }
+    $('bDocSave').disabled = false;
   });
 
   $('bImport').addEventListener('click', async () => {
