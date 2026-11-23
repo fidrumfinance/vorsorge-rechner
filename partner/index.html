@@ -128,7 +128,7 @@
 
   /* Unterlagen */
   .ftype { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .05em; padding: 2px 7px; border-radius: 5px; color: #fff; background: var(--navy); margin-right: 6px; vertical-align: 1px; }
-  .ftype.pdf { background: #c0392b; } .ftype.ppt { background: #d35400; } .ftype.doc { background: #2b579a; } .ftype.xls { background: #1e7145; }
+  .ftype.pres { background: #b7791f; } .ftype.pdf { background: #c0392b; } .ftype.ppt { background: #d35400; } .ftype.doc { background: #2b579a; } .ftype.xls { background: #1e7145; }
   .tile .meta { font-size: 11px; color: var(--light); }
   .doc-pages { max-width: 900px; margin: 0 auto; }
   .doc-pages canvas { width: 100%; height: auto; display: block; margin: 0 auto 12px; background: #fff; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 2px 8px rgba(26,46,74,.06); }
@@ -241,7 +241,7 @@
       <button class="btn ghost sm" id="bNewTab">In neuem Tab öffnen</button>
     </div>
     <div id="viewMsg"></div>
-    <iframe class="frame" id="frame" title="Rechner" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals allow-downloads"></iframe>
+    <iframe class="frame" id="frame" title="Rechner" allow="fullscreen" allowfullscreen sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals allow-downloads"></iframe>
   </section>
 
   <!-- Unterlagen -->
@@ -403,7 +403,7 @@
           <datalist id="docCatList"></datalist>
           <div class="field"><label for="dDesc">Kurzbeschreibung</label><input class="input" id="dDesc"></div>
           <div class="grid2">
-            <div class="field"><label for="dFile" id="dFileLabel">Datei * (PDF, PowerPoint, Word, Excel – max. 50 MB)</label><input class="input" id="dFile" type="file" accept=".pdf,.ppt,.pptx,.key,.doc,.docx,.xls,.xlsx,.txt,.png,.jpg,.jpeg"></div>
+            <div class="field"><label for="dFile" id="dFileLabel">Datei * (PDF, PowerPoint, Word, Excel oder HTML-Präsentation – max. 50 MB)</label><input class="input" id="dFile" type="file" accept=".pdf,.ppt,.pptx,.key,.doc,.docx,.xls,.xlsx,.txt,.png,.jpg,.jpeg,.html,.htm"></div>
             <div class="field"><label for="dOrder">Reihenfolge (kleiner = weiter oben)</label><input class="input" id="dOrder" type="number" value="100"></div>
           </div>
           <div class="field chk"><input type="checkbox" id="dActive" checked><label for="dActive">Für Partner sichtbar</label></div>
@@ -532,9 +532,10 @@
     const h = location.hash;
     if (!/^#r\//.test(h)) testBrand = undefined;
     if (!/^#u\//.test(h)) closeDoc();
+    if (!/^#[ur]\//.test(h)) viewFrom = '';
     if (h === '#unterlagen') { setNav('docs'); closeViewer(); renderDocs(); show('vDocs'); return; }
     const um = h.match(/^#u\/(.+)$/);
-    if (um) { const d = docs.find((x) => x.id === um[1]); if (d) { setNav('docs'); openDoc(d); return; } }
+    if (um) { const d = docs.find((x) => x.id === um[1]); if (d) { setNav('docs'); if (isPres(d)) openPres(d); else openDoc(d); return; } }
     if (h === '#admin' && profile.role === 'admin') { setNav('admin'); show('vAdmin'); loadAdmin(); return; }
     const bm = h.match(/^#branding(?:\/(.+))?$/);
     if (bm) { setNav('brand'); show('vBrand'); openBrandEditor(bm[1] && profile.role === 'admin' ? decodeURIComponent(bm[1]) : me.email); return; }
@@ -564,8 +565,21 @@
   $('libList').addEventListener('click', (e) => { const t = e.target.closest('.tile'); if (t) location.hash = '#r/' + encodeURIComponent(t.dataset.slug); });
 
   // ---------- Viewer ----------
+  let viewFrom = '';
+  async function openPres(d) {
+    currentCalc = d; viewFrom = '#unterlagen'; $('bNewTab').hidden = !canDl(d); show('vView'); $('viewTitle').textContent = d.title; flash('viewMsg', '');
+    $('frame').srcdoc = '<p style="font-family:sans-serif;color:#5a6a7e;padding:24px">Präsentation wird geladen …</p>';
+    try {
+      const html = injectBrand(await (await fetchDoc(d)).text(), rbFromRow(myBrand, profile.role === 'admin'));
+      if (currentCalc !== d) return;
+      $('frame').srcdoc = html;
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      blobUrl = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+      logDoc(d, 'open');
+    } catch (err) { flash('viewMsg', 'Die Präsentation konnte nicht geladen werden.', 'err'); }
+  }
   async function openCalc(c) {
-    currentCalc = c; show('vView'); $('viewTitle').textContent = c.title; flash('viewMsg', '');
+    currentCalc = c; viewFrom = ''; $('bNewTab').hidden = false; show('vView'); $('viewTitle').textContent = c.title; flash('viewMsg', '');
     $('frame').srcdoc = '<p style="font-family:sans-serif;color:#5a6a7e;padding:24px">Rechner wird geladen …</p>';
     const { data, error } = await sb.storage.from('rechner').download(c.file_path);
     if (error || !data) { flash('viewMsg', 'Der Rechner konnte nicht geladen werden.', 'err'); return; }
@@ -577,7 +591,7 @@
     if (testBrand === undefined) sb.from('usage_events').insert({ user_id: me.id, calculator_id: c.id }).then(() => {}, () => {});
   }
   function closeViewer() { currentCalc = null; $('frame').srcdoc = ''; }
-  $('bClose').addEventListener('click', () => { location.hash = testBrand !== undefined ? (brandFor && brandFor !== me.email ? '#branding/' + encodeURIComponent(brandFor) : '#branding') : ''; });
+  $('bClose').addEventListener('click', () => { location.hash = viewFrom ? viewFrom : testBrand !== undefined ? (brandFor && brandFor !== me.email ? '#branding/' + encodeURIComponent(brandFor) : '#branding') : ''; });
   $('bNewTab').addEventListener('click', () => { if (blobUrl) window.open(blobUrl, '_blank', 'noopener'); });
 
 
@@ -589,9 +603,11 @@
     if (/\.(pptx?|key)$/.test(n)) return ['ppt', 'PowerPoint'];
     if (/\.docx?$/.test(n)) return ['doc', 'Word'];
     if (/\.xlsx?$/.test(n)) return ['xls', 'Excel'];
+    if (/\.html?$/.test(n) || m === 'text/html') return ['pres', 'Präsentation'];
     return ['', (n.split('.').pop() || 'Datei').toUpperCase()];
   }
   const isPdf = (d) => ftype(d)[0] === 'pdf';
+  const isPres = (d) => ftype(d)[0] === 'pres';
   const fmtSize = (b) => !b ? '' : b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' KB' : (b / 1048576).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' MB';
   const canDl = (d) => d.allow_download || (profile && profile.role === 'admin');
   async function loadDocs() {
@@ -608,17 +624,17 @@
     $('docList').innerHTML = Object.keys(groups).sort((a, b) => docCatOrder(a) - docCatOrder(b) || a.localeCompare(b)).map((cat) =>
       '<div class="cat"><div class="label">' + esc(cat) + '</div><div class="tiles">' +
       groups[cat].map((d) => {
-        const [cls, name] = ftype(d), pdf = cls === 'pdf';
-        const go = pdf ? 'Öffnen →' : canDl(d) ? 'Herunterladen ↓' : 'Nur für Ansicht freigegeben';
+        const [cls, name] = ftype(d), pdf = cls === 'pdf', pres = cls === 'pres';
+        const go = pres ? 'Präsentieren →' : pdf ? 'Öffnen →' : canDl(d) ? 'Herunterladen ↓' : 'Nur für Ansicht freigegeben';
         return '<button class="tile" data-doc="' + d.id + '"><span class="t"><span class="ftype ' + cls + '">' + esc(name) + '</span>' + esc(d.title) + '</span><span class="d">' + esc(d.description || '') + '</span>' +
-          '<span class="meta">' + esc(fmtSize(d.size_bytes)) + (pdf && !d.allow_download ? ' · nur Ansicht' : '') + '</span><span class="go">' + go + '</span></button>';
+          '<span class="meta">' + esc(fmtSize(d.size_bytes)) + (pres ? ' · mit deinem Branding' : pdf && !d.allow_download ? ' · nur Ansicht' : '') + '</span><span class="go">' + go + '</span></button>';
       }).join('') + '</div></div>').join('');
   }
   $('dq').addEventListener('input', renderDocs);
   $('docList').addEventListener('click', (e) => {
     const t = e.target.closest('.tile'); if (!t) return;
     const d = docs.find((x) => x.id === t.dataset.doc); if (!d) return;
-    if (isPdf(d)) location.hash = '#u/' + d.id; else if (canDl(d)) downloadDoc(d);
+    if (isPdf(d) || isPres(d)) location.hash = '#u/' + d.id; else if (canDl(d)) downloadDoc(d);
   });
   function logDoc(d, action) {
     sb.from('usage_events').insert({ user_id: me.id, material_id: d.id, action }).then(() => {}, () => {});
@@ -631,7 +647,9 @@
   async function downloadDoc(d) {
     if (!canDl(d)) return;
     try {
-      const blob = await fetchDoc(d), url = URL.createObjectURL(blob), a = document.createElement('a');
+      let blob = await fetchDoc(d);
+      if (isPres(d)) blob = new Blob([injectBrand(await blob.text(), rbFromRow(myBrand, profile.role === 'admin'))], { type: 'text/html' });
+      const url = URL.createObjectURL(blob), a = document.createElement('a');
       a.href = url; a.download = d.file_name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
       logDoc(d, 'download');
@@ -1055,7 +1073,7 @@
       ? '<table><thead><tr><th>Unterlage</th><th>Kategorie</th><th>Freigabe</th><th>Status</th><th class="num">Angesehen / Downl. 30 T.</th></tr></thead><tbody>' +
         docs.map((d) => { const [cls, name] = ftype(d), n = cnt[d.id] || [0, 0];
           return '<tr><td><span class="ftype ' + cls + '">' + esc(name) + '</span><b>' + esc(d.title) + '</b><div class="small">' + esc(d.file_name) + ' · ' + esc(fmtSize(d.size_bytes)) + '</div><div class="actions left">' +
-          (isPdf(d) ? '<button class="btn ghost sm" data-d="view" data-id="' + d.id + '">Ansehen</button>' : '') +
+          (isPdf(d) || isPres(d) ? '<button class="btn ghost sm" data-d="view" data-id="' + d.id + '">Ansehen</button>' : '') +
           '<button class="btn ghost sm" data-d="dl" data-id="' + d.id + '">Herunterladen</button>' +
           '<button class="btn ghost sm" data-d="edit" data-id="' + d.id + '">Bearbeiten</button>' +
           '<button class="btn ghost sm" data-d="toggle" data-id="' + d.id + '">' + (d.active ? 'Ausblenden' : 'Einblenden') + '</button>' +
@@ -1067,7 +1085,7 @@
   function resetDocForm() {
     $('fDoc').reset(); $('dId').value = ''; $('dOrder').value = 100; $('dActive').checked = true; $('dDl').checked = true;
     $('dScope').value = 'all'; $('dWhoBox').hidden = true; renderWhoList([]); $('docUpLog').textContent = '';
-    $('docFormLabel').textContent = 'Neue Unterlage hochladen'; $('dFileLabel').textContent = 'Datei * (PDF, PowerPoint, Word, Excel – max. 50 MB)'; $('bDocCancel').hidden = true;
+    $('docFormLabel').textContent = 'Neue Unterlage hochladen'; $('dFileLabel').textContent = 'Datei * (PDF, PowerPoint, Word, Excel oder HTML-Präsentation – max. 50 MB)'; $('bDocCancel').hidden = true;
   }
   $('bDocCancel').addEventListener('click', resetDocForm);
   $('dFile').addEventListener('change', () => { const f = $('dFile').files[0]; if (f && !$('dTitle').value.trim()) $('dTitle').value = f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim(); });
@@ -1111,7 +1129,7 @@
     }
     const fname = file ? file.name : old.file_name;
     let allow = $('dDl').checked, note = '';
-    if (!allow && !/\.pdf$/i.test(fname)) { allow = true; note = ' Hinweis: Nur PDFs lassen sich ohne Download ansehen, daher ist der Download für diese Datei erlaubt.'; }
+    if (!allow && !/\.(pdf|html?)$/i.test(fname)) { allow = true; note = ' Hinweis: Nur PDFs lassen sich ohne Download ansehen, daher ist der Download für diese Datei erlaubt.'; }
     $('bDocSave').disabled = true; $('docUpLog').textContent = file ? 'Wird hochgeladen … (' + fmtSize(file.size) + ')' : '';
     try {
       const newId = id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
