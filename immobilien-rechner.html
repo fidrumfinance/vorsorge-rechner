@@ -389,6 +389,23 @@ td.vg{color:var(--grn);font-weight:700}
 .fine .rl li::before{content:"";position:absolute;left:0;top:.55em;width:7px;height:7px;border-radius:50%;background:var(--muted)}
 .fine .rl li.warn::before{background:var(--rb-accent)}.fine .rl li.crit::before{background:var(--red)}
 .fine b{color:var(--fg)}
+.xp-bg{position:fixed;inset:0;background:rgba(15,25,45,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.xp-box{background:#fff;color:var(--rb-text);border-radius:var(--rb-radius);width:min(640px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.xp-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 18px 10px;border-bottom:1px solid var(--rb-border)}
+.xp-t{font-weight:700;font-size:17px}.xp-sub{font-size:12px;color:var(--rb-muted);margin-top:2px}
+.xp-x{border:0;background:transparent;font-size:24px;line-height:1;cursor:pointer;color:var(--rb-muted)}
+.xp-list{overflow:auto;padding:6px 18px}
+.xp-row{display:grid;grid-template-columns:22px 1fr auto;gap:2px 10px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--rb-border);cursor:pointer}
+.xp-row:last-child{border-bottom:0}.xp-row input{margin:0;width:18px;height:18px;accent-color:var(--rb-primary);align-self:center;grid-row:span 2}
+.xp-l{font-weight:600;font-size:14px}.xp-v{font-weight:700;font-size:14px;text-align:right;font-variant-numeric:tabular-nums}
+.xp-c{grid-column:2/4;font-size:11.5px;color:var(--rb-muted)}
+.xp-s{grid-column:2/4;font-size:11.5px;color:var(--rb-light);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xp-n{grid-column:2/4;font-size:11.5px;color:#9A5B00}
+.xp-row.info{opacity:.85;cursor:default}
+.xp-empty{font-size:14px;color:var(--rb-muted);line-height:1.5;margin:12px 0}
+.xp-f{display:flex;gap:8px;justify-content:flex-end;padding:12px 18px 16px;border-top:1px solid var(--rb-border)}
+.xp-f .btn{background:var(--rb-card);color:var(--rb-primary);border:1px solid var(--rb-border)}
+.xp-f .btn.or{background:var(--rb-accent);color:var(--rb-on-accent);border-color:var(--rb-accent)}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--rb-primary);color:#fff;padding:10px 18px;border-radius:99px;font-weight:700;font-size:13px;z-index:20;box-shadow:0 8px 24px #0005}
 
 /* ---------- PDF pages (fixed paper palette) ---------- */
@@ -487,6 +504,7 @@ td.vg{color:var(--grn);font-weight:700}
         <input type="file" id="logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden>
         <button class="btn" id="btnClient" type="button" title="Eigene Datei für den Kunden: nur Kundenansicht, Schieberegler aktiv">Kundenversion erstellen</button>
         <a class="btn" id="expoLink" href="#" target="_blank" rel="noopener" hidden>Exposé ansehen</a>
+        <button class="btn" id="btnExpoRead" type="button" hidden title="Kaufpreis, Miete, Hausgeld usw. aus dem Exposé übernehmen">Werte aus Exposé</button>
         <button class="btn or" id="btnPdf" type="button">PDF erstellen</button>
       </div>
     </div>
@@ -1085,12 +1103,126 @@ document.getElementById("btnPhoto").onclick=()=>document.getElementById("photoFi
 let expoURL=null,expoName="",expoBlobURL=null;
 function idb(mode,fn){return new Promise((res,rej)=>{try{const r=indexedDB.open("zl-immorechner",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onerror=()=>rej(r.error);r.onsuccess=()=>{try{const tx=r.result.transaction("kv",mode);const q=fn(tx.objectStore("kv"));tx.oncomplete=()=>res(q&&q.result);tx.onerror=()=>rej(tx.error);}catch(e){rej(e);}};}catch(e){rej(e);}});}
 function dataToBlob(d){const i=d.indexOf(",");const bin=atob(d.slice(i+1));const u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);return new Blob([u],{type:"application/pdf"});}
-function paintExpo(){const a=document.getElementById("expoLink");if(expoBlobURL){URL.revokeObjectURL(expoBlobURL);expoBlobURL=null;}a.hidden=!expoURL;if(expoURL){try{expoBlobURL=URL.createObjectURL(dataToBlob(expoURL));a.href=expoBlobURL;}catch(e){a.hidden=true;}a.setAttribute("download",expoName||"Expose.pdf");if(CL)a.removeAttribute("download");}}
+function paintExpo(){const rb=document.getElementById("btnExpoRead");if(rb)rb.hidden=!expoURL||!!CL;const a=document.getElementById("expoLink");if(expoBlobURL){URL.revokeObjectURL(expoBlobURL);expoBlobURL=null;}a.hidden=!expoURL;if(expoURL){try{expoBlobURL=URL.createObjectURL(dataToBlob(expoURL));a.href=expoBlobURL;}catch(e){a.hidden=true;}a.setAttribute("download",expoName||"Expose.pdf");if(CL)a.removeAttribute("download");}}
 function setExpo(url,name){expoURL=url;expoName=name||"";paintExpo();if(CL)return;idb("readwrite",st=>url?st.put({url:url,name:expoName},KEY+"-expo"):st.delete(KEY+"-expo")).catch(()=>{});}
 if(CL){expoURL=CL.expo||null;expoName=CL.expoName||"";}else{idb("readonly",st=>st.get(KEY+"-expo")).then(v=>{if(v&&v.url&&!expoURL){expoURL=v.url;expoName=v.name||"";paintExpo();}}).catch(()=>{});}
 let pdfjsP=null;
 function loadPdfjs(){if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);if(!pdfjsP)pdfjsP=new Promise((res,rej)=>{const sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";sc.onload=()=>{const l=window.pdfjsLib;if(!l)return rej(new Error("pdfjs"));l.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";res(l);};sc.onerror=()=>{pdfjsP=null;rej(new Error("pdfjs"));};document.head.appendChild(sc);});return pdfjsP;}
 async function pdfCover(buf){const l=await loadPdfjs();const doc=await l.getDocument({data:buf}).promise;const pg=await doc.getPage(1);const v0=pg.getViewport({scale:1});const sc=Math.min(3,1400/Math.max(v0.width,v0.height));const v=pg.getViewport({scale:sc});const c=document.createElement("canvas");c.width=Math.round(v.width);c.height=Math.round(v.height);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:x,viewport:v}).promise;doc.destroy&&doc.destroy();return c.toDataURL("image/jpeg",0.82);}
+/* ---------- Exposé auslesen ---------- */
+async function pdfText(buf){const l=await loadPdfjs();const doc=await l.getDocument({data:buf}).promise;const out=[];const max=Math.min(doc.numPages,30);
+  for(let i=1;i<=max;i++){const pg=await doc.getPage(i);const tc=await pg.getTextContent();const rows=[];
+    tc.items.forEach(it=>{if(!it.str||!it.str.trim())return;const y=Math.round(it.transform[5]),x=it.transform[4];let r=rows.find(q=>Math.abs(q.y-y)<=3);if(!r){r={y,it:[]};rows.push(r);}r.it.push({x,w:it.width||0,s:it.str});});
+    rows.sort((a,b)=>b.y-a.y);
+    // Zeilen in Segmente teilen (große Lücken = andere Spalte/Zelle)
+    rows.forEach(r=>{r.it.sort((a,b)=>a.x-b.x);const seg=[];r.it.forEach(o=>{const c=seg[seg.length-1];if(c&&o.x-c.end<28){c.s+=(o.x-c.end>1.5?" ":"")+o.s;c.end=o.x+o.w;}else seg.push({x:o.x,end:o.x+o.w,s:o.s});});r.seg=seg.map(q=>({x:q.x,s:q.s.replace(/\s+/g," ").trim()}));});
+    // Spaltensatz erkennen: eine x-Position, an der in mehreren Zeilen links UND rechts Fließtext steht
+    const cnt={};rows.forEach(r=>r.it.forEach(o=>{if(o.x<80)return;const k=Math.round(o.x/6);cnt[k]=(cnt[k]||0)+1;}));
+    let cut=null;Object.keys(cnt).filter(k=>cnt[k]>=3).sort((a,b)=>cnt[b]-cnt[a]).some(k=>{const cx=k*6-4;
+      const n=rows.filter(r=>{const L=r.it.filter(o=>o.x<cx).map(o=>o.s).join(" ").trim(),R=r.it.filter(o=>o.x>=cx).map(o=>o.s).join(" ").trim();return L.length>=25&&R.length>=25&&r.it.some(o=>Math.abs(o.x-cx)<8);}).length;
+      if(n>=2&&cnt[k]>=4){cut=cx;return true;}return false;});
+    if(cut!=null){const left=[],right=[];rows.forEach(r=>{const L=r.it.filter(o=>o.x<cut).map(o=>o.s).join(" ").replace(/\s+/g," ").trim(),R=r.it.filter(o=>o.x>=cut).map(o=>o.s).join(" ").replace(/\s+/g," ").trim();if(L)left.push(L);if(R)right.push(R);});
+      out.push(...left,...right);}
+    else rows.forEach(r=>out.push(r.seg.map(q=>q.s).join(" ")));
+    out.push("");}
+  doc.destroy&&doc.destroy();return out.join("\n");}
+function deNum(s){s=String(s).replace(/[\s\u00a0\u202f']/g,"").replace(/,-+$/,"").replace(/\.-+$/,"");
+  if(/,\d{1,2}$/.test(s))return parseFloat(s.replace(/\./g,"").replace(",","."));
+  if(/^\d{1,3}(\.\d{3})+$/.test(s))return parseFloat(s.replace(/\./g,""));
+  if(/^\d{1,3}(,\d{3})+$/.test(s))return parseFloat(s.replace(/,/g,""));
+  return parseFloat(s.replace(",","."));}
+const XP_NUM="(\\d{1,3}(?:[.\\s\\u00a0\\u202f]\\d{3})+(?:,\\d{1,2})?|\\d+(?:,\\d{1,2})?)";
+// Sucht hinter einem Stichwort den ersten passenden Wert (gleiche oder nächste Zeile)
+function xpFind(t,labels,opt){opt=opt||{};const re=new RegExp("("+labels+")","gi");let m;
+  while((m=re.exec(t))){const st=m.index+m[0].length;const win=t.slice(st,st+(opt.win||70)).replace(/\n/," ");
+    if(opt.skipLabel&&opt.skipLabel.test(t.slice(Math.max(0,m.index-25),st+10)))continue;
+    const nre=new RegExp(XP_NUM+"\\s*("+(opt.unit||"€|EUR|Euro")+")?","gi");let nm,tries=0;
+    while((nm=nre.exec(win))&&tries++<4){const between=win.slice(0,nm.index);
+      if(/\d/.test(between.replace(/\b(19|20)\d{2}\b/g,"").replace(/\d+\.\s*(OG|Etage)/gi,""))&&!opt.multi)break;
+      if(between.length>(opt.gap||45))break;
+      if(opt.skipBetween&&opt.skipBetween.test(between))break;
+      const after=win.slice(nm.index+nm[0].length,nm.index+nm[0].length+16);
+      if(opt.skipAfter&&opt.skipAfter.test(after)){continue;}
+      if(opt.needUnit&&!nm[2]&&!(opt.unitBefore&&opt.unitBefore.test(between.slice(-6))))continue;
+      const v=deNum(nm[1]);if(!isFinite(v))continue;if(opt.min!=null&&v<opt.min)continue;if(opt.max!=null&&v>opt.max)continue;
+      const ls=t.lastIndexOf("\n",m.index)+1,le=t.indexOf("\n",st+nm.index+nm[0].length);
+      return {v,src:t.slice(ls,le<0?undefined:le).trim().slice(0,140),yearly:/p\.\s?a\.|jährl|pro\s+jahr|\/\s?jahr|im\s+jahr/i.test(between+after)};}
+  }
+  return null;}
+function parseExpose(t){const R=[],eur=v=>(v<1000&&Math.abs(v-Math.round(v))>0.004?v.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):nf0.format(Math.round(v)))+" €";t=t.replace(/\r/g,"");
+  const add=(k,label,v,disp,src,checked,note)=>R.push({k,label,v,disp,src,checked:checked!==false,note});
+  // Kaufpreis
+  let kp=xpFind(t,"Gesamtkaufpreis|Gesamtpreis|Kaufpreis gesamt",{min:15000,max:5e7,needUnit:true,unitBefore:/€|EUR/i});
+  if(!kp)kp=xpFind(t,"Kaufpreis|Verkaufspreis|Angebotspreis|Preis",{min:15000,max:5e7,needUnit:true,unitBefore:/€|EUR/i,skipBetween:/m²|qm|m2|pro|je|Stellplatz|Garage|Tiefgarage|Küche|Inventar/i,skipAfter:/^\s*(\/|pro|je)\s*(m²|qm|m2)/i,skipLabel:/(Stellplatz|Garage|Tiefgaragen?|pro m²|\/m²)\s*-?\s*(kauf)?preis|Kaufpreisfaktor|Kaufpreis\s*(pro|je|\/)/i});
+  if(kp)add("kaufpreis","Kaufpreis",kp.v,eur(kp.v),kp.src);
+  // Stellplatz separat
+  const sp=xpFind(t,"(?:Tiefgaragen-?|TG-|Stell|Außen|Garagen)(?:stell)?platz(?:es)?|Garage",{min:2000,max:100000,needUnit:true,unitBefore:/€|EUR/i,win:50,skipBetween:/miete|monat|mtl/i});
+  if(sp&&kp&&Math.abs(sp.v-kp.v)>1)add("_stellplatz","Stellplatz/Garage zusätzlich",sp.v,eur(sp.v),sp.src,false,"Wird zum Kaufpreis addiert, wenn angehakt.");
+  // Wohnfläche
+  const wf=xpFind(t,"Wohnfläche|Wohnfl\\.|Wfl\\.|Wohnungsgröße|Fläche",{unit:"m²|qm|m2|Quadratmeter",needUnit:true,min:10,max:3000,win:45,skipLabel:/(Grundstücks|Nutz|Garten|Balkon|Terrassen|Keller|Gewerbe)\s*fläche/i});
+  if(wf)add("wfl","Wohnfläche",wf.v,wf.v.toLocaleString("de-DE")+" m²",wf.src);
+  else{const g=/(\d{1,4}(?:,\d{1,2})?)\s*(?:m²|qm|m2)(?![\w\/])/.exec(t.replace(/(€|EUR)\s*\/\s*(m²|qm)|(Preis|Kaufpreis)\s*\/\s*(m²|qm)|Grundstück[^\n]{0,30}/gi,""));if(g&&/Wohnfläche|Wohnfl/i.test(t)){const v=deNum(g[1]);if(v>=10&&v<=3000)add("wfl","Wohnfläche",v,v.toLocaleString("de-DE")+" m²",g[0],true,"Ohne direkte Beschriftung gefunden – bitte prüfen.");}}
+  // Miete
+  let mi=xpFind(t,"Ist-?Miete|Istmiete|Nettokaltmiete|Kaltmiete|Mieteinnahmen|aktuelle Miete|Jahresnettokaltmiete|Monatsmiete|Miete kalt|Mietertrag",{min:50,max:2e6,win:60,skipLabel:/(Soll|Markt|Vergleichs|Ziel)-?\s*(miete|kaltmiete)|Miete\s*(pro|je|\/)\s*(m²|qm)|Stellplatzmiete|Garagenmiete/i,skipAfter:/^\s*(\/|pro|je)\s*(m²|qm|m2)/i,skipBetween:/m²|qm|Faktor|Rendite|%/i});
+  if(mi){let v=mi.v,j=mi.yearly||/Jahres/i.test(mi.src)||v>15000;if(j)v=v/12;add("miete","Kaltmiete (monatlich)",v,eur(v)+(j?" (aus "+eur(mi.v)+" p. a.)":""),mi.src);}
+  // Hausgeld
+  const hgT=xpFind(t,"Hausgeld(?:\\s*gesamt)?|Wohngeld",{min:5,max:5000,win:55,skipLabel:/nicht\s*umlage|umlagef|davon/i,skipBetween:/%|m²|qm/i});
+  const hgN=xpFind(t,"nicht\\s*umlage(?:fähig|fähiges|fähiger)?(?:\\s*(?:Hausgeld|Anteil|Kosten))?|Hausgeld\\s*\\(?nicht\\s*umlage(?:fähig)?\\)?|nicht auf (?:den )?Mieter umlegbar",{min:0,max:5000,win:45,skipBetween:/%/});
+  const hgU=xpFind(t,"(?<!nicht\\s*)umlagefähig(?:es|er)?(?:\\s*(?:Hausgeld|Anteil|Kosten))?",{min:0,max:5000,win:45,skipBetween:/%/});
+  // Rücklage
+  const rl=xpFind(t,"Instandhaltungsrücklage|Instandhaltungsrückstellung|Erhaltungsrücklage|Rücklagenzuführung|Zuführung\\s+(?:zur\\s+)?(?:Instandhaltungs)?[Rr]ücklage|Rücklage",{min:0,max:20000,win:60,multi:true,skipAfter:/^\s*(\/|pro|je)\s*(m²|qm|m2)/i,skipLabel:/(?<!Zuführung\s+(?:zur\s+)?(?:Instandhaltungs)?)Rücklage\s*(gesamt|Stand|aktuell|der Gemeinschaft|beträgt)|Höhe der (Instandhaltungs)?rücklage|Rücklagenstand/i,skipBetween:/%|Stand|gesamt/i});
+  let rueck=null;if(rl){let v=rl.v,j=rl.yearly;if(j)v=v/12;if(v<=2000){rueck=v;add("rueck","Instandhaltungsrücklage (monatlich)",v,eur(v)+(j?" (aus "+eur(rl.v)+" p. a.)":""),rl.src);}}
+  if(hgN){let v=hgN.v;if(hgN.yearly)v/=12;add("verw","Hausgeld nicht umlagefähig",v,eur(v),hgN.src,true,rueck!=null?"Prüfen: Enthält der Betrag die Rücklage schon? Dann Rücklage abziehen.":"");}
+  else if(hgT&&hgU&&hgT.v>hgU.v){let v=hgT.v-hgU.v;add("verw","Hausgeld nicht umlagefähig",v,eur(v)+" (gesamt "+eur(hgT.v)+" − umlagefähig "+eur(hgU.v)+")",hgT.src,true,rueck!=null?"Prüfen: Enthält der Betrag die Rücklage schon? Dann Rücklage abziehen.":"");}
+  else if(hgT){add("_hg","Hausgeld gesamt (nur Info)",hgT.v,eur(hgT.v),hgT.src,false,"Das Exposé nennt nur das Hausgeld gesamt. Den nicht umlagefähigen Teil bitte selbst eintragen.");}
+  // Provision
+  if(/provisionsfrei|courtagefrei|ohne (?:Käufer)?provision|keine (?:Käufer)?provision|provisionsfrei für (?:den )?Käufer/i.test(t))add("makler","Maklerprovision",0,"0 % (provisionsfrei)",(t.match(/.{0,40}(provisionsfrei|courtagefrei|ohne (?:Käufer)?provision|keine (?:Käufer)?provision).{0,30}/i)||[""])[0]);
+  else{const pv=xpFind(t,"Käuferprovision|Käufercourtage|Maklerprovision|Provision|Courtage|Außenprovision",{unit:"%|Prozent",needUnit:true,min:0,max:8,win:60});if(pv)add("makler","Maklerprovision",pv.v,pv.v.toLocaleString("de-DE")+" %",pv.src);}
+  // Inventar / Küche
+  const inv=xpFind(t,"Inventar|Einbauküche|Möblierung|Möbelpaket|Ausstattungspaket",{min:500,max:100000,needUnit:true,unitBefore:/€|EUR/i,win:55,skipBetween:/inklusive|inkl\.|enthalten|im Kaufpreis/i});
+  if(inv)add("moebel","Möbel / Einrichtung",inv.v,eur(inv.v),inv.src,false,"Nur übernehmen, wenn separat gekauft. Wirkt in der Profi-Ansicht.");
+  // Ort
+  let ort=null;let am=/(?:Adresse|Anschrift|Lage|Standort|Objektanschrift|Objektadresse|Ort)\s*:?\s*(?:[^\n]{0,60}?)\b(\d{5})\s+([A-ZÄÖÜ][A-Za-zÄÖÜäöüß.\-]+(?:\s(?:am|an der|bei|im|ob der)\s[A-ZÄÖÜ][\wäöüß.\-]+|\s[A-ZÄÖÜ][a-zäöüß]+(?=[\s,(]|$))?)/.exec(t)||/\b(\d{5})\s+([A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)*(?:\s(?:am|an der|bei|im)\s[A-ZÄÖÜ][\wäöüß\-]+)?)/.exec(t);
+  if(am&&/rücklage|miete|preis|fläche|geld|provision|kosten|zimmer|baujahr|wohnung/i.test(am[2]))am=null;
+  if(am){ort=am[2].replace(/[,.\-]+$/,"");add("ort","Ort",ort,am[1]+" "+ort,am[0].trim().slice(0,120));}
+  // Bundesland (nur wenn ausdrücklich genannt)
+  let lands=Object.keys(GREST).filter(L=>new RegExp("\\b"+L.replace(/-/g,"[- ]")+"\\b","i").test(t));
+  if(lands.includes("Sachsen-Anhalt"))lands=lands.filter(L=>L!=="Sachsen");
+  if(lands.length!==1&&am){const pz=+am[1].slice(0,2),P={Sachsen:[1,2,8,9],"Sachsen-Anhalt":[6,39],"Thüringen":[7,98,99],Berlin:[10,12,13],Brandenburg:[15,16],"Mecklenburg-Vorpommern":[17,18],Hamburg:[20],"Schleswig-Holstein":[23,24,25],Bremen:[28],Niedersachsen:[26,29,30,31,37,38,49],"Nordrhein-Westfalen":[32,33,40,41,42,44,45,46,47,48,50,51,52,53,57,58,59],Hessen:[35,36,60,61,63,64,65],"Rheinland-Pfalz":[54,55,56,67],"Baden-Württemberg":[70,71,72,73,74,75,76,77,78,79,88],Bayern:[80,81,82,83,84,85,86,87,90,91,92,93,94,95,96]};
+    const L=Object.keys(P).find(k=>P[k].includes(pz));if(L){add("land","Bundesland",L,L+" · "+String(GREST[L]).replace(".",",")+" % GrESt","PLZ "+am[1],true,"Aus der Postleitzahl abgeleitet – bitte prüfen.");lands=[];}}
+  if(lands.length===1)add("land","Bundesland",lands[0],lands[0]+" · "+String(GREST[lands[0]]).replace(".",",")+" % GrESt",lands[0]);
+  // Objektbeschreibung
+  const typ=(/(Eigentumswohnung|Altbauwohnung|Neubauwohnung|Apartment|Appartement|Mikroapartment|Penthouse|Maisonette|Dachgeschosswohnung|Etagenwohnung|Erdgeschosswohnung|Studentenapartment|Pflegeapartment|Mehrfamilienhaus|Zweifamilienhaus|Einfamilienhaus|Reihenhaus|Doppelhaushälfte)/i.exec(t)||[])[1];
+  const zi=/(\d(?:,5)?)\s*-?\s*(?:Zimmer|Zi\.|Raum)|Zimmer(?:anzahl)?\s*:?\s*(\d(?:,5)?)\b/i.exec(t);const zim=zi?(zi[1]||zi[2]):null;
+  const bj=/(?:Baujahr|Bj\.|Fertigstellung|erbaut|Baujahr\s*\/\s*Fertigstellung)\s*:?\s*(?:ca\.\s*)?((?:18|19|20)\d{2})/i.exec(t);
+  const et=/(\d{1,2})\.\s*(?:OG|Obergeschoss|Etage|Stock)|\b(EG|Erdgeschoss|DG|Dachgeschoss|Souterrain|UG)\b/.exec(t);
+  const parts=[];if(typ)parts.push(typ[0].toUpperCase()+typ.slice(1));if(zim)parts.push(zim+" Zimmer");if(wf)parts.push(wf.v.toLocaleString("de-DE")+" m²");if(et)parts.push(et[1]?et[1]+". OG":et[2]);if(bj)parts.push("Baujahr "+bj[1]);
+  if(parts.length>=2)add("objekt","Objektbeschreibung",parts.join(", "),parts.join(", "),"",true);
+  if(bj){const y=+bj[1],a=y>=2023?3:y<1925?2.5:2;add("afa","AfA-Satz linear (gesetzlich)",a,a.toLocaleString("de-DE")+" % (Baujahr "+y+")",bj[0],false,"Nur übernehmen, wenn kein Gutachten zur Restnutzungsdauer vorliegt.");}
+  return R;}
+const XP_FIELD_LABEL={kaufpreis:"Kaufpreis",wfl:"Wohnfläche",miete:"Kaltmiete",verw:"Hausgeld n. umlagef.",rueck:"Rücklage",makler:"Maklerprovision",moebel:"Möbel / Einrichtung",ort:"Ort",land:"Bundesland",objekt:"Objektbeschreibung",afa:"AfA-Satz"};
+function xpCur(k){const v=S[k];if(v==null||v==="")return "–";if(typeof v==="number"){if(k==="makler"||k==="afa")return v.toLocaleString("de-DE")+" %";if(k==="wfl")return v.toLocaleString("de-DE")+" m²";return nf0.format(v)+" €";}return String(v);}
+function showExposeDialog(found,fname){
+  let d=document.getElementById("xpDlg");if(d)d.remove();
+  d=document.createElement("div");d.id="xpDlg";d.className="xp-bg";d.setAttribute("role","dialog");d.setAttribute("aria-modal","true");d.setAttribute("aria-labelledby","xpTitle");
+  const rows=found.map((x,i)=>`<label class="xp-row${x.k.startsWith("_")&&x.k!=="_stellplatz"?" info":""}"><input type="checkbox" data-i="${i}"${x.checked?" checked":""}${x.k.startsWith("_")&&x.k!=="_stellplatz"?" disabled":""}>
+      <span class="xp-l">${esc(x.label)}</span><span class="xp-v">${esc(x.disp)}</span>
+      <span class="xp-c">${x.k.startsWith("_")?"":"bisher: "+esc(xpCur(x.k))}</span>
+      ${x.src?`<span class="xp-s">„${esc(x.src)}“</span>`:""}${x.note?`<span class="xp-n">${esc(x.note)}</span>`:""}</label>`).join("");
+  d.innerHTML=`<div class="xp-box"><div class="xp-h"><div><div class="xp-t" id="xpTitle">Werte aus dem Exposé</div><div class="xp-sub">${esc(fname||"")} · Bitte prüfen, dann übernehmen</div></div><button type="button" class="xp-x" aria-label="Schließen">×</button></div>
+    <div class="xp-list">${found.length?rows:'<p class="xp-empty">Im Exposé wurden keine Werte erkannt. Das passiert vor allem bei eingescannten PDFs, die nur aus Bildern bestehen. Bitte die Werte von Hand eintragen.</p>'}</div>
+    <div class="xp-f">${found.length?'<button type="button" class="btn or" id="xpOk">Ausgewählte übernehmen</button>':''}<button type="button" class="btn" id="xpNo">${found.length?"Abbrechen":"Schließen"}</button></div></div>`;
+  document.body.appendChild(d);
+  const close=()=>{d.remove();document.removeEventListener("keydown",onKey);};const onKey=e=>{if(e.key==="Escape")close();};document.addEventListener("keydown",onKey);
+  d.querySelector(".xp-x").onclick=close;d.querySelector("#xpNo").onclick=close;d.onclick=e=>{if(e.target===d)close();};
+  const ok=d.querySelector("#xpOk");if(ok){ok.focus();ok.onclick=()=>{let n=0,extra=0;
+    d.querySelectorAll("input[data-i]:checked").forEach(c=>{const x=found[+c.dataset.i];if(x.k==="_stellplatz"){extra+=x.v;return;}if(x.k.startsWith("_"))return;
+      let v=x.v;if(typeof v==="number")v=Math.round(v*100)/100;if(x.k==="afa")S.afaTyp="linear";S[x.k]=v;n++;});
+    if(extra){S.kaufpreis=(+S.kaufpreis||0)+extra;n++;}
+    if(n&&!S.quelle&&fname)S.quelle="Exposé "+fname.replace(/\.pdf$/i,"");
+    close();if(n){syncControls(true);render();save();toast(n+(n===1?" Wert":" Werte")+" aus dem Exposé übernommen");}};}
+}
+async function readExposeValues(buf,fname){try{const t=await pdfText(buf);showExposeDialog(t.replace(/\s/g,"").length<40?[]:parseExpose(t),fname);}catch(err){console.error(err);toast("Werte konnten nicht ausgelesen werden");}}
 function setPhoto(u){photoURL=u;try{u?localStorage.setItem(KEY+"-photo",u):localStorage.removeItem(KEY+"-photo");}catch(err){}paintPhoto();}
 function readAs(f,how){return new Promise((res,rej)=>{const rd=new FileReader();rd.onload=()=>res(rd.result);rd.onerror=()=>rej(rd.error);rd["readAs"+how](f);});}
 document.getElementById("photoFile").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
@@ -1099,9 +1231,11 @@ document.getElementById("photoFile").onchange=async e=>{const f=e.target.files[0
     try{const url=await readAs(f,"DataURL");setExpo(url,f.name);
       try{setPhoto(await pdfCover(await f.arrayBuffer()));toast(f.size>15e6?"Exposé hinzugefügt – Achtung, große Datei ("+Math.round(f.size/1e6)+" MB)":"Exposé hinzugefügt");}
       catch(err){console.error(err);toast("Exposé hinzugefügt (Titelbild konnte nicht gelesen werden)");}
+      await readExposeValues(await f.arrayBuffer(),f.name);
     }catch(err){toast("Exposé konnte nicht gelesen werden");}
     return;}
   const im=new Image();im.onload=()=>{const sc=Math.min(1,1400/Math.max(im.width,im.height));const c=document.createElement("canvas");c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);c.getContext("2d").drawImage(im,0,0,c.width,c.height);setPhoto(c.toDataURL("image/jpeg",0.82));toast("Foto hinzugefügt");};im.src=await readAs(f,"DataURL");};
+document.getElementById("btnExpoRead").onclick=async()=>{if(!expoURL)return;toast("Exposé wird gelesen …");try{await readExposeValues(await dataToBlob(expoURL).arrayBuffer(),expoName);}catch(e){toast("Werte konnten nicht ausgelesen werden");}};
 document.getElementById("photoDel").onclick=()=>{setPhoto(null);setExpo(null,"");toast("Exposé und Foto entfernt");};
 
 /* ---------- presentation ---------- */
