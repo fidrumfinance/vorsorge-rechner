@@ -88,3 +88,26 @@ create policy favorites_own on public.favorites for all
 drop policy if exists usage_select_own on public.usage_events;
 create policy usage_select_own on public.usage_events for select using (user_id = auth.uid());
 create index if not exists usage_events_user_idx on public.usage_events (user_id, created_at desc);
+
+-- =====================================================================
+-- Rechner nur für bestimmte Partner
+-- =====================================================================
+alter table public.calculators add column if not exists visible_to text[];
+create or replace function public.can_see_calc(c public.calculators) returns boolean
+language sql stable security definer set search_path = public as $$
+  select public.is_admin()
+      or (public.is_member() and c.active and (c.visible_to is null or public.my_email() = any (c.visible_to)));
+$$;
+drop policy if exists calculators_select on public.calculators;
+create policy calculators_select on public.calculators for select using (public.can_see_calc(calculators));
+create or replace function public.can_read_calc_file(path text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select public.is_admin()
+      or exists (select 1 from calculators c where c.file_path = path and public.can_see_calc(c));
+$$;
+drop policy if exists rechner_read on storage.objects;
+create policy rechner_read on storage.objects for select using (bucket_id = 'rechner' and public.can_read_calc_file(name));
+revoke execute on function public.can_see_calc(public.calculators) from public, anon;
+revoke execute on function public.can_read_calc_file(text) from public, anon;
+grant execute on function public.can_see_calc(public.calculators) to authenticated;
+grant execute on function public.can_read_calc_file(text) to authenticated;

@@ -383,6 +383,9 @@
             <div class="field"><label for="cOrder">Reihenfolge (kleiner = weiter oben)</label><input class="input" id="cOrder" type="number" value="100"></div>
           </div>
           <div class="field" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" id="cActive" checked><label for="cActive" style="font-size:13px;color:var(--text)">Für Partner sichtbar</label></div>
+          <div class="field"><label for="cScope">Freigabe</label>
+            <select class="input" id="cScope"><option value="all">Alle Partner</option><option value="some">Nur ausgewählte Partner</option></select></div>
+          <div class="field" id="cWhoBox" hidden><div class="who-list" id="cWho"></div></div>
           <div class="row">
             <button class="btn gold" type="submit" id="bCalcSave">Rechner speichern</button>
             <button class="btn ghost" type="button" id="bCalcCancel" hidden>Abbrechen</button>
@@ -589,7 +592,7 @@
     return '<div class="cat' + (cls ? ' ' + cls : '') + '"><div class="label">' + esc(label) + '</div><div class="tiles">' + items.map(tile).join('') + '</div></div>';
   }
   function calcTile(c) {
-    return '<div class="tw"><button class="tile" data-slug="' + esc(c.slug) + '"><span class="t">' + esc(c.title) + '</span><span class="d">' + esc(c.description || '') + '</span><span class="go">Öffnen →</span></button>' + favBtn('calc', c) + '</div>';
+    return '<div class="tw"><button class="tile" data-slug="' + esc(c.slug) + '"><span class="t">' + esc(c.title) + '</span><span class="d">' + esc(c.description || '') + '</span>' + (c.visible_to ? '<span class="meta">' + (profile.role !== 'admin' ? 'Exklusiv für dich' : 'Nur für ' + c.visible_to.length + ' Partner') + '</span>' : '') + '<span class="go">Öffnen →</span></button>' + favBtn('calc', c) + '</div>';
   }
   function renderLib() {
     const q = $('q').value.trim().toLowerCase();
@@ -1040,17 +1043,18 @@
     const cats = Array.from(new Set(CATS.concat(calcs.map((c) => c.category))));
     $('catList').innerHTML = cats.map((c) => '<option value="' + esc(c) + '">').join('');
     $('calcTbl').innerHTML = calcs.length
-      ? '<table><thead><tr><th>Rechner</th><th>Kategorie</th><th class="num">Reihenf.</th><th>Status</th><th>Geändert</th></tr></thead><tbody>' +
+      ? '<table><thead><tr><th>Rechner</th><th>Kategorie</th><th>Freigabe</th><th class="num">Reihenf.</th><th>Status</th><th>Geändert</th></tr></thead><tbody>' +
         calcs.map((c) => '<tr><td><b>' + esc(c.title) + '</b><div class="small">' + esc(c.description || '') + '</div><div class="actions left">' +
           '<button class="btn ghost sm" data-c="view" data-id="' + c.id + '">Ansehen</button>' +
           '<button class="btn ghost sm" data-c="edit" data-id="' + c.id + '">Bearbeiten</button>' +
           '<button class="btn ghost sm" data-c="toggle" data-id="' + c.id + '">' + (c.active ? 'Ausblenden' : 'Einblenden') + '</button>' +
-          '<button class="btn danger sm" data-c="del" data-id="' + c.id + '">Löschen</button></div></td><td>' + esc(c.category) + '</td><td class="num">' + c.sort_order + '</td><td>' +
+          '<button class="btn danger sm" data-c="del" data-id="' + c.id + '">Löschen</button></div></td><td>' + esc(c.category) + '</td><td>' + (c.visible_to ? '<span title="' + esc(c.visible_to.join(', ')) + '">' + c.visible_to.length + ' Partner</span>' : 'Alle') + '</td><td class="num">' + c.sort_order + '</td><td>' +
           (c.active ? '<span class="badge b-ok">Sichtbar</span>' : '<span class="badge b-off">Ausgeblendet</span>') + '</td><td class="small">' + fmtDate(c.updated_at) + '</td></tr>').join('') + '</tbody></table>'
       : '<div class="empty">Noch keine Rechner. Übernimm die öffentlichen Rechner oder lade eine HTML-Datei hoch.</div>';
   }
   function resetCalcForm() {
     $('fCalc').reset(); $('cId').value = ''; $('cOrder').value = 100; $('cActive').checked = true;
+    $('cScope').value = 'all'; $('cWhoBox').hidden = true; renderWhoList([], 'cWho');
     $('calcFormLabel').textContent = 'Neuen Rechner hinzufügen'; $('cFileLabel').textContent = 'HTML-Datei *'; $('bCalcCancel').hidden = true;
   }
   $('bCalcCancel').addEventListener('click', resetCalcForm);
@@ -1062,6 +1066,7 @@
     if (b.dataset.c === 'edit') {
       $('cId').value = c.id; $('cTitle').value = c.title; $('cCat').value = c.category; $('cDesc').value = c.description || '';
       $('cOrder').value = c.sort_order; $('cActive').checked = c.active;
+      $('cScope').value = c.visible_to ? 'some' : 'all'; $('cWhoBox').hidden = !c.visible_to; renderWhoList(c.visible_to || [], 'cWho');
       $('calcFormLabel').textContent = 'Rechner bearbeiten: ' + c.title; $('cFileLabel').textContent = 'Neue HTML-Datei (optional, ersetzt die alte)'; $('bCalcCancel').hidden = false;
       $('fCalc').scrollIntoView({ behavior: 'smooth' }); return;
     }
@@ -1083,9 +1088,11 @@
     e.preventDefault();
     const id = $('cId').value, file = $('cFile').files[0];
     if (!id && !file) { flash('adminMsg', 'Bitte eine HTML-Datei auswählen.', 'err'); return; }
+    const visibleTo = whoFrom('cScope', 'cWho');
+    if (visibleTo && !visibleTo.length) { flash('adminMsg', 'Bitte mindestens einen Partner auswählen oder „Alle Partner“ wählen.', 'err'); return; }
     $('bCalcSave').disabled = true;
     try {
-      const meta = { title: $('cTitle').value.trim(), category: $('cCat').value.trim(), description: $('cDesc').value.trim() || null, sort_order: parseInt($('cOrder').value, 10) || 100, active: $('cActive').checked, updated_at: new Date().toISOString() };
+      const meta = { title: $('cTitle').value.trim(), category: $('cCat').value.trim(), description: $('cDesc').value.trim() || null, sort_order: parseInt($('cOrder').value, 10) || 100, active: $('cActive').checked, visible_to: visibleTo, updated_at: new Date().toISOString() };
       let path = id ? calcs.find((c) => c.id === id).file_path : null;
       let slug = null;
       if (!id) {
@@ -1113,13 +1120,18 @@
     [].concat(A.profiles, A.invites).forEach((x) => { if (x && x.email && !seen[x.email] && x.role !== 'admin') { seen[x.email] = 1; out.push(x); } });
     return out;
   }
-  function renderWhoList(selected) {
+  function renderWhoList(selected, target) {
     const sel = selected || [], list = partnerChoices();
     sel.forEach((e) => { if (!list.some((x) => x.email === e)) list.push({ email: e }); });
-    $('dWho').innerHTML = list.length ? list.map((x) => '<label><input type="checkbox" value="' + esc(x.email) + '"' + (sel.includes(x.email) ? ' checked' : '') + '>' +
+    $(target || 'dWho').innerHTML = list.length ? list.map((x) => '<label><input type="checkbox" value="' + esc(x.email) + '"' + (sel.includes(x.email) ? ' checked' : '') + '>' +
       esc((x.full_name || x.email) + (x.company ? ' · ' + x.company : '')) + '</label>').join('') : '<span class="small">Noch keine Partner eingeladen.</span>';
   }
   $('dScope').addEventListener('change', () => { $('dWhoBox').hidden = $('dScope').value !== 'some'; });
+  $('cScope').addEventListener('change', () => { $('cWhoBox').hidden = $('cScope').value !== 'some'; if (!$('cWho').innerHTML) renderWhoList([], 'cWho'); });
+  function whoFrom(scopeId, listId) {
+    if ($(scopeId).value !== 'some') return null;
+    return Array.from($(listId).querySelectorAll('input:checked')).map((x) => x.value.toLowerCase());
+  }
   function renderDocsAdmin() {
     const cats = Array.from(new Set(DOC_CATS.concat(docs.map((d) => d.category))));
     $('docCatList').innerHTML = cats.map((c) => '<option value="' + esc(c) + '">').join('');
