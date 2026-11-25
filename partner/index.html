@@ -356,10 +356,11 @@
             <div class="field"><label for="iRole">Rolle</label>
               <select class="input" id="iRole"><option value="partner">Partner (nur Rechner nutzen)</option><option value="admin">Admin (alles verwalten)</option></select></div>
           </div>
-          <button class="btn gold" type="submit">Einladen</button>
+          <button class="btn gold" type="submit" id="bInvite">Einladen und E-Mail senden</button>
+          <p class="small" style="margin-top:8px">Der Partner bekommt automatisch eine E-Mail mit seinem Anmeldelink.</p>
         </form>
         <div id="inviteOut" hidden>
-          <p class="small" style="margin-top:14px">Freigeschaltet. Schick dem Partner diese Nachricht:</p>
+          <p class="small" style="margin-top:14px">Falls die E-Mail nicht ankommt, kannst du dem Partner zusätzlich diese Nachricht schicken:</p>
           <div class="copybox" id="inviteText"></div>
           <div class="row"><button class="btn sm" id="bCopyInvite" type="button">Text kopieren</button><a class="btn ghost sm" id="bMailInvite" href="#">Per E-Mail senden</a></div>
         </div>
@@ -979,15 +980,16 @@
   function renderPartners() {
     const uses = {};
     A.events.forEach((ev) => { uses[ev.user_id] = (uses[ev.user_id] || 0) + 1; });
-    const rows = A.profiles.map((p) => ({ kind: 'p', email: p.email, name: p.full_name, company: p.company, role: p.role, active: p.active, last: p.last_seen, id: p.id, uses: uses[p.id] || 0 }));
+    const rows = A.profiles.map((p) => ({ kind: 'p', email: p.email, name: p.full_name, company: p.company, role: p.role, active: p.active, last: p.last_seen, id: p.id, uses: uses[p.id] || 0, pending: !p.last_seen }));
     A.invites.filter((i) => !A.profiles.some((p) => p.email === i.email)).forEach((i) => rows.push({ kind: 'i', email: i.email, name: i.full_name, company: i.company, role: i.role, invited: i.invited_at }));
     $('partnerTbl').innerHTML = rows.length
       ? '<table><thead><tr><th>Name</th><th>Firma</th><th>E-Mail</th><th>Status</th><th>Zuletzt aktiv</th><th class="num">Aufrufe 30 T.</th><th></th></tr></thead><tbody>' +
         rows.map((r) => {
-          const status = r.kind === 'i' ? '<span class="badge b-wait">Eingeladen</span>' : r.active ? '<span class="badge b-ok">Aktiv</span>' : '<span class="badge b-off">Gesperrt</span>';
+          const status = (r.kind === 'i' || r.pending) && r.active !== false ? '<span class="badge b-wait">Eingeladen</span>' : r.active ? '<span class="badge b-ok">Aktiv</span>' : '<span class="badge b-off">Gesperrt</span>';
           const role = r.role === 'admin' ? ' <span class="badge b-admin">Admin</span>' : '';
           let act = '';
           act = '<button class="btn ghost sm" data-act="brand" data-email="' + esc(r.email) + '">Branding</button>';
+          if (r.kind === 'i' || r.pending) act += '<button class="btn ghost sm" data-act="resend" data-email="' + esc(r.email) + '">Mail erneut senden</button>';
           if (r.kind === 'i') act += '<button class="btn ghost sm" data-act="text" data-email="' + esc(r.email) + '">Einladungstext</button><button class="btn danger sm" data-act="revoke" data-email="' + esc(r.email) + '">Zurückziehen</button>';
           else if (r.id !== me.id) act += r.active ? '<button class="btn danger sm" data-act="block" data-id="' + r.id + '">Sperren</button>' : '<button class="btn ghost sm" data-act="unblock" data-id="' + r.id + '">Freischalten</button>';
           return '<tr><td>' + esc(r.name || '–') + role + '</td><td>' + esc(r.company || '–') + '</td><td>' + esc(r.email) + '</td><td>' + status + '</td><td>' + (r.kind === 'p' ? fmtDate(r.last) : '–') + '</td><td class="num">' + (r.kind === 'p' ? r.uses : '–') + '</td><td><div class="actions">' + act + '</div></td></tr>';
@@ -1010,6 +1012,17 @@
     try { await navigator.clipboard.writeText($('inviteText').textContent); $('bCopyInvite').textContent = 'Kopiert'; setTimeout(() => { $('bCopyInvite').textContent = 'Text kopieren'; }, 1500); } catch (e) { flash('adminMsg', 'Kopieren nicht möglich. Bitte Text markieren und kopieren.', 'info'); }
   });
 
+  async function sendInviteMail(email) {
+    const { data, error } = await sb.functions.invoke('send-invite', { body: { email, redirectTo: PORTAL_URL } });
+    if (error) {
+      let msg = error.message;
+      try { const j = await error.context.json(); if (j && j.error) msg = j.error; } catch (x) {}
+      if (/rate limit|too many/i.test(msg)) msg = 'Zu viele E-Mails in kurzer Zeit. Bitte in ein paar Minuten erneut versuchen.';
+      return { ok: false, msg };
+    }
+    return { ok: true, kind: data && data.kind };
+  }
+
   $('fInvite').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = $('iEmail').value.trim().toLowerCase();
@@ -1018,7 +1031,11 @@
     if (error) { flash('adminMsg', 'Einladung fehlgeschlagen: ' + error.message, 'err'); return; }
     const existing = A.profiles.find((p) => p.email === email);
     if (existing && !existing.active) await sb.from('profiles').update({ active: true }).eq('id', existing.id);
-    flash('adminMsg', email + ' ist freigeschaltet.', 'ok');
+    $('bInvite').disabled = true;
+    const sent = await sendInviteMail(email);
+    $('bInvite').disabled = false;
+    if (sent.ok) flash('adminMsg', email + ' ist freigeschaltet. Die Einladungs-E-Mail ist unterwegs.', 'ok');
+    else flash('adminMsg', email + ' ist freigeschaltet, aber die E-Mail konnte nicht verschickt werden (' + sent.msg + '). Schick dem Partner die Nachricht unten.', 'err');
     showInviteText(email, row.full_name);
     $('fInvite').reset();
     loadAdmin();
@@ -1029,6 +1046,13 @@
     const act = b.dataset.act;
     if (act === 'brand') { location.hash = b.dataset.email === me.email ? '#branding' : '#branding/' + encodeURIComponent(b.dataset.email); return; }
     if (act === 'text') { const inv = A.invites.find((i) => i.email === b.dataset.email); showInviteText(b.dataset.email, inv && inv.full_name); $('inviteOut').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    if (act === 'resend') {
+      b.disabled = true;
+      const sent = await sendInviteMail(b.dataset.email);
+      b.disabled = false;
+      flash('adminMsg', sent.ok ? 'E-Mail an ' + b.dataset.email + ' ist unterwegs.' : 'E-Mail konnte nicht verschickt werden: ' + sent.msg, sent.ok ? 'ok' : 'err');
+      return;
+    }
     if (act === 'revoke') { if (!confirm('Einladung für ' + b.dataset.email + ' zurückziehen?')) return; await sb.from('invites').delete().eq('email', b.dataset.email); }
     if (act === 'block') { if (!confirm('Zugang sperren? Der Partner kann die Rechner dann nicht mehr öffnen.')) return; await sb.from('profiles').update({ active: false }).eq('id', b.dataset.id); }
     if (act === 'unblock') { await sb.from('profiles').update({ active: true }).eq('id', b.dataset.id); }
